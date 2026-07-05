@@ -1,12 +1,13 @@
-"use strict";
+"use strict"
 
 const fs = require("node:fs");
 const path = require("node:path");
+const TOML = require("@iarna/toml");
 
 const [, , developerNameInput, appNameInput] = process.argv;
 
 if (!developerNameInput || !appNameInput) {
-    console.error("Usage: node name.cjs <developer_name> <appName>");
+    console.error("Usage: node name.cjs <developer_name> <app_name>");
     process.exit(1);
 }
 
@@ -14,30 +15,30 @@ const developerName = developerNameInput.trim();
 const appName = appNameInput.trim();
 
 if (!developerName) {
-    console.error("Developer name cannot be empty.");
+    console.error("Developer Name cannot be empty")
     process.exit(1);
 }
 
 if (!appName) {
-    console.error("App name cannot be empty.");
+    console.error("App Name cannot be empty")
     process.exit(1);
 }
 
 const rootDir = path.resolve(__dirname, "..");
 const paths = {
     packageJson: path.join(rootDir, "package.json"),
-    taoriConf: path.join(rootDir, "src-tauri", "tauri.conf.json"),
+    tauriConf: path.join(rootDir, "src-tauri", "tauri.conf.json"),
     cargoToml: path.join(rootDir, "src-tauri", "Cargo.toml"),
     cargoLock: path.join(rootDir, "src-tauri", "Cargo.lock"),
     mainRs: path.join(rootDir, "src-tauri", "src", "main.rs"),
     appConstants: path.join(rootDir, "constants", "app.ts"),
-};
+}
 
 const updatedFiles = [];
 
 function ensureFileExists(filePath) {
     if (!fs.existsSync(filePath)) {
-        throw new Error(`Expected file not found: ${path.relative(rootDir, filePath)}`);
+        throw new Error(`Expected file not found: ${path.relative(rootDir, filePath)}`)
     }
 }
 
@@ -46,17 +47,13 @@ function writeFile(filePath, content) {
     updatedFiles.push(path.relative(rootDir, filePath));
 }
 
-function sanitizeIdentifierPart(part, fallback = "app") {
-    const cleaned = part.toLowerCase().replace(/[^a-z0-9_-]/g, "");
-    return cleaned || fallback;
-}
-
 function escapeRegExp(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function escapeTomlString(value) {
-    return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+function sanitizeIdentifierPart(part, fallback = "app") {
+    const cleaned = part.toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    return cleaned || fallback;
 }
 
 function updateJsonFile(filePath, updateFn) {
@@ -64,117 +61,78 @@ function updateJsonFile(filePath, updateFn) {
     const raw = fs.readFileSync(filePath, "utf8");
     const json = JSON.parse(raw);
     const updated = updateFn(json);
-    const serialized = `${JSON.stringify(updated, null, "\t")}\n`;
+    const serialized = `${JSON.stringify(updated, null, "\t")}\n`
     writeFile(filePath, serialized);
 }
 
-function rewriteCargoToml(rawContent, nextAppName, nextAuthor) {
-    const lines = rawContent.split(/\r?\n/);
-    let currentSection = null;
-    let packageName = null;
-    let libName = null;
-    let authorReplaced = false;
+function updateCargoToml(rawContent, newAppName, newAuthor) {
+    const cargo = TOML.parse(rawContent);
+    if (!cargo.package) throw new Error("Cargo.toml is missing [package] section");
+    if (!cargo.lib) throw new Error("Cargo.toml is missing [lib] section");
 
-    const rewritten = lines.map((line) => {
-        const trimmed = line.trim();
-        const sectionMatch = trimmed.match(/^\[(.+)]$/);
-        if (sectionMatch) {
-            currentSection = sectionMatch[1].trim().toLowerCase();
-            return line;
-        }
+    const packageName = cargo.package.name;
+    const libName = cargo.lib.name;
 
-        if (currentSection === "package" && trimmed.startsWith("name")) {
-            if (packageName === null) {
-                packageName = trimmed.replace(/name\s*=\s*"(.+?)".*/, "$1");
-            }
-            return line.replace(/name\s*=\s*"(.+?)"/, `name = "${nextAppName}"`);
-        }
+    if (typeof packageName !== "string") throw new Error("Unable to find package.name in Cargo.toml");
+    if (typeof libName !== "string") throw new Error("Unable to find lib.name in Cargo.toml");
 
-        if (currentSection === "package" && trimmed.startsWith("authors")) {
-            authorReplaced = true;
-            const serializedAuthor = escapeTomlString(nextAuthor);
-            return line.replace(/authors\s*=\s*\[.*]/, `authors = ["${serializedAuthor}"]`);
-        }
+    cargo.package.name = newAppName;
+    cargo.package.authors = [newAuthor];
+    cargo.lib.name = `${newAppName}_lib`;
 
-        if (currentSection === "lib" && trimmed.startsWith("name")) {
-            if (libName === null) {
-                libName = trimmed.replace(/name\s*=\s*"(.+?)".*/, "$1");
-            }
-            return line.replace(/name\s*=\s*"(.+?)"/, `name = "${nextAppName}_lib"`);
-        }
+    const content = TOML.stringify(cargo);
 
-        return line;
-    });
-
-    if (!packageName || !libName) {
-        throw new Error("Unable to find both package and lib names in Cargo.toml");
-    }
-
-    if (!authorReplaced) {
-        throw new Error("Unable to update authors field in Cargo.toml");
-    }
-
-    const normalized = rewritten.join("\n");
     return {
-        content: normalized.endsWith("\n") ? normalized : `${normalized}\n`,
+        content: content.endsWith("\n") ? content : `${content}\n`,
         packageName,
         libName,
     };
 }
 
-function updateCargoLock(rawContent, oldName, nextName) {
+function updateCargoLock(rawContent, oldName, newName) {
     const lines = rawContent.split(/\r?\n/);
     let updated = false;
     let currentStart = -1;
 
     function tryUpdatePackageBlock(start, end) {
-        let nameLineIndex = -1;
+        let nameLineIdx = -1;
         let nameValue = "";
         let hasSource = false;
         let hasTauriBuildDep = false;
 
         for (let i = start + 1; i < end; i += 1) {
-            const trimmed = lines[i].trim();
-            if (trimmed.startsWith("name = ")) {
-                nameLineIndex = i;
-                nameValue = trimmed.replace(/^name\s*=\s*"(.+?)"\s*$/, "$1");
+            const line = lines[i].trim();
+            if (line.startsWith("name = ")) {
+                nameLineIdx = i;
+                nameValue = line.replace(/^name\s*=\s*"(.+?)"\s*$/, "$1");
             }
-            if (trimmed.startsWith("source = ")) {
-                hasSource = true;
-            }
-            if (trimmed.includes('"tauri-build"')) {
-                hasTauriBuildDep = true;
-            }
+            if (line.startsWith("source = ")) hasSource = true;
+            if (line.includes('"tauri-build"')) hasTauriBuildDep = true;
         }
 
-        if (nameLineIndex === -1) {
-            return false;
-        }
+        if (nameLineIdx === -1) return false;
 
         const isExactNameMatch = nameValue === oldName;
         const isLocalRootPackage = !hasSource && hasTauriBuildDep;
         if (isExactNameMatch || isLocalRootPackage) {
-            lines[nameLineIndex] = lines[nameLineIndex].replace(
-                /^\s*name\s*=\s*".+?"\s*$/,
-                `name = "${nextName}"`,
-            );
+            lines[nameLineIdx] = lines[nameLineIdx].replace(/^\s*name\s*=\s*".+?"\s*$/, `name = "${newName}"`);
             return true;
         }
-
         return false;
     }
 
     for (let i = 0; i <= lines.length; i += 1) {
-        const trimmed = i < lines.length ? lines[i].trim() : "[[package]]";
-        if (trimmed === "[[package]]") {
-            if (!updated && currentStart !== -1) {
-                updated = tryUpdatePackageBlock(currentStart, i);
-            }
+        const line = i < lines.length ? lines[i].trim() : "[[package]]";
+        if (line == "[[package]]") {
+            if (!updated && currentStart !== -1) updated = tryUpdatePackageBlock(currentStart, i);
             currentStart = i;
         }
     }
 
-    return { content: lines.join("\n"), updated };
+    return {
+        content: lines.join("\n"),
+        updated
+    };
 }
 
 try {
@@ -183,29 +141,33 @@ try {
         return pkg;
     });
 
+    // update Cargo.toml
     ensureFileExists(paths.cargoToml);
-    const cargoResult = rewriteCargoToml(
+    const cargoResult = updateCargoToml(
         fs.readFileSync(paths.cargoToml, "utf8"),
         appName,
-        developerName,
-    );
-    writeFile(paths.cargoToml, cargoResult.content);
+        developerName
+    )
+    writeFile(paths.cargoToml, cargoResult.content)
 
-    ensureFileExists(paths.mainRs);
-    const mainRsRaw = fs.readFileSync(paths.mainRs, "utf8");
-    const nextLibName = `${appName}_lib`;
-    let nextMainContent = mainRsRaw;
+    // update main.rs
+    ensureFileExists(paths.mainRs)
+    const mainRsRaw = fs.readFileSync(paths.mainRs, "utf8")
+    const newLibName = `${appName}_lib`
+    let newMainContent = mainRsRaw;
     if (cargoResult.libName && mainRsRaw.includes(cargoResult.libName)) {
         const pattern = new RegExp(escapeRegExp(cargoResult.libName), "g");
-        nextMainContent = mainRsRaw.replace(pattern, nextLibName);
+        newMainContent = mainRsRaw.replace(pattern, newLibName);
     }
-    if (nextMainContent !== mainRsRaw) {
-        writeFile(paths.mainRs, nextMainContent);
-    } else if (!mainRsRaw.includes(nextLibName)) {
+
+    if (newMainContent !== mainRsRaw) {
+        writeFile(paths.mainRs, newMainContent);
+    } else if (!mainRsRaw.includes(newLibName)) {
         throw new Error("main.rs does not reference the expected lib name.");
     }
 
-    updateJsonFile(paths.taoriConf, (conf) => {
+    // update tauri.conf.json
+    updateJsonFile(paths.tauriConf, (conf) => {
         conf.productName = appName;
         const developerSegment = sanitizeIdentifierPart(developerName, "dev");
         conf.identifier = `com.${developerSegment}.${appName}`;
@@ -218,6 +180,7 @@ try {
         return conf;
     });
 
+    // update Cargo.lock
     if (fs.existsSync(paths.cargoLock)) {
         const cargoLockRaw = fs.readFileSync(paths.cargoLock, "utf8");
         const lockResult = updateCargoLock(cargoLockRaw, cargoResult.packageName, appName);
@@ -229,6 +192,7 @@ try {
         }
     }
 
+    // update app constants
     if (fs.existsSync(paths.appConstants)) {
         let content = fs.readFileSync(paths.appConstants, "utf8");
         content = content.replace(/export const APP_NAME = ".*";/, `export const APP_NAME = "${appName}";`);
@@ -236,13 +200,13 @@ try {
         writeFile(paths.appConstants, content);
     }
 
+    // DONE!
     console.log("Updated:");
     updatedFiles.forEach((file) => {
         console.log(`- ${file}`);
-    });
-    console.log("Done!");
+    })
+    console.log("Done!")
 } catch (error) {
     console.error(error.message);
     process.exit(1);
 }
-

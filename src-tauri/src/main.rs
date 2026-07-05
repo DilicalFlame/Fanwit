@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-  fanwit_lib::run();
+    fanwit_lib::run();
 }

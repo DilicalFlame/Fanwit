@@ -14,8 +14,7 @@ if (!command) {
 const rootDir = path.resolve(__dirname, "..");
 const paths = {
     packageJson: path.join(rootDir, "package.json"),
-    taoriConf: path.join(rootDir, "src-tauri", "tauri.conf.json"),
-    cargoToml: path.join(rootDir, "src-tauri", "Cargo.toml"),
+    tauriConf: path.join(rootDir, "src-tauri", "tauri.conf.json"),
     cargoToml: path.join(rootDir, "src-tauri", "Cargo.toml"),
     versions: path.join(rootDir, "constants", ".versions"),
     appConstants: path.join(rootDir, "constants", "app.ts"),
@@ -46,9 +45,9 @@ function updatePackageJson(version) {
 }
 
 function updateTauriConf(version) {
-    const conf = readJson(paths.taoriConf);
+    const conf = readJson(paths.tauriConf);
     conf.version = version;
-    writeJson(paths.taoriConf, conf);
+    writeJson(paths.tauriConf, conf);
 }
 
 function rewriteCargoTomlVersion(rawContent, version) {
