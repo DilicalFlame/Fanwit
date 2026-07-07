@@ -1,7 +1,7 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
     "productName": "fanwit",
-    "version": "0.1.0",
+    "version": "0.0.1",
     "identifier": "com.dilicalflame.fanwit",
     "build": {
         "frontendDist": "../build",
@@ -17,7 +17,8 @@
                 "width": 800,
                 "height": 600,
                 "resizable": true,
-                "fullscreen": false
+                "fullscreen": false,
+                "visible": false
             }
         ],
         "security": {
