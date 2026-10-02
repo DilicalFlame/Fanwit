@@ -1,45 +1,46 @@
 {
-    "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "fanwit",
-    "version": "0.0.1",
-    "identifier": "com.dilicalflame.fanwit",
-    "build": {
-        "frontendDist": "../build",
-        "devUrl": "http://localhost:3000",
-        "beforeDevCommand": "pnpm dev",
-        "beforeBuildCommand": "pnpm build",
-        "removeUnusedCommands": true
-    },
-    "app": {
-        "windows": [
-            {
-                "title": "fanwit",
-                "width": 800,
-                "height": 600,
-                "resizable": true,
-                "fullscreen": false,
-                "visible": false
-            }
-        ],
-        "security": {
-            "csp": null,
-            "pattern": {
-                "use": "isolation",
-                "options": {
-                    "dir": "../isolation-src"
-                }
-            }
-        }
-    },
-    "bundle": {
-        "active": true,
-        "targets": "all",
-        "icon": [
-            "icons/32x32.png",
-            "icons/128x128.png",
-            "icons/128x128@2x.png",
-            "icons/icon.icns",
-            "icons/icon.ico"
-        ]
-    }
+	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+	"productName": "fanwit",
+	"version": "0.0.1",
+	"identifier": "com.dilicalflame.fanwit",
+	"build": {
+		"frontendDist": "../build",
+		"devUrl": "http://localhost:3000",
+		"beforeDevCommand": "pnpm dev",
+		"beforeBuildCommand": "pnpm build",
+		"removeUnusedCommands": true
+	},
+	"app": {
+		"withGlobalTauri": false,
+		"windows": [
+			{
+				"title": "fanwit",
+				"width": 800,
+				"height": 600,
+				"resizable": true,
+				"fullscreen": false,
+				"visible": false
+			}
+		],
+		"security": {
+			"csp": null,
+			"pattern": {
+				"use": "isolation",
+				"options": {
+					"dir": "../isolation-src"
+				}
+			}
+		}
+	},
+	"bundle": {
+		"active": true,
+		"targets": "all",
+		"icon": [
+			"icons/32x32.png",
+			"icons/128x128.png",
+			"icons/128x128@2x.png",
+			"icons/icon.icns",
+			"icons/icon.ico"
+		]
+	}
 }

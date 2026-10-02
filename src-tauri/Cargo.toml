@@ -24,7 +24,7 @@ strip = true
 
 [build-dependencies.tauri-build]
 version = "2.5.6"
-features = ["isolation" ]
+features = [ "isolation" ]
 
 [dependencies]
 serde_json = "1.0"
@@ -32,6 +32,7 @@ log = "0.4"
 tauri-plugin-log = "2"
 chrono = "0.4.45"
 colored = "3.1.1"
+tauri-plugin-dialog = "2"
 
   [dependencies.serde]
   version = "1.0"
@@ -39,7 +40,7 @@ colored = "3.1.1"
 
   [dependencies.tauri]
   version = "2.10.3"
-  features = ["isolation" ]
+  features = [ "isolation" ]
 
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+[target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
 tauri-plugin-window-state = "2"

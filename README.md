@@ -1,42 +1,25 @@
-# sv
+# FANWIT
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+> Acronym for `Fast and Natural Window in Tauri`
 
-## Creating a project
+This is a desktop application TEMPLATE.
+Use it to quickly build production ready Tauri Desktop Applications.
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Clone it
+2. Delete the .git folder
+3. Rename the software's name and developer name (script provided)
+4. (Optional) Change the version (script provided)
+5. `pnpm install`
+6. `pnpm tauri dev`
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## Features
+1. Professional Logger to log in frontend and tauri both.
+2. Scripts for changing application and developer name plus versions across frontend and tauri.
+3. 5 Types of windows provided: Dialog, Flyout, Overlay, Panel and Popover.
+4. Special: Context Menu editor in place.
+5. Some settings built in place to edit upon (on prebuilt settings window).
+6. Sqlite store API to store data at global application level and in local vaults' level.
+7. Rich Layout API with split pane support.
+8. Custom Title Bar Component provided to tweak with.
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-pnpm dlx sv@0.12.8 create --template minimal --types ts --add tailwindcss="plugins:none" --install pnpm .
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+...

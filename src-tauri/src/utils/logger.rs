@@ -2,7 +2,6 @@ use super::super::constants;
 
 use chrono::Local;
 use colored::Colorize;
-use log::LevelFilter;
 use tauri::{plugin::TauriPlugin, Runtime};
 use tauri_plugin_log::{Builder, RotationStrategy, Target, TargetKind};
 
@@ -11,7 +10,7 @@ use tauri_plugin_log::{Builder, RotationStrategy, Target, TargetKind};
 /// Parses the custom `[FRONTEND_LOC:file:line]` tag injected by the Svelte frontend,
 /// or defaults to the standard Rust backend module paths. It also normalizes
 /// OS-specific path separators.
-pub fn extract_clean_metadata<'a>(
+fn extract_clean_metadata<'a>(
     message: &std::fmt::Arguments<'a>,
     record: &log::Record,
 ) -> (String, String, String) {
@@ -65,9 +64,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 
     // determine global log level based on build profile
     let log_level = if cfg!(debug_assertions) {
-        LevelFilter::Trace
+        constants::LOG_LEVEL_DEV
     } else {
-        LevelFilter::Info
+        constants::LOG_LEVEL_PROD
     };
 
     // build and route the plugin instance
