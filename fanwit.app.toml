@@ -1,0 +1,11 @@
+# App identity: the single source of truth. Edit, then run `pnpm fw rename` to propagate.
+[app]
+name = "Fanwit"                          # display name: window titles, installers, menus
+slug = "fanwit"                          # crate, package, log file, vault folder (.fanwit)
+identifier = "com.dilicalflame.fanwit"
+scheme = "fanwit"                        # deep links: fanwit://
+version = "0.0.1"
+
+[developer]
+name = "dilicalflame"
+url = ""

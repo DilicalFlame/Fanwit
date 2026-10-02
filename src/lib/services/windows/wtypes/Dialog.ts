@@ -16,7 +16,7 @@ import {
     type OpenDialogReturn,
     type SaveDialogOptions
 } from '@tauri-apps/plugin-dialog';
-import { logger } from '$lib/utils';
+import { logger } from '$lib/utils/Logger';
 
 class DialogWindow {
     public async AskDialog(str: string, options: ConfirmDialogOptions):
