@@ -1,0 +1,21 @@
+# Wizard: full screen step views.
+version = 1
+preset = "wizard"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "steps" }
+activity = { visible = false }
+
+[node.steps]
+type = "tabs"
+panes = ["welcome"]
+strip = "top"
+locked = true
+
+[pane.welcome]
+view = "fanwit.welcome"
+title = "Step 1"

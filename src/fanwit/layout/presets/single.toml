@@ -1,0 +1,19 @@
+# Single pane utility.
+version = 1
+preset = "single"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "center" }
+activity = { visible = false }
+
+[node.center]
+type = "tabs"
+panes = ["welcome"]
+strip = "hidden"
+
+[pane.welcome]
+view = "fanwit.welcome"

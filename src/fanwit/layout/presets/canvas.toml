@@ -1,0 +1,49 @@
+# Canvas: full main area, floating tool palette, inspector and layers on the right.
+version = 1
+preset = "canvas"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+sidebar = { node = "layers", size = "220px" }
+inspector = { node = "insp", size = "280px", visible = true }
+main = { node = "center" }
+
+[node.center]
+type = "tabs"
+panes = ["canvas"]
+active = "canvas"
+
+[node.layers]
+type = "stack"
+title = "Layers"
+icon = "layers"
+panes = ["outline"]
+
+[node.insp]
+type = "stack"
+title = "Inspector"
+icon = "sliders-horizontal"
+panes = ["properties"]
+
+[pane.canvas]
+view = "fanwit.welcome"
+title = "Canvas"
+
+[pane.outline]
+view = "fanwit.outline"
+
+[pane.properties]
+view = "fanwit.properties"
+
+[pane.palette]
+view = "fanwit.colorPicker"
+
+[float.palette]
+window = "main"
+pane = "palette"
+rect = [-300, 16, 280, 340]
+anchor = "main:top-right"
+snap = true

@@ -1,0 +1,335 @@
+/**
+ * Windows API (Chapter 9). Developers state intent with a window kind; the presentation policy
+ * maps it to a native OS window on the desktop or an in page virtual window / modal on the web.
+ *   const win = await ctx.windows.open("app.export", { doc: id });
+ *   const choice = await win.result;   // resolves when the child calls close(value)
+ */
+import { getContext, setContext, type Component } from "svelte";
+import { toDisposable, type Disposable } from "../kernel/disposable";
+import { FanwitError } from "../kernel/errors";
+import type { Kernel } from "../kernel/kernel.svelte";
+import { beep } from "../notify/notify.svelte";
+
+export type WindowBase = "main" | "aux" | "child" | "panel" | "sheet" | "palette" | "splash" | "tray";
+export type FocusPolicy = "none" | "takeover" | "lock";
+export type BlockedEffect = "bell" | "shake" | "flash" | "attention";
+export type WebPresentation = "virtual" | "modal" | "popup" | "tab" | "pip";
+
+export interface WindowKindSpec {
+	kind: string;
+	base: WindowBase;
+	/** Root view rendered in the window (a registered view id), or "layout" for a layout tree. */
+	view?: string;
+	title?: string | ((props: Record<string, unknown>) => string);
+	size?: [number, number];
+	minSize?: [number, number];
+	maxSize?: [number, number];
+	position?: "remember" | "center" | "center-parent" | "cascade" | "cursor" | "tray";
+	parent?: "opener" | "main" | string;
+	focus?: FocusPolicy;
+	onBlocked?: BlockedEffect[];
+	dimParent?: boolean;
+	alwaysOnTop?: boolean;
+	skipTaskbar?: boolean;
+	decorations?: "custom" | "native" | "none";
+	transparent?: boolean;
+	shadow?: boolean | "css";
+	effects?: "mica" | "acrylic" | "vibrancy" | "none";
+	resizable?: boolean;
+	maximizable?: boolean;
+	minimizable?: boolean;
+	closable?: boolean;
+	instance?: "single" | "per-identity" | "multiple";
+	identity?: (props: Record<string, unknown>) => string;
+	persist?: "global" | "vault" | "none";
+	closeBehavior?: "close" | "hide" | "confirm";
+	web?: WebPresentation;
+	/** Route for fully custom windows (/w/<route>); defaults to /w/<kind>. */
+	route?: string;
+}
+
+export interface WindowHandle<R = unknown> {
+	label: string;
+	kind: string;
+	result: Promise<R | undefined>;
+	close(value?: R): Promise<void>;
+	focus(): Promise<void>;
+}
+
+export interface VirtualWindow {
+	id: string;
+	kind: string;
+	spec: WindowKindSpec;
+	props: Record<string, unknown>;
+	title: string;
+	rect: { x: number; y: number; w: number; h: number };
+	z: number;
+	minimized: boolean;
+	maximized: boolean;
+	modal: boolean;
+	opener: string;
+	resolve: (v: unknown) => void;
+	/** Animation request: "shake" | "flash", cleared by the component. */
+	feedback: string | null;
+	/** Root layout window id for aux layout windows (pop out). */
+	layoutWindow?: string;
+}
+
+const DEFAULTS: Record<WindowBase, Partial<WindowKindSpec>> = {
+	main: { size: [1280, 800], position: "remember", persist: "global", web: "tab" },
+	aux: { size: [960, 680], position: "cascade", persist: "global", web: "virtual" },
+	child: { size: [520, 420], position: "center-parent", parent: "opener", focus: "lock", onBlocked: ["bell", "shake"], skipTaskbar: true, persist: "none", web: "modal", minimizable: false },
+	panel: { size: [320, 420], parent: "opener", focus: "none", alwaysOnTop: true, skipTaskbar: true, persist: "global", web: "virtual", minimizable: false },
+	sheet: { size: [520, 360], parent: "opener", focus: "lock", skipTaskbar: true, persist: "none", web: "modal", resizable: false },
+	palette: { size: [640, 120], position: "cursor", focus: "takeover", alwaysOnTop: true, skipTaskbar: true, persist: "none", web: "modal", resizable: false },
+	splash: { size: [420, 260], position: "center", decorations: "none", skipTaskbar: true, persist: "none", web: "modal", resizable: false },
+	tray: { size: [320, 400], position: "tray", alwaysOnTop: true, skipTaskbar: true, persist: "none", web: "virtual", resizable: false }
+};
+
+export function resolveSpec(s: WindowKindSpec): WindowKindSpec {
+	return { ...DEFAULTS[s.base], ...s };
+}
+
+/** What a window's own code sees through useWindow(). */
+export interface WindowSelf<R = unknown> {
+	label: string;
+	kind: string;
+	props: Record<string, unknown>;
+	opener: string | null;
+	close(value?: R): Promise<void>;
+	setTitle(t: string): void;
+}
+
+const SELF_KEY = Symbol("fw-window-self");
+
+export function provideWindowSelf(self: WindowSelf) {
+	setContext(SELF_KEY, self);
+}
+
+/** Inside a window's view: its label, props and close(value) that resolves the opener's promise. */
+export function useWindow<R = unknown>(): WindowSelf<R> {
+	const self = getContext<WindowSelf<R> | undefined>(SELF_KEY);
+	if (!self) throw new FanwitError("WINDOW_CONTEXT", { message: "useWindow() must be called inside a window view." });
+	return self;
+}
+
+let seq = 0;
+const shortId = () => (Date.now().toString(36).slice(-4) + (++seq).toString(36)).slice(-6);
+
+export class WindowService {
+	version = $state(0);
+	kinds = new Map<string, WindowKindSpec & { owner: string }>();
+	/** Web host: virtual windows rendered by <VirtualWindows/>. */
+	virtual = $state<VirtualWindow[]>([]);
+	/** Native windows opened by this window: label -> resolver. */
+	private pending = new Map<string, (v: unknown) => void>();
+	/** Locked by a native child (desktop) or a modal virtual window (web). */
+	locked = $state(false);
+	private zTop = 10;
+	/** Last rectangle per kind for cascade placement. */
+	private lastRect = new Map<string, { x: number; y: number }>();
+	/** Component that renders a view inside a virtual window. Set by the workbench. */
+	viewHost: Component<{ view: string; props: Record<string, unknown> }> | null = null;
+
+	constructor(private k: Kernel) {
+		k.events.on("fw:window-result" as never, (m: { label: string; value: unknown }) => {
+			this.pending.get(m.label)?.(m.value);
+			this.pending.delete(m.label);
+		});
+		k.host.events.on<{ label: string }>("fw://window-destroyed", (m) => {
+			this.pending.get(m.label)?.(undefined);
+			this.pending.delete(m.label);
+			void k.modules.fire(`onWindowClosed:${m.label}`);
+		});
+		k.host.events.on<{ locked: boolean }>("fw://lock", (m) => (this.locked = m.locked));
+	}
+
+	register(spec: WindowKindSpec, owner: string): Disposable {
+		this.kinds.set(spec.kind, { ...resolveSpec(spec), owner });
+		this.version++;
+		return toDisposable(() => {
+			this.kinds.delete(spec.kind);
+			this.version++;
+		});
+	}
+
+	spec(kind: string) {
+		const s = this.kinds.get(kind);
+		if (!s) throw new FanwitError("WINDOW_KIND_UNKNOWN", { message: `Unknown window kind "${kind}".`, hint: "Declare it in contributes.windows or with defineWindowKind.", docs: "manual://windows#kinds" });
+		return s;
+	}
+
+	title(spec: WindowKindSpec, props: Record<string, unknown>) {
+		const t = typeof spec.title === "function" ? spec.title(props) : spec.title;
+		return t ?? spec.kind;
+	}
+
+	/** Open a window of a registered kind. */
+	async open<R = unknown>(kind: string, props: Record<string, unknown> = {}, o: { web?: WebPresentation } = {}): Promise<WindowHandle<R>> {
+		const spec = this.spec(kind);
+		await this.k.modules.fire(`onWindow:${kind}`);
+		const identity = spec.identity?.(props);
+		const title = this.title(spec, props);
+
+		if (!this.k.host.caps.nativeWindows) return this.openVirtual<R>(spec, props, title, o.web ?? spec.web ?? "virtual");
+
+		// single instance kinds: focus the existing window
+		const base = spec.base === "main" ? "main" : spec.base;
+		const label = spec.instance === "single" || spec.instance === undefined && spec.base !== "child" ? `${base}-${slug(kind)}${identity ? "-" + slug(identity) : ""}` : `${base}-${shortId()}`;
+		const existing = (await this.k.host.windows.list()).includes(label);
+		if (existing) {
+			await this.k.host.windows.show(label);
+			await this.k.host.windows.focus(label);
+			return this.handle<R>(label, kind, new Promise(() => {}));
+		}
+		const opener = this.k.host.windows.label;
+		const parent = spec.parent === "opener" ? opener : spec.parent;
+		const route = spec.route ?? kind;
+		const q = new URLSearchParams({ label, opener });
+		if (Object.keys(props).length) q.set("props", JSON.stringify(props));
+		const result = new Promise<R | undefined>((resolve) => this.pending.set(label, resolve as (v: unknown) => void));
+		const cascade = spec.position === "cascade" ? this.cascade(kind) : undefined;
+		await this.k.host.windows.open({
+			label,
+			url: `/w/${route}?${q}`,
+			title,
+			width: spec.size?.[0],
+			height: spec.size?.[1],
+			minWidth: spec.minSize?.[0],
+			minHeight: spec.minSize?.[1],
+			x: cascade?.x,
+			y: cascade?.y,
+			center: spec.position === "center" || spec.position === "remember" || !spec.position,
+			parent: spec.base === "aux" ? undefined : parent,
+			focus: spec.focus,
+			alwaysOnTop: spec.alwaysOnTop,
+			skipTaskbar: spec.skipTaskbar,
+			decorations: spec.decorations === "native",
+			transparent: spec.transparent || spec.shadow === "css",
+			shadow: spec.shadow !== "css",
+			resizable: spec.resizable,
+			maximizable: spec.maximizable,
+			minimizable: spec.minimizable,
+			closable: spec.closable,
+			stateKey: spec.persist === "none" ? undefined : `${kind}${identity ? ":" + identity : ""}`,
+			visible: false,
+			...({ onBlocked: spec.onBlocked } as object)
+		});
+		return this.handle<R>(label, kind, result);
+	}
+
+	private cascade(kind: string) {
+		const last = this.lastRect.get(kind) ?? { x: 120, y: 90 };
+		const next = { x: last.x + 24, y: last.y + 24 };
+		this.lastRect.set(kind, next.x > 600 ? { x: 120, y: 90 } : next);
+		return next;
+	}
+
+	private handle<R>(label: string, kind: string, result: Promise<R | undefined>): WindowHandle<R> {
+		return {
+			label,
+			kind,
+			result,
+			close: async (value?: R) => {
+				this.k.events.emit("fw:window-result" as never, { label, value } as never, { scope: "app" });
+				await this.k.host.windows.close(label);
+			},
+			focus: () => this.k.host.windows.focus(label)
+		};
+	}
+
+	/** Web presentation: a virtual window (draggable card) or a modal with an inert background. */
+	private openVirtual<R>(spec: WindowKindSpec, props: Record<string, unknown>, title: string, web: WebPresentation): WindowHandle<R> {
+		if (spec.instance !== "multiple") {
+			const ex = this.virtual.find((v) => v.kind === spec.kind && JSON.stringify(v.props) === JSON.stringify(props));
+			if (ex) {
+				this.raise(ex.id);
+				return this.virtualHandle<R>(ex, new Promise(() => {}));
+			}
+		}
+		const [w, h] = spec.size ?? [640, 480];
+		const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
+		const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+		const cascade = spec.position === "cascade" ? this.virtual.length * 24 : 0;
+		const modal = web === "modal" || spec.focus === "lock";
+		let resolve!: (v: unknown) => void;
+		const result = new Promise<R | undefined>((r) => (resolve = r as (v: unknown) => void));
+		const vwin: VirtualWindow = {
+			id: `${spec.base}-${shortId()}`,
+			kind: spec.kind,
+			spec,
+			props,
+			title,
+			rect: { x: Math.max(8, (vw - Math.min(w, vw - 16)) / 2 + cascade), y: Math.max(8, (vh - Math.min(h, vh - 16)) / 3 + cascade), w: Math.min(w, vw - 16), h: Math.min(h, vh - 16) },
+			z: ++this.zTop,
+			minimized: false,
+			maximized: false,
+			modal,
+			opener: "main",
+			resolve,
+			feedback: null
+		};
+		if (web === "popup" || web === "tab") {
+			const route = spec.route ?? spec.kind;
+			const q = new URLSearchParams({ label: vwin.id, opener: "main" });
+			if (Object.keys(props).length) q.set("props", JSON.stringify(props));
+			window.open(`/w/${route}?${q}`, web === "popup" ? vwin.id : "_blank", web === "popup" ? `width=${w},height=${h}` : undefined);
+			return this.virtualHandle<R>(vwin, result);
+		}
+		this.virtual = [...this.virtual, vwin];
+		if (modal) this.locked = true;
+		return this.virtualHandle<R>(vwin, result);
+	}
+
+	private virtualHandle<R>(v: VirtualWindow, result: Promise<R | undefined>): WindowHandle<R> {
+		return {
+			label: v.id,
+			kind: v.kind,
+			result,
+			close: async (value?: R) => this.closeVirtual(v.id, value),
+			focus: async () => this.raise(v.id)
+		};
+	}
+
+	closeVirtual(id: string, value?: unknown) {
+		const v = this.virtual.find((x) => x.id === id);
+		if (!v) return;
+		this.virtual = this.virtual.filter((x) => x.id !== id);
+		this.locked = this.virtual.some((x) => x.modal);
+		v.resolve(value);
+	}
+
+	raise(id: string) {
+		const v = this.virtual.find((x) => x.id === id);
+		if (!v) return;
+		v.z = ++this.zTop;
+		v.minimized = false;
+	}
+
+	/** Clicking the locked parent: feedback on the modal (web; Rust does this on desktop). */
+	blocked() {
+		const top = [...this.virtual].filter((v) => v.modal).sort((a, b) => b.z - a.z)[0];
+		if (!top) return;
+		const effects = top.spec.onBlocked ?? ["bell", "shake"];
+		if (effects.includes("bell")) beep("bell");
+		const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+		top.feedback = effects.includes("shake") && !reduced ? "shake" : "flash";
+		setTimeout(() => (top.feedback = null), 420);
+		if (effects.includes("attention")) void this.k.host.notify.attention();
+	}
+
+	/** Cycle virtual windows (Alt+`). */
+	cycle() {
+		const list = [...this.virtual].sort((a, b) => a.z - b.z);
+		if (list.length) this.raise(list[0].id);
+	}
+}
+
+function slug(s: string) {
+	return s.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase().slice(0, 40);
+}
+
+/** Typed helper for declaring kinds in code: defineWindowKind({ kind: "app.export", base: "child" }). */
+export function defineWindowKind(spec: WindowKindSpec): WindowKindSpec {
+	return spec;
+}

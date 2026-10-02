@@ -1,0 +1,41 @@
+# Three column: list, detail, composer (mail, chat).
+version = 1
+preset = "three-column"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+sidebar = { node = "side", size = "220px" }
+main = { node = "center" }
+
+[node.center]
+type = "split"
+dir = "row"
+children = ["list", "detail"]
+sizes = ["340px", 1]
+
+[node.list]
+type = "tabs"
+panes = ["search"]
+strip = "hidden"
+
+[node.detail]
+type = "tabs"
+panes = ["welcome"]
+
+[node.side]
+type = "stack"
+title = "Folders"
+icon = "inbox"
+panes = ["explorer"]
+
+[pane.search]
+view = "fanwit.search"
+
+[pane.welcome]
+view = "fanwit.welcome"
+
+[pane.explorer]
+view = "fanwit.explorer"

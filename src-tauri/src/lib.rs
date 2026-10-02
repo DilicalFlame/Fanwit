@@ -28,6 +28,8 @@ pub fn run() {
         .manage(fanwit::State::new(launch))
         .invoke_handler(tauri::generate_handler![
             fanwit::app::fw_app_info,
+            fanwit::app::fw_secret_get,
+            fanwit::app::fw_secret_set,
             fanwit::fs::fw_dirs,
             fanwit::fs::fw_fs_read_text,
             fanwit::fs::fw_fs_read,

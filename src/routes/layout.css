@@ -252,6 +252,40 @@
 	}
 }
 
+@layer components {
+	.fw-btn {
+		@apply inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50;
+		height: var(--control-h);
+	}
+	.fw-btn-primary {
+		@apply border-transparent bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground;
+	}
+	.fw-btn-ghost {
+		@apply border-transparent bg-transparent shadow-none;
+	}
+	.fw-btn-danger {
+		@apply border-transparent bg-destructive text-white hover:bg-destructive/90;
+	}
+	.fw-icon-btn {
+		@apply inline-flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40;
+	}
+	.fw-input {
+		@apply w-full rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40;
+		height: var(--control-h);
+	}
+	.fw-row {
+		@apply flex items-center gap-2 px-2 text-sm;
+		min-height: var(--row-h);
+	}
+	.fw-menu-row {
+		@apply flex w-full cursor-default items-center gap-2 rounded-md px-2 text-left text-[13px] outline-none select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent;
+		min-height: var(--row-h);
+	}
+	.fw-section-title {
+		@apply px-3 pt-3 pb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase;
+	}
+}
+
 [data-density="compact"] {
 	--control-h: 24px;
 	--row-h: 22px;

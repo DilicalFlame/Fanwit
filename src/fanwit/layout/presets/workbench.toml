@@ -1,0 +1,113 @@
+#:schema ./workspace.schema.json
+# Live layout. Edit and save: the app updates immediately. The app writes here too.
+version = 1
+preset = "workbench"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+title = "${vault.name} - ${app.name}"
+
+[window.main.regions]
+sidebar = { node = "side", containers = ["side", "search", "commands", "labs", "plugins", "manual"], size = "280px" }
+inspector = { node = "insp", size = "300px", visible = false }
+panel = { node = "bottom", size = 0.28, visible = false }
+main = { node = "center" }
+
+[window.main.responsive]
+"< 900px" = { sidebar = "drawer", inspector = "drawer" }
+"< 640px" = { main = "single", activity = "bottom-nav", panel = "sheet" }
+
+[node.center]                 # the main area: one tab set to start with
+type = "tabs"
+panes = ["welcome"]
+active = "welcome"
+
+[node.side]
+type = "stack"
+title = "Explorer"
+icon = "files"
+panes = ["explorer", "outline"]
+
+[node.search]
+type = "stack"
+title = "Search"
+icon = "search"
+panes = ["search"]
+
+[node.commands]
+type = "stack"
+title = "Commands"
+icon = "square-terminal"
+panes = ["command-list"]
+
+[node.labs]
+type = "stack"
+title = "Labs"
+icon = "flask-conical"
+panes = ["labs-list"]
+
+[node.plugins]
+type = "stack"
+title = "Plugins"
+icon = "puzzle"
+panes = ["plugin-list"]
+
+[node.manual]
+type = "stack"
+title = "Manual"
+icon = "book-open"
+panes = ["manual-toc"]
+
+[node.insp]
+type = "stack"
+title = "Inspector"
+icon = "panel-right"
+panes = ["properties", "context-keys"]
+
+[node.bottom]
+type = "tabs"
+panes = ["logs", "problems", "jobs"]
+active = "logs"
+
+[pane.welcome]
+view = "fanwit.welcome"
+pinned = true
+
+[pane.explorer]
+view = "fanwit.explorer"
+
+[pane.outline]
+view = "fanwit.outline"
+collapsed = true
+
+[pane.search]
+view = "fanwit.search"
+
+[pane.command-list]
+view = "fanwit.commandList"
+
+[pane.labs-list]
+view = "fanwit.labs"
+
+[pane.plugin-list]
+view = "fanwit.pluginList"
+
+[pane.manual-toc]
+view = "fanwit.manualToc"
+
+[pane.properties]
+view = "fanwit.properties"
+
+[pane.context-keys]
+view = "fanwit.contextKeys"
+collapsed = true
+
+[pane.logs]
+view = "fanwit.logs"
+
+[pane.problems]
+view = "fanwit.problems"
+
+[pane.jobs]
+view = "fanwit.jobs"

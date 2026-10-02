@@ -10,7 +10,8 @@ const config = {
 			'$fanwit/*': 'src/fanwit/*',
 			// `$app` is reserved by SvelteKit, so the app layer uses `$application`
 			$application: 'src/app',
-			'$application/*': 'src/app/*'
+			'$application/*': 'src/app/*',
+			$appconfig: 'app.config.ts'
 		}
 	},
 	vitePlugin: {

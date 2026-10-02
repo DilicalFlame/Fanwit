@@ -1,0 +1,69 @@
+# Notes: sidebar, tabbed editor, right inspector with outline.
+version = 1
+preset = "notes"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+sidebar = { node = "side", containers = ["side", "search"], size = "260px" }
+inspector = { node = "insp", size = "260px", visible = true }
+panel = { node = "bottom", size = 0.25, visible = false }
+main = { node = "center" }
+
+[node.center]
+type = "split"
+dir = "row"
+children = ["docs", "preview"]
+sizes = [0.55, 0.45]
+
+[node.docs]
+type = "tabs"
+panes = ["welcome"]
+active = "welcome"
+
+[node.preview]
+type = "tabs"
+panes = []
+
+[node.side]
+type = "stack"
+title = "Explorer"
+icon = "files"
+panes = ["explorer"]
+
+[node.search]
+type = "stack"
+title = "Search"
+icon = "search"
+panes = ["search"]
+
+[node.insp]
+type = "stack"
+title = "Outline"
+icon = "list-tree"
+panes = ["outline", "properties"]
+
+[node.bottom]
+type = "tabs"
+panes = ["logs"]
+
+[pane.welcome]
+view = "fanwit.welcome"
+pinned = true
+
+[pane.explorer]
+view = "fanwit.explorer"
+
+[pane.search]
+view = "fanwit.search"
+
+[pane.outline]
+view = "fanwit.outline"
+
+[pane.properties]
+view = "fanwit.properties"
+
+[pane.logs]
+view = "fanwit.logs"

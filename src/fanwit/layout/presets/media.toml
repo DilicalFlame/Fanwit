@@ -1,0 +1,28 @@
+# Media: full bleed view with an overlay footer for controls.
+version = 1
+preset = "media"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "stage" }
+footer = { node = "controls", size = "64px" }
+activity = { visible = false }
+
+[node.stage]
+type = "tabs"
+panes = ["welcome"]
+strip = "hidden"
+
+[node.controls]
+type = "tabs"
+panes = ["jobs"]
+strip = "hidden"
+
+[pane.welcome]
+view = "fanwit.welcome"
+
+[pane.jobs]
+view = "fanwit.jobs"

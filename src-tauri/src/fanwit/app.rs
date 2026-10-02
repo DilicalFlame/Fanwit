@@ -103,3 +103,30 @@ pub fn setup<R: Runtime>(app: &mut App<R>) -> Result<()> {
     }
     Ok(())
 }
+
+/// Secrets live in the OS keychain (Windows Credential Manager, macOS Keychain, Secret Service),
+/// never in TOML files or logs (Section 12.6).
+fn secret_entry<R: Runtime>(app: &AppHandle<R>, key: &str) -> Result<keyring::Entry> {
+    keyring::Entry::new(&app.config().identifier, key).map_err(err)
+}
+
+#[tauri::command]
+pub fn fw_secret_get<R: Runtime>(app: AppHandle<R>, key: String) -> Result<Option<String>> {
+    match secret_entry(&app, &key)?.get_password() {
+        Ok(v) => Ok(Some(v)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(err(e)),
+    }
+}
+
+#[tauri::command]
+pub fn fw_secret_set<R: Runtime>(app: AppHandle<R>, key: String, value: Option<String>) -> Result<()> {
+    let e = secret_entry(&app, &key)?;
+    match value {
+        Some(v) if !v.is_empty() => e.set_password(&v).map_err(err),
+        _ => match e.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(x) => Err(err(x)),
+        },
+    }
+}
