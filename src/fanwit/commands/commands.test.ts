@@ -1,6 +1,7 @@
 import * as v from "valibot";
 import { expect, test } from "vitest";
 import { defineModule } from "../kernel/module";
+import type { ModuleContext } from "../kernel/context-api";
 import { createTestKernel } from "../testing";
 
 test("lazy module activates on first invocation and returns results", async () => {
@@ -11,7 +12,7 @@ test("lazy module activates on first invocation and returns results", async () =
 			commands: [{ id: "hello.greet", title: "Say hello", args: { name: { type: "string", default: "world" } }, cli: true }]
 		},
 		activate: async () => ({
-			default: (ctx) => {
+			default: (ctx: ModuleContext) => {
 				activations++;
 				ctx.commands.handle("hello.greet", ({ name }: { name: string }) => ({ greeted: name }));
 			}

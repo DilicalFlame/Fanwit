@@ -1,0 +1,51 @@
+# High contrast theme (WCAG AAA text contrast, strong borders and focus rings).
+[meta]
+id = "fanwit-high-contrast"
+name = "High Contrast"
+author = "Fanwit"
+version = "1.0.0"
+extends = "fanwit-default"
+modes = ["light", "dark"]
+
+[common]
+border-width = "2px"
+radius = "0.25rem"
+
+[light]
+background = "oklch(1 0 0)"
+foreground = "oklch(0 0 0)"
+muted-foreground = "oklch(0.25 0 0)"
+border = "oklch(0 0 0)"
+input = "oklch(0 0 0)"
+ring = "oklch(0.45 0.25 264)"
+primary = "oklch(0.35 0.2 264)"
+primary-foreground = "oklch(1 0 0)"
+titlebar = "oklch(1 0 0)"
+titlebar-foreground = "oklch(0 0 0)"
+statusbar = "oklch(0 0 0)"
+statusbar-foreground = "oklch(1 0 0)"
+activity-foreground = "oklch(0.2 0 0)"
+tab-border = "oklch(0.35 0.2 264)"
+splitter = "oklch(0 0 0)"
+selection = "oklch(0.35 0.2 264 / 0.3)"
+
+[dark]
+background = "oklch(0 0 0)"
+foreground = "oklch(1 0 0)"
+muted-foreground = "oklch(0.85 0 0)"
+border = "oklch(1 0 0)"
+input = "oklch(1 0 0)"
+ring = "oklch(0.85 0.17 90)"
+primary = "oklch(0.85 0.17 90)"
+primary-foreground = "oklch(0 0 0)"
+titlebar = "oklch(0 0 0)"
+titlebar-foreground = "oklch(1 0 0)"
+statusbar = "oklch(0 0 0)"
+statusbar-foreground = "oklch(1 0 0)"
+activity = "oklch(0 0 0)"
+activity-foreground = "oklch(0.9 0 0)"
+tab = "oklch(0 0 0)"
+tab-active = "oklch(0.15 0 0)"
+tab-border = "oklch(0.85 0.17 90)"
+splitter = "oklch(1 0 0)"
+selection = "oklch(0.85 0.17 90 / 0.35)"
