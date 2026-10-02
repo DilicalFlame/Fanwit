@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "fanwit-main-windows",
-  "description": "Main and auxiliary windows (labels main, main-*, aux-*): the full workbench.",
-  "windows": ["main", "main-*", "aux-*"],
+  "identifier": "fanwit-child-windows",
+  "description": "Owned windows (child, panel, sheet, palette, splash, tray): no process control or deep links.",
+  "windows": ["child-*", "panel-*", "sheet-*", "palette-*", "splash-*", "tray-*"],
   "permissions": [
     "core:default",
     "core:window:allow-minimize",
@@ -15,19 +15,11 @@
     "core:window:allow-set-title",
     "core:window:allow-start-dragging",
     "core:window:allow-set-always-on-top",
-    "core:window:allow-set-fullscreen",
     "core:window:allow-set-theme",
     "core:window:allow-set-background-color",
-    "core:window:allow-set-badge-count",
-    "core:window:allow-set-progress-bar",
-    "core:window:allow-request-user-attention",
-    "core:window:allow-unminimize",
     "log:default",
     "dialog:default",
     "notification:default",
-    "opener:default",
-    "opener:allow-reveal-item-in-dir",
-    "process:default",
-    "deep-link:default"
+    "opener:default"
   ]
 }

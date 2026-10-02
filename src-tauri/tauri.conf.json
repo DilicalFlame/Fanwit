@@ -1,6 +1,7 @@
 {
 	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-	"productName": "fanwit",
+	"productName": "Fanwit",
+	"mainBinaryName": "fanwit",
 	"version": "0.0.1",
 	"identifier": "com.dilicalflame.fanwit",
 	"build": {
@@ -12,18 +13,30 @@
 	},
 	"app": {
 		"withGlobalTauri": false,
-		"windows": [
-			{
-				"title": "fanwit",
-				"width": 800,
-				"height": 600,
-				"resizable": true,
-				"fullscreen": false,
-				"visible": false
-			}
-		],
+		"windows": [],
 		"security": {
-			"csp": null,
+			"csp": {
+				"default-src": "'self'",
+				"script-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"style-src": "'self' 'unsafe-inline'",
+				"img-src": "'self' asset: http://asset.localhost data: blob:",
+				"font-src": "'self' data:",
+				"connect-src": "'self' ipc: http://ipc.localhost fanwit-plugin: http://fanwit-plugin.localhost",
+				"worker-src": "'self' blob:",
+				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"object-src": "'none'"
+			},
+			"devCsp": {
+				"default-src": "'self'",
+				"script-src": "'self' 'unsafe-eval' 'unsafe-inline' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"style-src": "'self' 'unsafe-inline'",
+				"img-src": "'self' asset: http://asset.localhost data: blob:",
+				"font-src": "'self' data:",
+				"connect-src": "'self' ipc: http://ipc.localhost ws://localhost:3000 http://localhost:3000 fanwit-plugin: http://fanwit-plugin.localhost",
+				"worker-src": "'self' blob:",
+				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"object-src": "'none'"
+			},
 			"pattern": {
 				"use": "isolation",
 				"options": {
@@ -32,15 +45,16 @@
 			}
 		}
 	},
+	"plugins": {
+		"deep-link": {
+			"desktop": {
+				"schemes": ["fanwit"]
+			}
+		}
+	},
 	"bundle": {
 		"active": true,
 		"targets": "all",
-		"icon": [
-			"icons/32x32.png",
-			"icons/128x128.png",
-			"icons/128x128@2x.png",
-			"icons/icon.icns",
-			"icons/icon.ico"
-		]
+		"icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
 	}
 }

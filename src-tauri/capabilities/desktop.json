@@ -1,14 +1,12 @@
 {
-  "identifier": "desktop-capability",
-  "platforms": [
-    "macOS",
-    "windows",
-    "linux"
-  ],
-  "windows": [
-    "main"
-  ],
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "fanwit-desktop",
+  "description": "Desktop only: OS wide shortcuts for the main window.",
+  "platforms": ["macOS", "windows", "linux"],
+  "windows": ["main"],
   "permissions": [
-    "window-state:default"
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-is-registered"
   ]
 }

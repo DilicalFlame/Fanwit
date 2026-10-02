@@ -36,7 +36,7 @@ class TauriFs implements HostFs {
 	remove = (path: string, o?: { recursive?: boolean }) => invoke<void>("fw_fs_remove", { path, recursive: o?.recursive ?? false });
 	rename = (from: string, to: string) => invoke<void>("fw_fs_rename", { from, to });
 	trash = (path: string) => invoke<void>("fw_fs_trash", { path });
-	allowRoot = (path: string) => invoke<void>("fw_fs_allow_root", { path });
+	allowRoot = async (path: string) => void (await invoke<string>("fw_fs_allow_root", { path }));
 	writeToml = (path: string, value: Record<string, unknown>) => invoke<string>("fw_toml_merge", { path, value });
 
 	async watch(path: string, cb: (e: FsEvent[]) => void, o?: { recursive?: boolean }) {
@@ -50,10 +50,8 @@ class TauriFs implements HostFs {
 		});
 	}
 
-	async pickFolder(o?: { title?: string }) {
-		const p = await dialog.open({ directory: true, title: o?.title });
-		return typeof p === "string" ? p.replace(/\\/g, "/") : null;
-	}
+	/** Native picker in Rust: the chosen folder is remembered as user chosen (sandbox). */
+	pickFolder = (o?: { title?: string }) => invoke<string | null>("fw_fs_pick_folder", { title: o?.title ?? null });
 }
 
 function windowsApi(): HostWindows {

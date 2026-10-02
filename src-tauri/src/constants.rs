@@ -5,3 +5,5 @@ use log::LevelFilter;
 pub const MAX_LOG_FILE_SIZE: u128 = 52_42_880;
 pub const LOG_LEVEL_DEV: LevelFilter = LevelFilter::Trace;
 pub const LOG_LEVEL_PROD: LevelFilter = LevelFilter::Info;
+/// Rotated log files kept on disk (D3: KeepAll grew without bound).
+pub const LOG_FILES_KEPT: usize = 5;

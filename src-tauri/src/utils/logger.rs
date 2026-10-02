@@ -71,7 +71,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 
     // build and route the plugin instance
     Builder::new()
-        .rotation_strategy(RotationStrategy::KeepAll)
+        .rotation_strategy(RotationStrategy::KeepSome(constants::LOG_FILES_KEPT))
         .level(log_level)
         .clear_format()
         .max_file_size(constants::MAX_LOG_FILE_SIZE)
@@ -124,7 +124,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             }),
             // TARGET 2: Local App File Log (Plain Text)
             Target::new(TargetKind::LogDir {
-                file_name: Some("fanwit.log".to_string()),
+                // derived from the crate name so `fw rename` never has to touch it (D4)
+                file_name: Some(env!("CARGO_PKG_NAME").to_string()),
             })
             .format(|out, message, record| {
                 let time = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -140,8 +141,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
                     out.finish(format_args!("{} [{}] {}", time, level_str, clean_message))
                 }
             }),
-            // TARGET 3: Webview Console Passthrough
-            Target::new(TargetKind::Webview),
+            // TARGET 3: Webview passthrough (feeds the Log Viewer ring buffer). Records that came
+            // from the webview are filtered out so frontend logs are not echoed twice (D5).
+            Target::new(TargetKind::Webview).filter(|m| !m.target().starts_with("webview")),
         ])
         .build()
 }
