@@ -250,10 +250,11 @@ pub fn create_main<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>> {
         let handle = w.clone();
         let app = app.clone();
         std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_secs(5));
+            // dev builds wait on a cold Vite server (dependency optimisation) on first load
+            std::thread::sleep(Duration::from_secs(if cfg!(debug_assertions) { 30 } else { 5 }));
             let booted = app.state::<State>().cli.ready.load(std::sync::atomic::Ordering::SeqCst);
             if !booted && !handle.is_visible().unwrap_or(true) {
-                log::warn!("main window did not report ready in 5 s; showing it");
+                log::warn!("main window did not report ready in time; showing it");
                 let _ = handle.show();
             }
         });

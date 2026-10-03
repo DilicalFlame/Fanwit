@@ -88,7 +88,8 @@ export class KeybindingService {
 	}
 
 	private async registerGlobal(b: ResolvedBinding) {
-		if (!this.host.caps.globalShortcuts || b.steps.length !== 1) return;
+		// global shortcuts are app wide: the main window registers them once
+		if (!this.host.caps.globalShortcuts || b.steps.length !== 1 || this.host.windows.label !== "main") return;
 		const accel = toAccelerator(b.steps[0]);
 		try {
 			const d = await this.host.keys.registerGlobal(accel, () => {

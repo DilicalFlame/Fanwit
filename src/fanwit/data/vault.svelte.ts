@@ -76,7 +76,34 @@ export class VaultService {
 	readonly folder = identity.vaultFolder;
 	indexers = new Map<string, Indexer>();
 
-	constructor(private k: Kernel) {}
+	constructor(private k: Kernel) {
+		// the main window owns the vault: other windows of this app ask it to open one
+		if (k.host.windows.label !== "main") return;
+		k.events.on("fw:vault-open" as never, async (m: { id: string; path: string; readonly?: boolean }) => {
+			try {
+				const info = await this.open(m.path, { readonly: m.readonly });
+				k.events.emit("fw:vault-opened" as never, { id: m.id, info: $state.snapshot(info) } as never, { scope: "app" });
+			} catch (e) {
+				// host errors arrive as plain strings
+				const err = e as Partial<FanwitError>;
+				k.events.emit("fw:vault-opened" as never, { id: m.id, error: { code: err?.code ?? "VAULT_OPEN", message: String(err?.message ?? e) } } as never, { scope: "app" });
+			}
+		});
+	}
+
+	/** A secondary window's open: forwarded to the main window, which holds the lock. */
+	private openInMain(path: string, readonly?: boolean): Promise<VaultInfo> {
+		const id = crypto.randomUUID();
+		return new Promise((resolve, reject) => {
+			const d = this.k.events.on("fw:vault-opened" as never, (m: { id: string; info?: VaultInfo; error?: { code: string; message: string } }) => {
+				if (m.id !== id) return;
+				d.dispose();
+				if (m.info) resolve(m.info);
+				else reject(new FanwitError(m.error?.code ?? "VAULT_OPEN", { message: m.error?.message ?? "The main window could not open the vault." }));
+			});
+			this.k.events.emit("fw:vault-open" as never, { id, path, readonly } as never, { scope: "app" });
+		});
+	}
 
 	async loadRecent() {
 		this.recentList = (await this.k.sys.storage.get<RecentVault[]>("fanwit", "vaults/recent")) ?? [];
@@ -116,6 +143,7 @@ export class VaultService {
 			path = picked;
 		}
 		path = path.replace(/\\/g, "/").replace(/\/+$/, "");
+		if (!o.attach && this.k.host.windows.label !== "main") return this.openInMain(path, o.readonly);
 		if (this.current?.path === path) return this.current;
 		if (this.current) await this.close();
 		const fs = this.k.host.fs;
