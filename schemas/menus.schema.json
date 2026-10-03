@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fanwit menus.toml",
+  "type": "object",
+  "properties": {
+    "patch": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "location",
+          "op",
+          "item"
+        ],
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "op": {
+            "enum": [
+              "hide",
+              "show",
+              "move",
+              "rename",
+              "icon",
+              "regroup",
+              "insert",
+              "props",
+              "pin",
+              "when"
+            ]
+          },
+          "item": {
+            "type": [
+              "string",
+              "object"
+            ]
+          },
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "props": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "location": {
+      "type": "array"
+    }
+  }
+}

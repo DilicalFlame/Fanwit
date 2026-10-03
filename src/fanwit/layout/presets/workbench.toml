@@ -1,4 +1,4 @@
-#:schema ./workspace.schema.json
+#:schema https://fanwit.dev/schema/layout-1.json
 # Live layout. Edit and save: the app updates immediately. The app writes here too.
 version = 1
 preset = "workbench"

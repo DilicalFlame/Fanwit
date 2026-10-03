@@ -1,4 +1,4 @@
-# FANWIT
+# Fanwit
 
 > Acronym for `Fast and Natural Window in Tauri`
 

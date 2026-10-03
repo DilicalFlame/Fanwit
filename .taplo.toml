@@ -1,0 +1,15 @@
+# Schema associations for Even Better TOML (Taplo)
+[[rule]]
+include = ["**/workspace.toml", "src/fanwit/layout/presets/*.toml"]
+[rule.schema]
+path = "./schemas/workspace.schema.json"
+
+[[rule]]
+include = ["**/keys.toml"]
+[rule.schema]
+path = "./schemas/keys.schema.json"
+
+[[rule]]
+include = ["**/menus.toml"]
+[rule.schema]
+path = "./schemas/menus.schema.json"

@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fanwit settings.toml",
+  "description": "Known keys: dev.editor, dev.ipcTimings, dev.mode, dev.reloadOnChange, general.confirmQuit, general.language, general.startup.restoreVault, general.startup.showWelcome, general.update.check, keys.chordTimeout, keys.overlayTrigger, keys.style, layout.closeButton, layout.dockIndicator, layout.previewTabs, layout.rememberPerVault, layout.titlebar, log.level, log.levels, menus.autoScrollSpeed, menus.editableInProduction, menus.menubar, notes.daily.folder, notes.editor.fontSize, notes.editor.wrap, notes.editor.wrapColumn, notify.channels, notify.dnd, notify.quietHours, notify.retentionDays, notify.toastPosition, plugins.allowCode, plugins.allowUnsigned, plugins.autoUpdate, plugins.safeMode, theme.dark, theme.light, theme.mode, ui.density, ui.effects, ui.fontSize, ui.reducedMotion, ui.zoom, update.channel, update.crashReports, vault.backupSchedule, vault.cacheSize, vault.defaultLocation, vault.trash",
+  "type": "object"
+}

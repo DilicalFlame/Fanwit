@@ -2,7 +2,7 @@
 name = "fanwit"
 version = "0.0.1"
 description = "A Tauri App"
-authors = [ "dilicalflame" ]
+authors = ["dilicalflame"]
 license = ""
 repository = ""
 edition = "2021"

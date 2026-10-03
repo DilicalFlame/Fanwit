@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fanwit keys.toml",
+  "type": "object",
+  "properties": {
+    "bind": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "when": {
+            "type": "string"
+          },
+          "args": {
+            "type": "object"
+          },
+          "global": {
+            "type": "boolean"
+          },
+          "mac": {
+            "type": "string"
+          },
+          "win": {
+            "type": "string"
+          },
+          "linux": {
+            "type": "string"
+          },
+          "web": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,373 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fanwit workspace.toml",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "preset": {
+      "type": "string"
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "frame": {
+            "enum": [
+              "workbench",
+              "plain"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "regions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "node": {
+                  "type": "string"
+                },
+                "containers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "size": {
+                  "type": [
+                    "string",
+                    "number"
+                  ]
+                },
+                "visible": {
+                  "type": "boolean"
+                },
+                "collapsible": {
+                  "type": "boolean"
+                },
+                "side": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "responsive": {
+            "type": "object"
+          },
+          "parent": {
+            "type": "string"
+          },
+          "focus": {
+            "enum": [
+              "none",
+              "takeover",
+              "lock"
+            ]
+          },
+          "on_blocked": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "bell",
+                "shake",
+                "flash",
+                "attention"
+              ]
+            }
+          },
+          "size": {
+            "type": "array"
+          },
+          "root": {
+            "type": "string"
+          },
+          "zen": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "enum": [
+              "split",
+              "tabs",
+              "stack",
+              "grid"
+            ],
+            "description": "Node type, or a custom type registered with defineLayoutNode"
+          },
+          "dir": {
+            "enum": [
+              "row",
+              "column"
+            ]
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "string"
+              ]
+            }
+          },
+          "panes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "string"
+          },
+          "strip": {
+            "enum": [
+              "top",
+              "bottom",
+              "left",
+              "right",
+              "hidden"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "locked": {
+            "type": "boolean"
+          },
+          "columns": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "string"
+          },
+          "gap": {
+            "type": [
+              "number",
+              "string"
+            ]
+          }
+        }
+      }
+    },
+    "pane": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "view"
+        ],
+        "properties": {
+          "view": {
+            "type": "string",
+            "examples": [
+              "canvas.arrange",
+              "canvas.back",
+              "canvas.bringToFront",
+              "canvas.delete",
+              "canvas.duplicate",
+              "canvas.fill",
+              "canvas.front",
+              "canvas.lock",
+              "canvas.opacity",
+              "canvas.previewOpacity",
+              "canvas.quick",
+              "canvas.reset",
+              "canvas.sendToBack",
+              "canvas.setFill",
+              "canvas.setOpacity",
+              "canvas.toggleRound",
+              "capture.append",
+              "dev.profiler",
+              "explorer.copyPath",
+              "explorer.delete",
+              "explorer.newFile",
+              "explorer.newFolder",
+              "explorer.open",
+              "explorer.openToSide",
+              "explorer.rename",
+              "explorer.reveal",
+              "fanwit.about",
+              "fanwit.colorPicker",
+              "fanwit.commandList",
+              "fanwit.commandLog",
+              "fanwit.console",
+              "fanwit.contextKeys",
+              "fanwit.core",
+              "fanwit.crash",
+              "fanwit.createMenuHere",
+              "fanwit.devtools",
+              "fanwit.events",
+              "fanwit.explorer",
+              "fanwit.focusWindow",
+              "fanwit.inspectAt",
+              "fanwit.jobs",
+              "fanwit.labExport",
+              "fanwit.labs",
+              "fanwit.logs",
+              "fanwit.manual",
+              "fanwit.manualToc",
+              "fanwit.menuDemo",
+              "fanwit.menuEditor",
+              "fanwit.notificationRead",
+              "fanwit.notificationRemove",
+              "fanwit.notificationSnooze",
+              "fanwit.onboarding",
+              "fanwit.openSource",
+              "fanwit.outline",
+              "fanwit.pluginList",
+              "fanwit.pluginManager",
+              "fanwit.plugins",
+              "fanwit.problems",
+              "fanwit.profiler",
+              "fanwit.properties",
+              "fanwit.quickCapture",
+              "fanwit.runCommand",
+              "fanwit.search",
+              "fanwit.setDensity",
+              "fanwit.setZoom",
+              "fanwit.settings",
+              "fanwit.textEditor",
+              "fanwit.themeStudio",
+              "fanwit.tomlEditor",
+              "fanwit.update",
+              "fanwit.vaultManager",
+              "fanwit.welcome",
+              "file.recent",
+              "hello.greet",
+              "hello.panel",
+              "labs.openColorPicker",
+              "labs.openExport",
+              "labs.resetCanvas",
+              "m.x",
+              "manage.dev",
+              "manage.keys",
+              "manage.menus",
+              "manage.palette",
+              "manage.plugins",
+              "manage.settings",
+              "manage.studio",
+              "manage.theme",
+              "manage.vaults",
+              "notes.editor",
+              "notes.newDaily",
+              "notes.openPreview",
+              "notes.preview",
+              "notes.renameFile",
+              "notes.secret",
+              "notes.tabPreview",
+              "notes.togglePreview",
+              "notification.read",
+              "notification.remove",
+              "notification.snooze1h",
+              "notification.snoozeTomorrow",
+              "presets.list",
+              "recent.vaults",
+              "shell.reveal",
+              "t.args",
+              "t.inc",
+              "t.needsVault",
+              "tab.close",
+              "tab.copyRelativePath",
+              "user.term",
+              "vault.forget",
+              "vault.pin",
+              "view.density",
+              "view.presets",
+              "view.zoom",
+              "window.list",
+              "window.popOut"
+            ]
+          },
+          "props": {
+            "type": "object"
+          },
+          "title": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "preview": {
+            "type": "boolean"
+          },
+          "collapsed": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "float": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "window",
+          "pane",
+          "rect"
+        ],
+        "properties": {
+          "window": {
+            "type": "string"
+          },
+          "pane": {
+            "type": "string"
+          },
+          "rect": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "anchor": {
+            "type": "string"
+          },
+          "snap": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "drawer": {
+      "type": "object"
+    },
+    "overlay": {
+      "type": "object"
+    }
+  }
+}

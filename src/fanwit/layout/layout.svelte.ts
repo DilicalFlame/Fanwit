@@ -41,7 +41,7 @@ export interface Preset {
 	owner?: string;
 }
 
-const HEADER = "#:schema ./workspace.schema.json\n# Live layout. Edit and save: the app updates immediately. The app writes here too.\n";
+const HEADER = "#:schema https://fanwit.dev/schema/layout-1.json\n# Live layout. Edit and save: the app updates immediately. The app writes here too.\n";
 
 export class LayoutService {
 	doc = $state.raw<LayoutDoc>({ version: 1, window: {}, node: {}, pane: {} });

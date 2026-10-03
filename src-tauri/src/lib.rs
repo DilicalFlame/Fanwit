@@ -1,5 +1,6 @@
 mod constants;
 mod fanwit;
+mod gen_identity;
 mod utils;
 
 #[allow(unused_imports)]

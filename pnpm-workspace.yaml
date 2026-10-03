@@ -1,4 +1,6 @@
 allowBuilds:
   esbuild: false
+minimumReleaseAgeExclude:
+  - '@lucide/svelte@1.50.0'
 onlyBuiltDependencies:
   - esbuild
