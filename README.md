@@ -61,7 +61,8 @@ Press **F1** in the app, or read [docs/getting-started.md](docs/getting-started.
 
 ## Known limitations
 
-- The web build stores data in browser storage; SQL needs the planned SQLite WASM worker.
-- Cross window tab dragging uses pop out on release outside the window; live hand off between OS windows is not implemented.
-- Native menu bar on macOS and the Windows system menu on the custom title bar are not wired yet; the custom menu bar is used everywhere.
+- The web build keeps vaults in browser storage (OPFS or a picked folder); SQL runs in a SQLite WASM worker and needs a browser with OPFS.
+- Cross window tab dragging pops the tab out on release outside the window; live hand off between OS windows is not implemented.
+- On macOS the custom menu bar is used; the native application menu is not generated from the menu model.
+- No warm window pool: child windows boot the kernel on open.
 - The updater is not configured (no endpoint or key ships with the template).

@@ -15,7 +15,20 @@
 	let picked = $state<{ el: Element; rect: DOMRect } | null>(null);
 	const drag = $derived(k.sys.dock.state);
 
-	k.events.on("fw:keys-overlay" as never, () => (overlay = !overlay));
+	const trigger = $derived(k.sys.settings.get<string>("keys.overlayTrigger") ?? "ctrl+/");
+	k.events.on("fw:keys-overlay" as never, () => (overlay = trigger !== "off" && !overlay));
+	/** hold-mod: holding Ctrl (or Cmd) alone for 800 ms shows the overlay until it is released. */
+	let holdTimer: ReturnType<typeof setTimeout> | undefined;
+	let held = false;
+	function holdDown(e: KeyboardEvent) {
+		clearTimeout(holdTimer);
+		if (trigger !== "hold-mod" || e.repeat) return;
+		if (e.key === "Control" || e.key === "Meta") holdTimer = setTimeout(() => (overlay = held = true), 800);
+	}
+	function holdUp() {
+		clearTimeout(holdTimer);
+		if (held) overlay = held = false;
+	}
 	k.events.on("fw:inspect" as never, () => {
 		inspecting = true;
 		picked = null;
@@ -72,7 +85,10 @@
 <svelte:window
 	onpointermove={move}
 	onclickcapture={click}
+	onkeyup={holdUp}
+	onblur={holdUp}
 	onkeydown={(e) => {
+		holdDown(e);
 		if (e.key === "Escape" && (overlay || inspecting || picked)) {
 			overlay = false;
 			inspecting = false;
