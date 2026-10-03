@@ -244,12 +244,15 @@ pub fn create_main<R: Runtime>(app: &AppHandle<R>) -> Result<WebviewWindow<R>> {
     if !restore(&w, "main") {
         let _ = w.center();
     }
-    // safety net: show even if the page never reports its first paint
+    // safety net: show the window if its kernel never boots. A booted page decides itself
+    // (it stays hidden on purpose while first run onboarding is open).
     if !state.launch.headless {
         let handle = w.clone();
+        let app = app.clone();
         std::thread::spawn(move || {
             std::thread::sleep(Duration::from_secs(5));
-            if !handle.is_visible().unwrap_or(true) {
+            let booted = app.state::<State>().cli.ready.load(std::sync::atomic::Ordering::SeqCst);
+            if !booted && !handle.is_visible().unwrap_or(true) {
                 log::warn!("main window did not report ready in 5 s; showing it");
                 let _ = handle.show();
             }

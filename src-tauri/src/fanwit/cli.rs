@@ -58,7 +58,7 @@ impl LaunchArgs {
 
 #[derive(Default)]
 pub struct CliState {
-    ready: AtomicBool,
+    pub ready: AtomicBool,
     next: AtomicU64,
     pending: Mutex<HashMap<u64, Sender<String>>>,
 }
