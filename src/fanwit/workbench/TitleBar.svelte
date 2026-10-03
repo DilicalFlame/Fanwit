@@ -67,6 +67,14 @@
 	data-tauri-drag-region
 	data-fw-region="titlebar"
 	ondblclick={(e) => (e.target as HTMLElement).hasAttribute("data-tauri-drag-region") && !web && host.windows.toggleMaximize()}
+	oncontextmenu={(e) => {
+		// Windows: the native system menu on the drag region, like a native title bar
+		if (host.platform === "windows" && !web && (e.target as HTMLElement).hasAttribute("data-tauri-drag-region")) {
+			e.preventDefault();
+			e.stopPropagation();
+			void host.windows.showSystemMenu?.();
+		}
+	}}
 >
 	{#if !compact}
 		<button class="flex h-7 items-center gap-1.5 rounded px-1.5 hover:bg-accent/60" aria-label="{identity.name} menu" onclick={(e) => showMenu("titlebar/app", e.currentTarget)} use:menu={{ location: "titlebar/app" }}>

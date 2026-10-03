@@ -4,7 +4,7 @@
  *   const win = await ctx.windows.open("app.export", { doc: id });
  *   const choice = await win.result;   // resolves when the child calls close(value)
  */
-import { getContext, setContext, type Component, untrack } from "svelte";
+import { getContext, mount, setContext, unmount, untrack, type Component } from "svelte";
 import { toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
 import type { Kernel } from "../kernel/kernel.svelte";
@@ -129,7 +129,7 @@ export class WindowService {
 	/** Last rectangle per kind for cascade placement. */
 	private lastRect = new Map<string, { x: number; y: number }>();
 	/** Component that renders a view inside a virtual window. Set by the workbench. */
-	viewHost: Component<{ view: string; props: Record<string, unknown> }> | null = null;
+	viewHost: Component<{ view: string; props: Record<string, unknown>; self: WindowSelf }> | null = null;
 
 	constructor(private k: Kernel) {
 		k.events.on("fw:window-result" as never, (m: { label: string; value: unknown }) => {
@@ -171,7 +171,11 @@ export class WindowService {
 		const identity = spec.identity?.(props);
 		const title = this.title(spec, props);
 
-		if (!this.k.host.caps.nativeWindows) return this.openVirtual<R>(spec, props, title, o.web ?? spec.web ?? "virtual");
+		if (!this.k.host.caps.nativeWindows) {
+			const web = o.web ?? spec.web ?? "virtual";
+			if (web === "pip" && "documentPictureInPicture" in window && this.viewHost) return this.openPip<R>(spec, props, title);
+			return this.openVirtual<R>(spec, props, title, web === "pip" ? "virtual" : web);
+		}
 
 		// single instance kinds: focus the existing window
 		const base = spec.base === "main" ? "main" : spec.base;
@@ -236,6 +240,30 @@ export class WindowService {
 			},
 			focus: () => this.k.host.windows.focus(label)
 		};
+	}
+
+	/**
+	 * Web: an always on top panel through Document Picture-in-Picture. Styles are copied into the
+	 * PiP document so the theme applies; the view mounts with this window's kernel.
+	 */
+	private async openPip<R>(spec: WindowKindSpec, props: Record<string, unknown>, title: string): Promise<WindowHandle<R>> {
+		const [w, h] = spec.size ?? [320, 420];
+		const dpip = (window as unknown as { documentPictureInPicture: { requestWindow(o: object): Promise<Window> } }).documentPictureInPicture;
+		const pip = await dpip.requestWindow({ width: w, height: h });
+		for (const node of document.head.querySelectorAll("style, link[rel=stylesheet]")) pip.document.head.appendChild(node.cloneNode(true));
+		pip.document.documentElement.className = document.documentElement.className;
+		pip.document.title = title;
+		pip.document.body.style.cssText = "margin:0;height:100vh;display:flex;flex-direction:column";
+		const label = `pip-${shortId()}`;
+		let resolve!: (v: R | undefined) => void;
+		const result = new Promise<R | undefined>((r) => (resolve = r));
+		const self: WindowSelf<R> = { label, kind: spec.kind, props, opener: "main", close: async (v) => { resolve(v); pip.close(); }, setTitle: (t) => (pip.document.title = t) };
+		const app = mount(this.viewHost!, { target: pip.document.body, props: { view: spec.view!, props, self } as never, context: new Map([["fanwit", this.k]]) });
+		pip.addEventListener("pagehide", () => {
+			void unmount(app);
+			resolve(undefined);
+		});
+		return { label, kind: spec.kind, result, close: async (v?: R) => self.close(v), focus: async () => pip.focus() };
 	}
 
 	/** Web presentation: a virtual window (draggable card) or a modal with an inert background. */

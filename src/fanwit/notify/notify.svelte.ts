@@ -105,8 +105,11 @@ export class NotifyService {
 		return this.items.filter((i) => !i.read).length;
 	}
 
+	/** "22:00-07:00": treated as Do not disturb while the clock is inside the range. */
+	quietHours = $state("");
+
 	get dnd() {
-		return !!this.dndUntil && this.dndUntil > Date.now();
+		return (!!this.dndUntil && this.dndUntil > Date.now()) || inQuietHours(this.quietHours);
 	}
 
 	setDnd(minutes: number | null) {
@@ -321,6 +324,15 @@ export class NotifyService {
 	dispose() {
 		clearInterval(this.timer);
 	}
+}
+
+export function inQuietHours(range: string, now = new Date()): boolean {
+	const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec(range.trim());
+	if (!m) return false;
+	const t = now.getHours() * 60 + now.getMinutes();
+	const a = +m[1] * 60 + +m[2];
+	const b = +m[3] * 60 + +m[4];
+	return a <= b ? t >= a && t < b : t >= a || t < b; // ranges may cross midnight
 }
 
 function stripMd(s?: string) {

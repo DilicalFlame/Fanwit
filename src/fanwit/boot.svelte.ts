@@ -31,6 +31,7 @@ import { coreModules } from "./core";
 import type { CommandDefinition } from "./commands/types";
 import presetWorkbench from "./layout/presets/workbench.toml?raw";
 import ViewHost from "./workbench/ViewHost.svelte";
+import WindowView from "./workbench/WindowView.svelte";
 import { DockDrag } from "./workbench/layout/dnd.svelte";
 import { setActiveKernel } from "./ui.svelte";
 
@@ -220,6 +221,7 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	};
 	Object.assign(k.sys, { storage, db, vault, settings, themes, notify, layout, windows, menus, palette, status, jobs, i18n, config, info, layers: new LayerService(), dock: new DockDrag(k), dialog, userCommands: null, keysFile: null });
 	layout.pool.hostComponent = ViewHost;
+	windows.viewHost = WindowView;
 	setActiveKernel(k);
 
 	k.commands.setPrompter((entry, missing, given) =>
@@ -417,6 +419,7 @@ function wireSettings(k: Kernel) {
 		root.lang = i18n.locale === "pseudo" ? "en" : i18n.locale;
 		root.dir = i18n.dir;
 		notify.channelPrefs = (settings.get<Record<string, object>>("notify.channels") ?? {}) as typeof notify.channelPrefs;
+		notify.quietHours = settings.get<string>("notify.quietHours") ?? "";
 		const dnd = settings.get<boolean>("notify.dnd");
 		if (dnd && !notify.dnd) notify.setDnd(24 * 60);
 		if (!dnd && notify.dnd) notify.setDnd(null);

@@ -129,7 +129,8 @@ class FileKv implements KvStore {
 }
 
 export function openKv(host: Host, dir: string): KvStore {
-	return host.caps.sql ? new SqlKv(host, joinPath(dir, "state.db")) : new FileKv(host, joinPath(dir, "state.json"));
+	// desktop: state.db; elsewhere a JSON file keeps key value data independent of the SQL engine
+	return host.kind === "tauri" ? new SqlKv(host, joinPath(dir, "state.db")) : new FileKv(host, joinPath(dir, "state.json"));
 }
 
 export interface StorageChange {

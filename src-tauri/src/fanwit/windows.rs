@@ -398,9 +398,24 @@ pub fn fw_win_list<R: Runtime>(app: AppHandle<R>) -> Vec<String> {
     app.webview_windows().keys().cloned().collect()
 }
 
+/// Right click on the custom title bar opens the native system menu (Windows).
 #[tauri::command]
-pub fn fw_win_system_menu() -> Result<()> {
-    // ponytail: the Windows system menu needs TrackPopupMenu on the HWND; not wired yet
+pub fn fw_win_system_menu<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
+    #[cfg(windows)]
+    unsafe {
+        use windows_sys::Win32::Foundation::POINT;
+        use windows_sys::Win32::UI::WindowsAndMessaging::{GetCursorPos, GetSystemMenu, PostMessageW, TrackPopupMenu, TPM_RETURNCMD, TPM_RIGHTBUTTON, WM_SYSCOMMAND};
+        let hwnd = window.hwnd().map_err(err)?.0 as windows_sys::Win32::Foundation::HWND;
+        let menu = GetSystemMenu(hwnd, 0);
+        let mut pt = POINT { x: 0, y: 0 };
+        GetCursorPos(&mut pt);
+        let cmd = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, std::ptr::null());
+        if cmd != 0 {
+            PostMessageW(hwnd, WM_SYSCOMMAND, cmd as usize, 0);
+        }
+    }
+    #[cfg(not(windows))]
+    let _ = window;
     Ok(())
 }
 

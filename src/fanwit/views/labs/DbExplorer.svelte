@@ -64,7 +64,7 @@
 </script>
 
 {#if !available}
-	<EmptyState icon="database" title="SQL is not available on this host" description="The desktop host uses SQLite through Rust. The browser build stores key value data until the SQLite WASM worker is enabled." />
+	<EmptyState icon="database" title="SQL is not available on this host" description="The desktop uses SQLite through Rust; browsers need the Origin Private File System for SQLite WASM." />
 {:else}
 	<div class="flex h-full min-h-0 text-xs">
 		<aside class="flex w-56 shrink-0 flex-col border-r border-border">

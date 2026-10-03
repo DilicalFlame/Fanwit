@@ -238,6 +238,36 @@ export function setDialogPresenter(p: DialogPresenter | null) {
 	presenter = p;
 }
 
+/** SQLite WASM in a dedicated worker; the same calls as the desktop IPC bridge. */
+function sqliteDb(): Host["db"] {
+	let worker: Worker | null = null;
+	let seq = 0;
+	const pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+	const call = <T>(msg: Record<string, unknown>): Promise<T> => {
+		if (!worker) {
+			worker = new Worker(new URL("./sqlite.worker.ts", import.meta.url), { type: "module", name: "fanwit-sqlite" });
+			worker.onmessage = (e) => {
+				const p = pending.get(e.data.id);
+				pending.delete(e.data.id);
+				if (e.data.ok) p?.resolve(e.data.value);
+				else p?.reject(new Error(e.data.error));
+			};
+		}
+		const id = ++seq;
+		return new Promise<T>((resolve, reject) => {
+			pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
+			worker!.postMessage({ id, ...msg });
+		});
+	};
+	return {
+		open: (path) => call<number>({ op: "open", path }),
+		exec: (handle, sql, params = [], o = {}) => call({ op: "exec", handle, sql, params, owner: o.owner ?? null, readonly: !!o.readonly }),
+		query: (handle, sql, params = [], o = {}) => call({ op: "query", handle, sql, params, owner: o.owner ?? null, readonly: !!o.readonly }),
+		batch: (handle, statements, o = {}) => call({ op: "batch", handle, statements, owner: o.owner ?? null }),
+		close: (handle) => call({ op: "close", handle })
+	};
+}
+
 function detectPlatform(): Platform {
 	return "web";
 }
@@ -312,20 +342,13 @@ export function createBrowserHost(): Host {
 			tray: false,
 			menubar: "custom",
 			multiInstance: false,
-			sql: false
+			// sync access handles exist only inside workers; OPFS plus Worker support is the signal
+			sql: typeof Worker !== "undefined" && typeof navigator.storage?.getDirectory === "function"
 		},
 		dirs: { config: "/config", data: "/global", cache: "/cache", log: "/logs" },
 		windows,
 		fs,
-		db: {
-			open: async () => {
-				throw new Error("SQL is not available in this browser host");
-			},
-			exec: async () => ({ changes: 0, lastId: 0 }),
-			query: async () => [],
-			batch: async () => {},
-			close: async () => {}
-		},
+		db: sqliteDb(),
 		notify: {
 			permission: async () => ("Notification" in window ? (Notification.permission as "granted" | "denied" | "default") : "denied"),
 			requestPermission: async () => ("Notification" in window ? (await Notification.requestPermission()) === "granted" : false),
