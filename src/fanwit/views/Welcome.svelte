@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getKernel, menu } from "../ui.svelte";
+	import { enter } from "../motion/motion";
 	import Icon from "../icons/Icon.svelte";
 	import KeyChip from "../workbench/KeyChip.svelte";
 	import { identity } from "../gen/identity";
@@ -24,7 +25,7 @@
 </script>
 
 <div class="h-full overflow-y-auto">
-	<div class="mx-auto flex max-w-4xl flex-col gap-8 px-8 py-10">
+	<div class="mx-auto flex max-w-4xl flex-col gap-8 px-8 py-10" use:enter={{ preset: "rise", stagger: "> :not(.grid), .grid > section > *" }}>
 		<header class="flex items-center gap-4">
 			<img src="/favicon.svg" alt="" class="size-12" />
 			<div>

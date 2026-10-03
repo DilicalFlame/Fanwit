@@ -4,6 +4,7 @@
  * When a command needs arguments, the palette turns into prompt steps generated from the schema.
  */
 import { toDisposable, type Disposable } from "../kernel/disposable";
+import { haptic } from "../motion/motion";
 import type { Kernel } from "../kernel/kernel.svelte";
 import type { ArgSpec } from "../commands/types";
 import { optionValues } from "../commands/args";
@@ -112,6 +113,7 @@ export class PaletteService {
 	async accept(index = this.selected, keepOpen = false) {
 		const item = this.items[index];
 		if (!item || item.disabled) return;
+		haptic("tick");
 		if (!keepOpen && !this.prompt) this.visible = false;
 		await item.run({ keepOpen });
 	}

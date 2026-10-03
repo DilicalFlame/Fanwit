@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getKernel } from "../../ui.svelte";
 	import Icon from "../../icons/Icon.svelte";
+	import { enter } from "../../motion/motion";
 	import SettingControl from "./SettingControl.svelte";
 	import KeybindingsEditor from "./KeybindingsEditor.svelte";
 	import { CATEGORY_ORDER } from "../../core/settings";
@@ -99,6 +100,8 @@
 		</div>
 		<div class="flex min-h-0 flex-1">
 			<div class="min-w-0 flex-1 overflow-auto px-6 py-4">
+				{#key page}
+				<div use:enter={"rise"}>
 				{#if page === "Keyboard" && !query}
 					<KeybindingsEditor />
 				{:else if page === "About" && !query}
@@ -161,6 +164,8 @@
 						<p class="text-sm text-muted-foreground">No settings match.</p>
 					{/each}
 				{/if}
+				</div>
+				{/key}
 			</div>
 			{#if showToml}
 				<div class="flex w-[45%] min-w-80 border-l border-border">

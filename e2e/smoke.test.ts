@@ -72,11 +72,14 @@ test("the Manage menu opens beside its button", async ({ page }) => {
 		await page.evaluate((z) => document.documentElement.style.setProperty("--ui-scale", String(z / 100)), zoom);
 		await page.getByRole("button", { name: "Manage" }).click();
 		await expect(page.getByRole("menu")).toBeVisible();
+		// measure the settled menu, not its entrance animation
+		await expect.poll(() => page.evaluate(() => getComputedStyle(document.querySelector('[role="menu"]')!).transform)).toBe("none");
 		const btn = await rect('button[aria-label="Manage"]');
 		const m = await rect('[role="menu"]');
 		expect(Math.abs(m.left - (btn.right + 4))).toBeLessThan(6);
 		expect(Math.abs(m.bottom - btn.bottom)).toBeLessThan(6);
 		await page.keyboard.press("Escape");
+		await expect(page.getByRole("menu")).toHaveCount(0);
 	}
 });
 

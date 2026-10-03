@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getKernel } from "../../ui.svelte";
 	import type { SettingDef } from "../../settings/define";
+	import { haptic } from "../../motion/motion";
 
 	/** Control generated from a setting's schema or its widget override. */
 	let { def, value, onchange }: { def: SettingDef; value: unknown; onchange: (v: unknown) => void } = $props();
@@ -14,8 +15,8 @@
 </script>
 
 {#if widget === "switch"}
-	<button role="switch" aria-checked={!!value} aria-label={def.title ?? def.key} class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {value ? 'bg-primary' : 'bg-input'}" onclick={() => onchange(!value)}>
-		<span class="absolute size-4 rounded-full bg-background shadow transition-transform {value ? 'translate-x-4.5' : 'translate-x-0.5'}"></span>
+	<button role="switch" aria-checked={!!value} aria-label={def.title ?? def.key} class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors {value ? 'bg-primary' : 'bg-input'}" onclick={() => (haptic("select"), onchange(!value))}>
+		<span class="absolute size-4 rounded-full bg-background shadow transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] {value ? 'translate-x-4.5' : 'translate-x-0.5'}"></span>
 	</button>
 {:else if widget === "segmented"}
 	<div role="radiogroup" aria-label={def.title ?? def.key} class="flex rounded-md border border-border p-0.5">

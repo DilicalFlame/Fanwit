@@ -6,6 +6,7 @@
 	import EmptyState from "../workbench/EmptyState.svelte";
 	import { viewForPath } from "../core/palette";
 	import type { Disposable } from "../kernel/disposable";
+	import { enter } from "../motion/motion";
 
 	/**
 	 * Vault file tree (Figure 17.1 #6): indent guides, selection, keyboard navigation, inline
@@ -25,6 +26,11 @@
 	let renaming = $state<string | null>(null);
 	let renameValue = $state("");
 	let loading = $state(false);
+	// rows shown on first load appear in place; rows revealed later (expanding) cascade in
+	let animateRows = $state(false);
+	$effect(() => {
+		if (!loading && entries.length && !animateRows) requestAnimationFrame(() => (animateRows = true));
+	});
 	let error = $state<string | null>(null);
 	let watcher: Disposable | null = null;
 	let dragOver = $state<string | null>(null);
@@ -198,9 +204,10 @@
 					onkeydown={() => {}}
 					use:menu={{ location: "explorer/item", target: { path: n.path, dir: n.dir ? n.path : n.path.slice(0, Math.max(0, n.path.lastIndexOf("/"))), name: n.name, isDir: n.dir } }}
 					use:ctxkeys={{ "resource.ext": n.dir ? "" : n.name.split(".").pop(), "resource.path": n.path, "explorer.isDir": n.dir }}
+					use:enter={{ preset: "row", when: animateRows }}
 				>
 					{#each Array(n.depth) as _, d (d)}<span class="absolute top-0 bottom-0 w-px bg-sidebar-border" style:left="{14 + d * 12}px"></span>{/each}
-					<Icon name={n.dir ? (open[n.path] ? "chevron-down" : "chevron-right") : "dot"} size={14} class={n.dir ? "" : "opacity-0"} />
+					<Icon name={n.dir ? "chevron-right" : "dot"} size={14} class={n.dir ? `shrink-0 transition-transform duration-150 ${open[n.path] ? "rotate-90" : ""}` : "opacity-0"} />
 					<Icon name={n.dir ? (open[n.path] ? "folder-open" : "folder") : n.name.endsWith(".md") ? "file-text" : n.name.endsWith(".toml") ? "file-cog" : "file"} size={14} class="shrink-0 opacity-70" />
 					{#if renaming === n.path}
 						<input

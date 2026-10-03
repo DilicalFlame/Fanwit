@@ -35,7 +35,7 @@
 						onpointerdown={(e) => e.button === 0 && k.sys.dock.begin(e, p, layout.paneTitle(p))}
 						use:menu={{ location: "tab/context", target: { pane: p, view: pane?.view } }}
 					>
-						<Icon name={collapsed ? "chevron-right" : "chevron-down"} size={14} />
+						<Icon name="chevron-right" size={14} class="transition-transform duration-150 {collapsed ? '' : 'rotate-90'}" />
 						<span class="truncate">{layout.paneTitle(p)}</span>
 					</button>
 				{/if}

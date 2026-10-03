@@ -7,6 +7,7 @@ import type { Kernel } from "./kernel/kernel.svelte";
 import { joinPath } from "./host/types";
 import { logs } from "./kernel/logger";
 import { handleDeepLink } from "./core/handlers.svelte";
+import { attachPress } from "./motion/motion";
 
 const idle = (fn: () => void) => ("requestIdleCallback" in window ? (window as Window & { requestIdleCallback: (f: () => void) => void }).requestIdleCallback(fn) : setTimeout(fn, 1));
 
@@ -14,6 +15,7 @@ const idle = (fn: () => void) => ("requestIdleCallback" in window ? (window as W
 export async function afterFirstPaint(k: Kernel) {
 	await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 	k.lifecycle.set("ready");
+	attachPress();
 	// first run on desktop: the main window stays hidden until onboarding closes (mainStartup shows it)
 	const deferred = k.host.windows.label === "main" && k.host.caps.nativeWindows && (await needsOnboarding(k));
 	if (!k.sys.info.headless && !deferred) await k.host.windows.show().catch(() => {});

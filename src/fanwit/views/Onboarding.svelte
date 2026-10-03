@@ -2,6 +2,7 @@
 	import { getKernel } from "../ui.svelte";
 	import { useWindow } from "../windows/windows.svelte";
 	import Icon from "../icons/Icon.svelte";
+	import { enter } from "../motion/motion";
 
 	/** First run onboarding (Figure 17.4): Look, Data, Keys, Tour. Choices apply live. */
 	const k = getKernel();
@@ -20,6 +21,12 @@
 	}
 	let step = $state(0);
 	let done = $state(0);
+	// steps slide in from the side you are moving towards
+	const nav = { prev: 0, dir: 1 };
+	$effect.pre(() => {
+		nav.dir = step >= nav.prev ? 1 : -1;
+		nav.prev = step;
+	});
 
 	async function finish() {
 		await k.sys.storage.set("fanwit", "onboarded", true);
@@ -48,7 +55,9 @@
 		{/each}
 	</ol>
 
-	<div class="min-h-0 flex-1 overflow-auto">
+	<div class="min-h-0 flex-1 overflow-auto overflow-x-hidden">
+		{#key step}
+		<div use:enter={{ preset: "fade", from: { x: 18 * nav.dir, ease: "power3.out" }, when: step !== 0 || nav.dir < 0 }}>
 		{#if step === 0}
 			<h1 class="text-xl font-semibold">Pick a look</h1>
 			<p class="mb-4 text-sm text-muted-foreground">You can change this any time in Settings, Appearance.</p>
@@ -105,6 +114,8 @@
 				<li class="flex gap-2"><Icon name="book-open" class="mt-0.5" />Press F1 for the manual page of whatever you are looking at.</li>
 			</ul>
 		{/if}
+		</div>
+		{/key}
 	</div>
 
 	<div class="flex items-center justify-between pt-4">

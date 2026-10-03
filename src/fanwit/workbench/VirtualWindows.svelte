@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getKernel, uiZoom } from "../ui.svelte";
+	import { enter, leave } from "../motion/motion";
 	import Icon from "../icons/Icon.svelte";
 	import WindowView from "./WindowView.svelte";
 	import type { VirtualWindow } from "../windows/windows.svelte";
@@ -60,7 +61,7 @@
 
 {#if topModal}
 	<!-- clicks on the locked parent: bell and shake on the modal -->
-	<div class="fixed inset-0 z-[60] {topModal.spec.dimParent === false ? '' : 'bg-black/30'}" role="presentation" onpointerdown={() => w.blocked()}></div>
+	<div use:enter={"fade"} out:leave|global class="fixed inset-0 z-[60] {topModal.spec.dimParent === false ? '' : 'bg-black/30'}" role="presentation" onpointerdown={() => w.blocked()}></div>
 {/if}
 
 {#each sorted as v (v.id)}
@@ -71,6 +72,8 @@
 			aria-modal={v.modal}
 			aria-label={v.title}
 			tabindex="-1"
+			use:enter={"dialog"}
+			out:leave|global={{ preset: "dialog" }}
 			class="fixed flex flex-col overflow-hidden border border-border bg-background text-foreground shadow-2xl {v.maximized ? '' : 'rounded-xl'} {v.feedback === 'shake' ? 'fw-shake' : ''} {v.feedback === 'flash' ? 'fw-flash' : ''}"
 			style:left="{r.x}px"
 			style:top="{r.y}px"
@@ -106,7 +109,7 @@
 {#if minimized.length}
 	<nav class="fixed bottom-8 left-1/2 z-[55] flex -translate-x-1/2 gap-1 rounded-lg border border-border bg-popover p-1 shadow-lg" aria-label="Minimized windows">
 		{#each minimized as v (v.id)}
-			<button class="fw-btn h-7" onclick={() => w.raise(v.id)}><Icon name="app-window" size={13} />{v.title}</button>
+			<button class="fw-btn h-7" use:enter={"rise"} onclick={() => w.raise(v.id)}><Icon name="app-window" size={13} />{v.title}</button>
 		{/each}
 	</nav>
 {/if}

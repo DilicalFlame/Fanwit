@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { getKernel } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
+	import { flip } from "svelte/animate";
+	import { enter, leave, haptic } from "../motion/motion";
 	import type { Toast } from "../notify/notify.svelte";
 
 	/**
@@ -9,6 +11,11 @@
 	 */
 	const k = getKernel();
 	const notify = k.sys.notify;
+	/** Phones and tablets: a short buzz for errors and warnings, a double tap for success. */
+	function buzz(_node: HTMLElement, kind: string) {
+		if (kind === "error" || kind === "warning") haptic("warning");
+		else if (kind === "success") haptic("success");
+	}
 	const position = $derived(k.sys.settings.get<string>("notify.toastPosition") ?? "bottom-right");
 	const visible = $derived(notify.toasts.slice(-3).reverse());
 	const hidden = $derived(Math.max(0, notify.toasts.length - 3));
@@ -55,6 +62,7 @@
 		<button class="pointer-events-auto self-end rounded-full border border-border bg-popover px-2 py-0.5 text-[11px] shadow" onclick={() => (notify.centerOpen = true)}>+{hidden} more</button>
 	{/if}
 	{#each visible as t (t.item.id)}
+		<div animate:flip={{ duration: 180 }} use:enter={{ preset: "toast", from: { x: position.endsWith("left") ? -28 : 28 } }} out:leave={{ preset: "toast" }} use:buzz={t.item.kind}>
 		<div
 			role={t.item.kind === "error" ? "alert" : "status"}
 			aria-live={t.item.kind === "error" ? "assertive" : "polite"}
@@ -94,6 +102,7 @@
 					{/each}
 				</div>
 			{/if}
+		</div>
 		</div>
 	{/each}
 </section>

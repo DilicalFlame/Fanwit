@@ -29,6 +29,7 @@ Guidance for AI coding assistants working in this repository (Section 20.9).
 - Tabs for indentation, double quotes, explicit types at module boundaries.
 - Errors are `FanwitError(code, { message, hint, docs })`.
 - Every interactive element is keyboard reachable; destructive items go in the `danger` group.
+- Motion lives in `src/fanwit/motion/motion.ts`: `use:enter={"pop"}` for entrances, `out:leave` for exits, `haptic()` for touch feedback. Buttons get press feedback automatically (`data-no-press` opts out). Measure layout with offset sizes, not `getBoundingClientRect`, on anything that animates in. Everything must respect reduced motion (the helpers do).
 
 ## Checks before you finish
 

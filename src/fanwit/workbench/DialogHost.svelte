@@ -3,6 +3,7 @@
 	import { getKernel } from "../ui.svelte";
 	import { setDialogPresenter } from "../host/browser";
 	import Icon from "../icons/Icon.svelte";
+	import { enter, leave } from "../motion/motion";
 
 	/**
 	 * Styled in page dialogs for the web host (Section 9.9), with buttons ordered by platform
@@ -38,8 +39,8 @@
 </script>
 
 {#if current}
-	<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/40" role="presentation">
-		<div role="alertdialog" aria-modal="true" aria-labelledby="fw-dlg-title" aria-describedby="fw-dlg-msg" class="w-[min(440px,calc(100%-24px))] rounded-xl border border-border bg-popover p-5 text-popover-foreground shadow-2xl" onkeydown={(e) => e.key === "Escape" && done(false)} tabindex="-1">
+	<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/40" role="presentation" use:enter={"fade"} out:leave>
+		<div role="alertdialog" aria-modal="true" use:enter={"dialog"} out:leave={{ preset: "dialog" }} aria-labelledby="fw-dlg-title" aria-describedby="fw-dlg-msg" class="w-[min(440px,calc(100%-24px))] rounded-xl border border-border bg-popover p-5 text-popover-foreground shadow-2xl" onkeydown={(e) => e.key === "Escape" && done(false)} tabindex="-1">
 			<div class="flex items-start gap-3">
 				<Icon name={current.kind === "warning" ? "triangle-alert" : current.kind === "error" ? "circle-x" : "info"} size={20} class={current.kind === "warning" ? "text-warning" : current.kind === "error" ? "text-destructive" : "text-info"} />
 				<div class="min-w-0 flex-1">

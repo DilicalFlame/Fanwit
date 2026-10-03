@@ -7,6 +7,7 @@
 import { getContext, mount, setContext, unmount, untrack, type Component } from "svelte";
 import { toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
+import { haptic } from "../motion/motion";
 import type { Kernel } from "../kernel/kernel.svelte";
 import { beep } from "../notify/notify.svelte";
 
@@ -341,6 +342,7 @@ export class WindowService {
 		const top = [...this.virtual].filter((v) => v.modal).sort((a, b) => b.z - a.z)[0];
 		if (!top) return;
 		const effects = top.spec.onBlocked ?? ["bell", "shake"];
+		haptic("warning");
 		if (effects.includes("bell")) beep("bell");
 		const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 		top.feedback = effects.includes("shake") && !reduced ? "shake" : "flash";

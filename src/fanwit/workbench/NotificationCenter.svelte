@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getKernel, menu, shortAgo } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
+	import { enter, leave } from "../motion/motion";
 	import EmptyState from "./EmptyState.svelte";
 	import type { NotificationItem } from "../notify/notify.svelte";
 
@@ -39,8 +40,8 @@
 {/snippet}
 
 {#if notify.centerOpen}
-	<button class="fixed inset-0 z-[70] cursor-default" aria-label="Close notifications" onclick={() => (notify.centerOpen = false)} tabindex="-1"></button>
-	<aside class="fixed top-10 right-2 bottom-8 z-[71] flex w-[min(380px,calc(100%-16px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl" aria-label="Notification centre">
+	<button out:leave class="fixed inset-0 z-[70] cursor-default" aria-label="Close notifications" onclick={() => (notify.centerOpen = false)} tabindex="-1"></button>
+	<aside use:enter={"right"} out:leave={{ preset: "right" }} class="fixed top-10 right-2 bottom-8 z-[71] flex w-[min(380px,calc(100%-16px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl" aria-label="Notification centre">
 		<header class="flex h-11 shrink-0 items-center gap-2 border-b border-border px-3">
 			<span class="flex-1 text-sm font-semibold">Notifications</span>
 			<div class="relative">

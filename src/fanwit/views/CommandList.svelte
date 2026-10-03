@@ -25,7 +25,7 @@
 	<div class="min-h-0 flex-1 overflow-auto pb-2 text-[12.5px]">
 		{#each groups as [cat, list] (cat)}
 			<button class="flex w-full items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-muted-foreground uppercase" onclick={() => (collapsed[cat] = !collapsed[cat])}>
-				<Icon name={collapsed[cat] ? "chevron-right" : "chevron-down"} size={13} />{cat} <span class="font-normal">({list.length})</span>
+				<Icon name="chevron-right" size={13} class="transition-transform duration-150 {collapsed[cat] ? '' : 'rotate-90'}" />{cat} <span class="font-normal">({list.length})</span>
 			</button>
 			{#if !collapsed[cat]}
 				{#each list as c (c.def.id)}

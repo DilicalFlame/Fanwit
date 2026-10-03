@@ -3,6 +3,7 @@
 	import { getKernel } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import KeyChip from "./KeyChip.svelte";
+	import { enter, leave } from "../motion/motion";
 
 	/**
 	 * Command palette (Figure 17.5): input with mode prefix, ranked rows with matched characters
@@ -74,8 +75,8 @@
 </script>
 
 {#if p.visible}
-	<div class="fixed inset-0 z-[90]" role="presentation" onpointerdown={(e) => e.target === e.currentTarget && p.close()}>
-		<div role="dialog" aria-modal="true" aria-label="Command palette" class="mx-auto mt-[8vh] flex max-h-[70vh] w-[min(640px,calc(100%-24px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
+	<div class="fixed inset-0 z-[90]" role="presentation" out:leave onpointerdown={(e) => e.target === e.currentTarget && p.close()}>
+		<div role="dialog" aria-modal="true" aria-label="Command palette" use:enter={{ preset: "drop", origin: "top center" }} out:leave={{ preset: "pop" }} class="mx-auto mt-[8vh] flex max-h-[70vh] w-[min(640px,calc(100%-24px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
 			{#if p.prompt}
 				<div class="flex items-center gap-2 border-b border-border px-3 pt-2 pb-1 text-xs text-muted-foreground">
 					<Icon name="square-terminal" size={13} />

@@ -5,6 +5,8 @@
 	import PaneSlot from "./PaneSlot.svelte";
 	import EmptyState from "../EmptyState.svelte";
 	import KeyChip from "../KeyChip.svelte";
+	import { gsap } from "gsap";
+	import { enter, reduced } from "../../motion/motion";
 
 	/**
 	 * A tab set: strip with overflow (wheel scroll and an overflow list), pinned tabs (icon only,
@@ -58,12 +60,36 @@
 		const a = active;
 		queueMicrotask(() => stripEl?.querySelector<HTMLElement>(`[data-fw-tab="${a}"]`)?.scrollIntoView({ block: "nearest", inline: "nearest" }));
 	});
+
+	// one underline that slides to the active tab (and follows its width as titles change)
+	let indicator = $state<HTMLSpanElement>();
+	let stripReady = $state(false);
+	$effect(() => {
+		const id = active;
+		void panes.length;
+		const strip = stripEl;
+		const ind = indicator;
+		if (!strip || !ind || !id) return;
+		const tab = strip.querySelector<HTMLElement>(`[data-fw-tab="${CSS.escape(id)}"]`);
+		if (!tab) return;
+		let first = !stripReady;
+		const move = () => {
+			gsap.to(ind, { x: tab.offsetLeft, width: tab.offsetWidth, duration: first || reduced() ? 0 : 0.22, ease: "power3.out" });
+			first = false;
+		};
+		move();
+		const ro = new ResizeObserver(move);
+		ro.observe(tab);
+		if (!stripReady) requestAnimationFrame(() => (stripReady = true));
+		return () => ro.disconnect();
+	});
 </script>
 
 <div class="flex min-h-0 min-w-0 flex-1 flex-col bg-background" data-fw-tabset={node} class:fw-focused={focused}>
 	{#if strip !== "hidden" && panes.length}
 		<div class="flex shrink-0 items-stretch border-b border-border bg-tab" style:height="var(--tab-h)">
-			<div bind:this={stripEl} role="tablist" aria-label="Tabs" class="flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none]" data-fw-strip={node} onwheel={wheel}>
+			<div bind:this={stripEl} role="tablist" aria-label="Tabs" class="relative flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none]" data-fw-strip={node} onwheel={wheel}>
+				<span bind:this={indicator} aria-hidden="true" class="pointer-events-none absolute top-0 left-0 z-10 h-0.5 w-0 bg-tab-border transition-opacity duration-150" style:opacity={focused ? 1 : 0}></span>
 				{#each panes as p, i (p)}
 					{@const pane = layout.doc.pane[p]}
 					{@const isActive = p === active}
@@ -90,8 +116,8 @@
 						ondblclick={() => layout.dispatch({ type: "maximize", node })}
 						onkeydown={(e) => keys(e, i)}
 						use:menu={{ location: "tab/context", target: { pane: p, view: pane?.view, path: pane?.props?.path } }}
+						use:enter={{ preset: "row", when: stripReady }}
 					>
-						{#if isActive && focused}<span class="absolute inset-x-0 top-0 h-0.5 bg-tab-border"></span>{/if}
 						{#if pane?.icon || view?.icon}<Icon name={pane?.icon ?? view?.icon} size={14} class="opacity-80" />{/if}
 						{#if !pane?.pinned}
 							<span class="truncate" class:italic={pane?.preview}>{layout.paneTitle(p)}</span>

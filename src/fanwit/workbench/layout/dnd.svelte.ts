@@ -5,6 +5,7 @@
  * keeps clicks from being misread.
  */
 import type { Kernel } from "../../kernel/kernel.svelte";
+import { haptic } from "../../motion/motion";
 
 export type Zone = "center" | "left" | "right" | "top" | "bottom" | "strip";
 
@@ -146,6 +147,7 @@ export class DockDrag {
 			}
 			const o = s.over;
 			if (!o) return;
+			haptic("select");
 			if (o.zone === "strip") await layout.dispatch({ type: "movePane", pane: s.pane, to: { node: o.node, index: o.index } });
 			else if (o.zone === "center") await layout.dispatch({ type: "movePane", pane: s.pane, to: { node: o.node } });
 			else await layout.dispatch({ type: "movePane", pane: s.pane, to: { edge: o.node, side: o.zone } });

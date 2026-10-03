@@ -252,9 +252,33 @@
 	}
 }
 
+/*
+ * Press feedback. Buttons dip and spring back through GSAP (motion.ts attachPress: the scale
+ * depends on the button's size); full width rows, tabs and menu items flash a shade here.
+ * No transform in these transitions: a CSS transition would fight GSAP's per frame updates.
+ * Opt out with data-no-press.
+ */
+@layer base {
+	:root {
+		--press-filter: brightness(0.94);
+	}
+	.dark {
+		--press-filter: brightness(1.18);
+	}
+	:where(button, [role="button"], a[href], summary, [role="tab"], [role="treeitem"], [role="option"], [role^="menuitem"]) {
+		transition-property: color, background-color, border-color, box-shadow, opacity, filter;
+		transition-duration: var(--duration-fast);
+		transition-timing-function: var(--ease-standard);
+	}
+	:where(button.w-full, [role="tab"], [role="treeitem"], [role="option"], [role^="menuitem"]):where(:not(:disabled, [aria-disabled="true"], [data-no-press])):active {
+		filter: var(--press-filter);
+		transition-duration: 40ms;
+	}
+}
+
 @layer components {
 	.fw-btn {
-		@apply inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50;
+		@apply inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground shadow-xs transition-[color,background-color,border-color,box-shadow] duration-(--duration-fast) hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50;
 		height: var(--control-h);
 	}
 	.fw-btn-primary {
@@ -267,7 +291,7 @@
 		@apply border-transparent bg-destructive text-white hover:bg-destructive/90;
 	}
 	.fw-icon-btn {
-		@apply inline-flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40;
+		@apply inline-flex size-6 items-center justify-center rounded text-muted-foreground transition-[color,background-color] duration-(--duration-fast) hover:bg-accent hover:text-foreground disabled:opacity-40;
 	}
 	.fw-input {
 		@apply w-full rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40;

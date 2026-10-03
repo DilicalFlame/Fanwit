@@ -5,6 +5,7 @@
 	import Icon from "../../icons/Icon.svelte";
 	import KeyChip from "../KeyChip.svelte";
 	import Self from "./MenuSurface.svelte";
+	import { enter, leave, haptic } from "../../motion/motion";
 
 	/**
 	 * Renders one menu level (Section 7.7): opens at the pointer, flips then shifts to stay 8 px
@@ -80,7 +81,10 @@
 		if (!el) return;
 		const vw = window.innerWidth;
 		const vh = window.innerHeight;
-		const r = el.getBoundingClientRect();
+		// layout size, not the bounding box: the entrance animation scales the menu while it is
+		// measured. offset sizes are CSS px; the rest of this function works in screen px.
+		const zoom = uiZoom();
+		const r = { width: el.offsetWidth * zoom, height: el.offsetHeight * zoom };
 		let left = x;
 		let top = y;
 		if (left + r.width > vw - 8) left = anchor ? anchor.left - r.width + 2 : x - r.width;
@@ -95,8 +99,7 @@
 		}
 		top = Math.max(8, Math.min(top, vh - 8 - h));
 		// everything above is in viewport pixels; body zoom (ui.zoom) scales the px we set
-		const z = uiZoom();
-		pos = { left: left / z, top: top / z, maxH: maxH / z };
+		pos = { left: left / zoom, top: top / zoom, maxH: maxH / zoom };
 	}
 
 	function valueOf(item: ResolvedItem): unknown {
@@ -108,6 +111,7 @@
 
 	async function run(item: ResolvedItem, value: Record<string, unknown> = {}, o: { preview?: boolean; keepOpen?: boolean } = {}) {
 		if (!item.enabled) return;
+		if (!o.preview) haptic("tick");
 		const { __command, ...rest } = value as { __command?: string };
 		const command = __command ?? (o.preview ? item.preview : item.command);
 		// read props before closing: closing clears the menu state they derive from
@@ -324,6 +328,8 @@
 	tabindex="-1"
 	aria-label={location}
 	data-menu-level={level}
+	use:enter={{ preset: level > 0 ? "side" : "pop", origin: () => `${pos.top >= y - 1 ? "top" : "bottom"} ${pos.left >= x - 1 ? "left" : "right"}` }}
+	out:leave|global={{ preset: "pop", duration: level > 0 ? 0 : undefined }}
 	class="fixed z-[100] min-w-52 max-w-96 overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg outline-none"
 	style:left="{pos.left}px"
 	style:top="{pos.top}px"

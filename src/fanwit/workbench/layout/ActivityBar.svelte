@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getKernel, menu } from "../../ui.svelte";
+	import { enter } from "../../motion/motion";
 	import type { RegionName } from "../../layout/model";
 	import Icon from "../../icons/Icon.svelte";
 
@@ -54,7 +55,7 @@
 			onclick={() => activate(id)}
 			use:menu={{ location: "activity/item", target: { node: id, region } }}
 		>
-			{#if isActive}<span class="absolute {orientation === 'vertical' ? 'inset-y-2 left-0 w-0.5' : 'inset-x-2 top-0 h-0.5'} rounded bg-activity-active"></span>{/if}
+			{#if isActive}<span use:enter={{ preset: "fade", from: orientation === "vertical" ? { scaleY: 0 } : { scaleX: 0 } }} class="absolute {orientation === 'vertical' ? 'inset-y-2 left-0 w-0.5' : 'inset-x-2 top-0 h-0.5'} rounded bg-activity-active"></span>{/if}
 			<Icon name={node?.icon ?? "square"} size={20} />
 		</button>
 	{/each}

@@ -17,6 +17,7 @@ import { VaultService } from "./data/vault.svelte";
 import { TomlFile } from "./data/toml-file.svelte";
 import { SettingsService } from "./settings/settings.svelte";
 import type { SettingsContribution } from "./settings/define";
+import { setHaptics } from "./motion/motion";
 import { ThemeService, parseTheme, type ThemeDef, type ModeSetting } from "./themes/themes.svelte";
 import { NotifyService, type ChannelDef, type NotificationItem, type NotificationSpec } from "./notify/notify.svelte";
 import { LayoutService, type CustomNodeType, type Preset } from "./layout/layout.svelte";
@@ -420,6 +421,7 @@ function wireSettings(k: Kernel) {
 		root.style.setProperty("--font-size", `${settings.get<number>("ui.fontSize")}px`);
 		root.style.setProperty("--ui-scale", String(settings.get<number>("ui.zoom") / 100));
 		root.dataset.reducedMotion = String(!!settings.get("ui.reducedMotion"));
+		setHaptics(settings.get("ui.haptics") !== false);
 		logs.level = settings.get("log.level") ?? logs.level;
 		logs.levels = (settings.get<Record<string, never>>("log.levels") ?? {}) as typeof logs.levels;
 		k.context.set("devMode", !!settings.get("dev.mode"));

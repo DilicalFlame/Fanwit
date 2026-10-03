@@ -38,6 +38,7 @@ export const coreSettings = [
 		}),
 		zoom: s.number(100, { title: "Zoom", description: "Scale the whole interface.", category: "Appearance", min: 50, max: 200, step: 10, unit: "%", widget: "slider" }),
 		reducedMotion: s.boolean(false, { title: "Reduce motion", description: "Replace movement with fades. The OS setting is always honoured.", category: "Appearance" }),
+		haptics: s.boolean(true, { title: "Haptic feedback", description: "Short vibrations on devices that have them (phones and tablets running the web app).", category: "Appearance" }),
 		effects: s.enum("none", ["none", "mica", "acrylic", "vibrancy"], { title: "Window effects", description: "Mica or acrylic background on Windows 11, vibrancy on macOS.", category: "Appearance", restart: true })
 	}),
 	defineSettings("layout", {
