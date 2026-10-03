@@ -1,0 +1,68 @@
+[app]
+id = "com.example.myapp"
+name = "My App"
+slug = "myapp"
+version = "1.4.0"
+
+[installer]
+scope = "user"
+
+[[component]]
+id = "core"
+required = true
+
+[[component]]
+id = "cli"
+default = true
+
+[[component]]
+id = "python"
+default = true
+
+[[option]]
+id = "addToPath"
+type = "boolean"
+default = true
+when = "component.cli"
+
+[[step]]
+id = "uv"
+type = "prereq"
+title = "uv, the Python package manager"
+component = "python"
+phases = ["bootstrap", "package", "firstRun"]
+detect = { command = "uv --version", parse = 'uv (\d+\.\d+\.\d+)', require = ">=0.5" }
+strategies = ["existing", "sidecar", "download"]
+sidecar = "binaries/uv"
+install_to = "{tools}/uv"
+expose = "UV_BIN"
+
+[step.download.windows-x86_64]
+url = "https://github.com/astral-sh/uv/releases/download/0.5.0/uv-x86_64-pc-windows-msvc.zip"
+sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+size = "12 MB"
+
+[step.download.linux-x86_64]
+url = "https://github.com/astral-sh/uv/releases/download/0.5.0/uv-x86_64-unknown-linux-gnu.tar.gz"
+sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+size = "12 MB"
+
+[[step]]
+id = "python"
+type = "run"
+title = "Managed Python 3.12"
+after = ["uv"]
+component = "python"
+phases = ["bootstrap", "firstRun"]
+requires = { network = true, disk = "60 MB" }
+check = { command = "{env.UV_BIN} python find 3.12", success = 0 }
+apply = { command = "{env.UV_BIN} python install 3.12", env = { UV_PYTHON_INSTALL_DIR = "{appData}/python" } }
+uninstall = { remove = "{appData}/python" }
+
+[[step]]
+id = "cliPath"
+type = "path"
+component = "cli"
+when = "addToPath"
+phases = ["package", "firstRun"]
+target = "{installDir}/myapp-cli"

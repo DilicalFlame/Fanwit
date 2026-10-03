@@ -1191,6 +1191,7 @@ dependencies = [
  "chrono",
  "colored",
  "dunce",
+ "fanwit-install",
  "interprocess",
  "keyring",
  "log",
@@ -1212,6 +1213,35 @@ dependencies = [
  "tauri-plugin-single-instance",
  "toml_edit 0.22.27",
  "trash",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "fanwit-install"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "regex",
+ "semver",
+ "serde",
+ "serde_json",
+ "sha2",
+ "toml 0.8.2",
+]
+
+[[package]]
+name = "fanwit-setup"
+version = "0.1.0"
+dependencies = [
+ "fanwit-install",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "toml 0.8.2",
  "windows-sys 0.59.0",
 ]
 
