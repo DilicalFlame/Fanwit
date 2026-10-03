@@ -103,6 +103,9 @@
 		if (!item.enabled) return;
 		const { __command, ...rest } = value as { __command?: string };
 		const command = __command ?? (o.preview ? item.preview : item.command);
+		// read props before closing: closing clears the menu state they derive from
+		const tgt = target;
+		const el = element;
 		if (!o.keepOpen && !o.preview) onclose();
 		if (!command) return;
 		if (inert) {
@@ -110,7 +113,7 @@
 			return;
 		}
 		try {
-			await k.commands.run(command, { ...(item.args ?? {}), ...rest }, { source: "menu", target, element });
+			await k.commands.run(command, { ...(item.args ?? {}), ...rest }, { source: "menu", target: tgt, element: el });
 		} catch (e) {
 			k.sys.notify.error(e);
 		}

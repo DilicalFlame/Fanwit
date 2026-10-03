@@ -105,13 +105,19 @@ class BrowserFs implements HostFs {
 		const out: FsEntry[] = [];
 		const walk = async (h: DirHandle, base: string) => {
 			for await (const [name, child] of (h as unknown as { entries(): AsyncIterable<[string, FileSystemHandle]> }).entries()) {
+				// Chrome writes through temporary .crswap files; entries can also vanish mid-walk
+				if (name.endsWith(".crswap")) continue;
 				const path = `${base}/${name}`;
-				if (child.kind === "directory") {
-					out.push({ name, path, dir: true });
-					if (o?.recursive) await walk(child as DirHandle, path);
-				} else {
-					const f = await (child as FileHandle).getFile();
-					out.push({ name, path, dir: false, size: f.size, mtime: f.lastModified });
+				try {
+					if (child.kind === "directory") {
+						out.push({ name, path, dir: true });
+						if (o?.recursive) await walk(child as DirHandle, path);
+					} else {
+						const f = await (child as FileHandle).getFile();
+						out.push({ name, path, dir: false, size: f.size, mtime: f.lastModified });
+					}
+				} catch (e) {
+					if ((e as DOMException)?.name !== "NotFoundError") throw e;
 				}
 			}
 		};

@@ -87,6 +87,7 @@
 
 {#if menus.open && groups}
 	{#key menus.open}
-		<MenuSurface {groups} x={menus.open.x} y={menus.open.y} anchor={menus.open.anchor} location={menus.open.location} target={menus.open.target} element={menus.open.element} onclose={close} />
+		{@const o = menus.open}
+		<MenuSurface {groups} x={o.x} y={o.y} anchor={o.anchor} location={o.location} target={o.target} element={o.element} onclose={close} />
 	{/key}
 {/if}

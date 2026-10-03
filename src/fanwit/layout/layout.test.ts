@@ -67,3 +67,13 @@ test("documents round trip through TOML with defaults omitted", () => {
 	expect(back.window.main.regions!.panel!.visible).toBe(false);
 	expect(back.pane.welcome.pinned).toBe(true);
 });
+
+test("every shipped preset parses and validates", async () => {
+	const { readdirSync, readFileSync } = await import("node:fs");
+	const dir = "src/fanwit/layout/presets";
+	for (const f of readdirSync(dir)) {
+		const text = readFileSync(`${dir}/${f}`, "utf8");
+		const errors = validateLayout(parse(text), text).filter((d) => d.severity === "error");
+		expect(errors, f).toEqual([]);
+	}
+});
