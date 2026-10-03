@@ -124,7 +124,15 @@ export class ThemeService {
 	}
 
 	/** Apply the configured theme and mode (or the Studio preview) to the document. */
+	/**
+	 * Write the active theme to the document. Untracked: it reads preview/settings and writes
+	 * mode/activeId/version, so an effect calling it must not subscribe to those.
+	 */
 	apply(transition = false) {
+		untrack(() => this.applyNow(transition));
+	}
+
+	private applyNow(transition: boolean) {
 		const mode: Mode = this.preview?.mode ?? (this.settingMode === "system" ? (this.systemDark ? "dark" : "light") : this.settingMode);
 		const id = mode === "dark" ? this.dark : this.light;
 		const tokens = { ...this.resolve(id, mode), ...(this.preview?.tokens ?? {}) };
