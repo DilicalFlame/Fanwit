@@ -1,0 +1,12 @@
+/* The product's tokens and Tailwind setup; the active theme is applied over them in main.ts. */
+@import "../src/routes/layout.css";
+@source "./";
+@source "../src/lib/components";
+
+html,
+body,
+#app {
+	height: 100%;
+	overflow: hidden;
+	user-select: none;
+}

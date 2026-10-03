@@ -1,0 +1,7 @@
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "setup",
+	"description": "The Setup window: its own commands and events only",
+	"windows": ["setup"],
+	"permissions": ["core:default", "core:window:allow-close", "dialog:allow-open"]
+}

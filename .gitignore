@@ -33,3 +33,4 @@ dooing.json
 # Playwright
 /test-results
 /playwright-report
+/src-setup/dist
