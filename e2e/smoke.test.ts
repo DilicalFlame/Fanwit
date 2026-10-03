@@ -79,3 +79,19 @@ test("the Manage menu opens beside its button", async ({ page }) => {
 		await page.keyboard.press("Escape");
 	}
 });
+
+test("windows that start from the cached theme still use the theme, not the base palette", async ({ page, context }) => {
+	await page.emulateMedia({ colorScheme: "dark" });
+	await page.goto("/");
+	await expect(page.locator("[data-fw-region=titlebar]")).toBeVisible();
+	const bg = () => getComputedStyle(document.documentElement).getPropertyValue("--background").trim();
+	const first = await page.evaluate(bg);
+	// a second window: the inline script restores the cached theme before the app CSS loads
+	const second = await context.newPage();
+	await second.emulateMedia({ colorScheme: "dark" });
+	await second.goto("/");
+	await expect(second.locator("[data-fw-region=titlebar]")).toBeVisible();
+	await second.waitForTimeout(500);
+	expect(await second.evaluate(bg)).toBe(first);
+	expect(first).toBe("#2e3440");
+});

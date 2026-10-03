@@ -113,7 +113,9 @@ export class ThemeService {
 			.filter(([k]) => k !== "density")
 			.map(([k, v]) => `--${k}:${String(v).replace(/[;{}<>]/g, "")};`)
 			.join("");
-		return `:root{${decls}}${extraCss ? "\n" + sanitizeCss(extraCss) : ""}`;
+		// :root:root outranks the base palette's .dark/:root rules whatever the order: the cached
+		// theme is injected before the app CSS in new windows, and later applies reuse that tag
+		return `:root:root{${decls}}${extraCss ? "\n" + sanitizeCss(extraCss) : ""}`;
 	}
 
 	configure(o: { mode?: ModeSetting; light?: string; dark?: string }) {
