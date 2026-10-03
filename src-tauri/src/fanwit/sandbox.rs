@@ -65,7 +65,7 @@ impl Sandbox {
     pub fn remember(&self, path: &Path) {
         let c = canon(path);
         let mut known = self.known.write().unwrap();
-        if !known.iter().any(|k| *k == c) {
+        if !known.contains(&c) {
             known.push(c);
             if let Some(f) = self.file.read().unwrap().as_ref() {
                 let list: Vec<String> = known.iter().map(|k| super::to_front(k)).collect();
@@ -85,7 +85,7 @@ impl Sandbox {
             ));
         }
         let mut active = self.active.write().unwrap();
-        if !active.iter().any(|a| *a == c) {
+        if !active.contains(&c) {
             active.push(c.clone());
         }
         Ok(c)

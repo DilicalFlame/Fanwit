@@ -16,7 +16,7 @@ pub fn run() {
     {
         // must be the first plugin: a second launch forwards argv here and exits
         builder = builder
-            .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| fanwit::cli::on_second_instance(app, argv, cwd)))
+            .plugin(tauri_plugin_single_instance::init(fanwit::cli::on_second_instance))
             .plugin(tauri_plugin_global_shortcut::Builder::new().build());
     }
     builder

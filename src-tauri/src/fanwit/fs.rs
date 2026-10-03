@@ -125,7 +125,7 @@ fn walk(dir: &Path, recursive: bool, out: &mut Vec<Entry>) -> Result<()> {
             name: e.file_name().to_string_lossy().into_owned(),
             path: to_front(&path),
             dir: m.is_dir(),
-            size: (!m.is_dir()).then(|| m.len()),
+            size: (!m.is_dir()).then_some(m.len()),
             mtime: Some(mtime(&m)),
         });
         if recursive && m.is_dir() && !m.file_type().is_symlink() {

@@ -1,0 +1,9 @@
+{
+	"evenBetterToml.schema.associations": {
+		"workspace\.toml$": "./schemas/workspace.schema.json",
+		"presets/.*\.toml$": "./schemas/workspace.schema.json",
+		"keys\.toml$": "./schemas/keys.schema.json",
+		"menus\.toml$": "./schemas/menus.schema.json"
+	},
+	"files.associations": { "*.svelte.ts": "typescript" }
+}

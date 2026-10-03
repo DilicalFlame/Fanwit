@@ -1,0 +1,17 @@
+{
+	"Fanwit command": {
+		"prefix": "fwcmd",
+		"scope": "typescript",
+		"body": ["ctx.commands.register({ id: \"${1:module}.${2:verbObject}\", title: \"${3:Title}\", category: \"${4:Category}\" }, (${5:args}) => {", "\t$0", "});"]
+	},
+	"Fanwit view": {
+		"prefix": "fwview",
+		"scope": "typescript",
+		"body": ["{ id: \"${1:module}.${2:name}\", title: \"${3:Title}\", icon: \"${4:square}\", component: () => import(\"./views/${5:View}.svelte\") }"]
+	},
+	"Fanwit menu item": {
+		"prefix": "fwmenu",
+		"scope": "typescript",
+		"body": ["{ id: \"${1:id}\", command: \"${2:command}\", group: \"${3:navigation}\", order: ${4:1} }"]
+	}
+}

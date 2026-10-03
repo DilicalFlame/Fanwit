@@ -37,7 +37,7 @@ fn extract_clean_metadata<'a>(
     } else if file.starts_with("webview::") {
         file = "frontend".to_string();
     } else {
-        file = format!("{}", file);
+        file = file.to_string();
     }
 
     // normalize paths for the host OS (e.g., Windows vs Unix)

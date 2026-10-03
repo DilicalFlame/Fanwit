@@ -1,25 +1,67 @@
 # Fanwit
 
-> Acronym for `Fast and Natural Window in Tauri`
+> **F**ast **A**nd **N**atural **W**indow **I**n **T**auri: a hackable template for production ready desktop and web apps with Tauri 2, Svelte 5 and shadcn-svelte.
 
-This is a desktop application TEMPLATE.
-Use it to quickly build production ready Tauri Desktop Applications.
+Clone it and you start with an app that already behaves like Obsidian, VS Code or Figma, and that you can reshape into anything, for the desktop and the web, from one codebase. The template is also a working app ("Fanwit") that demonstrates every system and doubles as the manual.
 
-1. Clone it
-2. Delete the .git folder
-3. Rename the software's name and developer name (script provided)
-4. (Optional) Change the version (script provided)
-5. `pnpm install`
-6. `pnpm tauri dev`
+## Quick start
 
-## Features
-1. Professional Logger to log in frontend and tauri both.
-2. Scripts for changing application and developer name plus versions across frontend and tauri.
-3. 5 Types of windows provided: Dialog, Flyout, Overlay, Panel and Popover.
-4. Special: Context Menu editor in place.
-5. Some settings built in place to edit upon (on prebuilt settings window).
-6. Sqlite store API to store data at global application level and in local vaults' level.
-7. Rich Layout API with split pane support.
-8. Custom Title Bar Component provided to tweak with.
+```sh
+pnpm install
+pnpm fw rename          # display name, slug, developer, bundle identifier
+pnpm tauri dev          # desktop
+pnpm dev                # web build in the browser
+```
 
-...
+`pnpm fw doctor` checks toolchains, capabilities, CSP and presets. `pnpm fw strip` removes the Labs and samples when you are ready to build your own app.
+
+## What is in the box
+
+| System | Highlights |
+|---|---|
+| Kernel | Modules with static contributions and lazy activation, typed services and events, context keys with `when` clauses, lifecycle with shutdown vetoes, scoped logger with a ring buffer |
+| Commands | One pipeline for palette, keys, menus, toolbar, CLI, deep links and plugins: argument schemas, prompts, interceptors, undo and redo, user commands and macros |
+| Shortcuts | Chords, layout aware keys, precedence tiers, `keys.toml`, global shortcuts, Shortcuts editor with conflict resolution, keyboard overlay |
+| Context menus | Menus as data with custom item kinds (colour swatches, sliders, icon rows…), patches in `menus.toml`, Context Menu Editor, *Edit this menu* on any element in developer mode |
+| Layout | One live document in `workspace.toml` (comments preserved), splits, tabs, stacks, grids, floats, drawers, overlays, drag and drop docking, pop out windows, presets, responsive rules |
+| Windows | Window kinds with a result promise, focus lock with bell and shake, identity keyed window state with monitor recovery, virtual windows on the web |
+| Notifications | Routing policy, channels, toasts, centre, progress with cancellation, OS notifications, badges |
+| Themes | TOML themes with shadcn tokens, flash free start, Theme Studio with OKLCH generation and contrast checks |
+| Data | Vaults with a sandboxed file system, storage scopes, SQLite with migrations and plugin namespacing, OS keychain secrets |
+| Settings | Schema declared, layered (default, app, user, vault, window, CLI), generated Settings window |
+| Plugins | Data only, worker isolated and in realm plugins, permissions, safe mode, Plugin Manager, registry install with SHA-256 checks |
+| CLI | `fanwit-cli` talks to the running app (or starts it headless) with `--json` and stable exit codes; `fw` developer CLI |
+| Developer tools | Element inspector, Log viewer, event monitor, command log, scripting console, module profiler, Labs, in app Manual |
+
+## Project structure
+
+```
+fanwit.app.toml        identity (single source of truth)
+app.config.ts          which core modules are on, data strategies, plugin policy
+src/fanwit/            the core (kernel, host, systems, workbench)
+src/app/               your modules, themes, layouts
+src/lib/components/ui  shadcn-svelte components you own
+src-tauri/src/fanwit/  Rust core: sandbox, fs, TOML merge, SQLite, windows, CLI bridge
+docs/                  the manual
+plugins/               sample runtime plugins
+packages/fw/           developer CLI
+```
+
+## Testing
+
+```sh
+pnpm test              # Vitest: kernel, commands, layout, settings, menus, CLI
+pnpm test:e2e          # Playwright against the web build
+cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+## Documentation
+
+Press **F1** in the app, or read [docs/getting-started.md](docs/getting-started.md). The full specification is in `FANWIT-Specification.pdf`.
+
+## Known limitations
+
+- The web build stores data in browser storage; SQL needs the planned SQLite WASM worker.
+- Cross window tab dragging uses pop out on release outside the window; live hand off between OS windows is not implemented.
+- Native menu bar on macOS and the Windows system menu on the custom title bar are not wired yet; the custom menu bar is used everywhere.
+- The updater is not configured (no endpoint or key ships with the template).
