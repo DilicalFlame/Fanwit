@@ -102,6 +102,7 @@ export function activateCore(ctx: ModuleContext) {
 		await k.host.windows.setFullscreen(on);
 	});
 	h("window.cycle", () => windows.cycle());
+	h("window.list", async () => (k.host.caps.nativeWindows ? await k.host.windows.list() : windows.virtual.map((v) => v.id)));
 
 	// ----- layout -----
 	const L = (a: Parameters<typeof layout.dispatch>[0]) => layout.dispatch(a, { origin: "command" });

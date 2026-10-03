@@ -35,6 +35,7 @@ export const coreCommands: CommandDefinition[] = [
 	c("window.toggleMaximize", "Toggle maximize", "Window"),
 	c("window.toggleFullscreen", "Toggle full screen", "Window", { icon: "maximize" }),
 	c("window.cycle", "Cycle virtual windows", "Window", { visibleWhen: "!host.nativeWindows" }),
+	c("window.list", "List windows", "Window", { cli: true, palette: false }),
 
 	// layout
 	c("layout.splitRight", "Split right", "Layout", { icon: "columns-2" }),
