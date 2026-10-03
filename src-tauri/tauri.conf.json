@@ -23,7 +23,7 @@
 				"font-src": "'self' data:",
 				"connect-src": "'self' ipc: http://ipc.localhost fanwit-plugin: http://fanwit-plugin.localhost",
 				"worker-src": "'self' blob:",
-				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost isolation: http://*.localhost",
 				"object-src": "'none'"
 			},
 			"devCsp": {
@@ -34,7 +34,7 @@
 				"font-src": "'self' data:",
 				"connect-src": "'self' ipc: http://ipc.localhost ws://localhost:3000 http://localhost:3000 fanwit-plugin: http://fanwit-plugin.localhost",
 				"worker-src": "'self' blob:",
-				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost",
+				"frame-src": "'self' blob: fanwit-plugin: http://fanwit-plugin.localhost isolation: http://*.localhost",
 				"object-src": "'none'"
 			},
 			"pattern": {
