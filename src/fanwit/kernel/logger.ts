@@ -79,7 +79,7 @@ export class LogService {
 		if (!this.host) return console[level === "trace" ? "debug" : level](text);
 		if (!this.captureLocation) return this.host.log.write(level, text);
 		const err = new Error();
-		StackTrace.fromError(err)
+		StackTrace.fromError(err, { offline: true })
 			.then((frames) => {
 				// 0 write, 1 ScopedLogger method, 2 caller
 				const f = frames.find((fr, i) => i >= 2 && !/logger\.ts/.test(fr.fileName ?? "")) ?? frames[2];

@@ -24,12 +24,15 @@ import type { ViewContribution } from "./layout/views";
 import type { LayoutAction } from "./layout/actions";
 import { WindowService, type WindowKindSpec } from "./windows/windows.svelte";
 import { MenuService, type MenuItem, type MenuItemKind, type MenuLocation, type MenuPatch } from "./menus/menus.svelte";
-import { PaletteService, type PaletteProvider } from "./workbench/palette.svelte";
+import { PaletteService, type PaletteProvider } from "./workbench/palette-service.svelte";
 import { StatusService, type StatusItemSpec } from "./workbench/status.svelte";
 import { icons } from "./icons/registry.svelte";
 import { coreModules } from "./core";
 import type { CommandDefinition } from "./commands/types";
 import presetWorkbench from "./layout/presets/workbench.toml?raw";
+import ViewHost from "./workbench/ViewHost.svelte";
+import { DockDrag } from "./workbench/layout/dnd.svelte";
+import { setActiveKernel } from "./ui.svelte";
 
 declare module "./kernel/kernel.svelte" {
 	interface KernelSystems {
@@ -146,6 +149,7 @@ export class LayerService {
 declare module "./kernel/kernel.svelte" {
 	interface KernelSystems {
 		layers: LayerService;
+		dock: DockDrag;
 		dialog: {
 			ask: Host["dialog"]["ask"];
 			confirm: Host["dialog"]["ask"];
@@ -214,7 +218,9 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 		open: (op?: Parameters<Host["dialog"]["open"]>[0]) => host.dialog.open(op),
 		save: (op?: Parameters<Host["dialog"]["save"]>[0]) => host.dialog.save(op)
 	};
-	Object.assign(k.sys, { storage, db, vault, settings, themes, notify, layout, windows, menus, palette, status, jobs, i18n, config, info, layers: new LayerService(), dialog, userCommands: null, keysFile: null });
+	Object.assign(k.sys, { storage, db, vault, settings, themes, notify, layout, windows, menus, palette, status, jobs, i18n, config, info, layers: new LayerService(), dock: new DockDrag(k), dialog, userCommands: null, keysFile: null });
+	layout.pool.hostComponent = ViewHost;
+	setActiveKernel(k);
 
 	k.commands.setPrompter((entry, missing, given) =>
 		palette.ask(
@@ -358,6 +364,10 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 		if (userKeys.errors.length) notify.send({ title: "keys.toml has problems", body: userKeys.errors.join("\n"), kind: "warning" });
 	});
 	await keysFile.watch();
+	k.events.on("fw:user-keys" as never, () => {
+		userKeys.dispose.dispose();
+		userKeys = k.keys.loadUser(keysFile.text);
+	});
 	k.sys.keysFile = keysFile;
 
 	await menus.load(host.dirs.config);
@@ -380,6 +390,7 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 		if (persist === "vault") await layout.load(host.dirs.data, defaultText);
 	});
 	await vault.loadRecent();
+	await loadUserThemes(k);
 
 	k.keys.attach(document);
 	k.context.trackDom();
@@ -457,6 +468,20 @@ async function loadUserCommands(k: Kernel) {
 	apply();
 	file.onDidChangeFromDisk.on(apply);
 	k.events.on("fw:user-commands" as never, apply);
+}
+
+/** Themes saved by Theme Studio live in <config>/themes/<id>/theme.toml. */
+async function loadUserThemes(k: Kernel) {
+	const dir = joinPath(k.host.dirs.config, "themes");
+	for (const e of await k.host.fs.list(dir).catch(() => [])) {
+		if (!e.dir) continue;
+		try {
+			k.sys.themes.add(parseTheme(await k.host.fs.readText(joinPath(e.path, "theme.toml"))), "user", e.path);
+		} catch (err) {
+			logs.scoped("themes").warn(`theme ${e.name}: ${(err as Error).message}`);
+		}
+	}
+	k.sys.themes.apply();
 }
 
 /** Parse helper for modules that ship TOML presets. */

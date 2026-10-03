@@ -1,7 +1,7 @@
 /** Built in palette providers (Section 5.4). */
 import type { Kernel } from "../kernel/kernel.svelte";
 import { compileWhen } from "../kernel/when";
-import type { PaletteItem, PaletteProvider } from "../workbench/palette.svelte";
+import type { PaletteItem, PaletteProvider } from "../workbench/palette-service.svelte";
 import { fuzzy } from "../workbench/fuzzy";
 import { basename, extname } from "../host/types";
 

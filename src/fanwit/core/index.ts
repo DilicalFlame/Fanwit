@@ -18,6 +18,7 @@ import { labsModule } from "./labs";
 import { devtoolsModule } from "./devtools";
 import { manualModule } from "./manual";
 import { pluginsModule } from "./plugins";
+import { explorerModule } from "./explorer";
 import presetWorkbench from "../layout/presets/workbench.toml?raw";
 import presetNotes from "../layout/presets/notes.toml?raw";
 import presetCanvas from "../layout/presets/canvas.toml?raw";
@@ -37,7 +38,7 @@ import ColorSwatches from "../workbench/menus/kinds/ColorSwatches.svelte";
 import Progress from "../workbench/menus/kinds/Progress.svelte";
 import List from "../workbench/menus/kinds/List.svelte";
 
-const v = (id: string, title: string, icon: string, component: ViewContribution["component"], extra: Partial<ViewContribution> = {}): ViewContribution => ({ id, title, icon, component, ...extra });
+const v = (id: string, title: ViewContribution["title"], icon: string, component: ViewContribution["component"], extra: Partial<ViewContribution> = {}): ViewContribution => ({ id, title, icon, component, ...extra });
 
 export const coreViews: ViewContribution[] = [
 	v("fanwit.welcome", "Welcome", "house", () => import("../views/Welcome.svelte"), { singleton: true, help: "getting-started" }),
@@ -50,8 +51,8 @@ export const coreViews: ViewContribution[] = [
 	v("fanwit.logs", "Logs", "scroll-text", () => import("../views/Logs.svelte"), { regions: ["panel"], singleton: true, category: "Developer", help: "logging" }),
 	v("fanwit.problems", "Problems", "circle-alert", () => import("../views/Problems.svelte"), { regions: ["panel"], singleton: true }),
 	v("fanwit.jobs", "Jobs", "list-checks", () => import("../views/Jobs.svelte"), { regions: ["panel"], singleton: true }),
-	v("fanwit.tomlEditor", (p) => `${String(p.file ?? "workspace")}.toml`, "file-code", () => import("../views/TomlEditor.svelte"), { identity: (p) => String(p.file ?? "workspace"), help: "toml" }),
-	v("fanwit.textEditor", (p) => String(p.path ?? "Untitled").split("/").pop()!, "file-text", () => import("../views/TextEditor.svelte"), { identity: (p) => String(p.path), opens: ["*"] }),
+	v("fanwit.tomlEditor", (p: Record<string, unknown>) => `${String(p.file ?? "workspace")}.toml`, "file-code", () => import("../views/TomlEditor.svelte"), { identity: (p) => String(p.file ?? "workspace"), help: "toml" }),
+	v("fanwit.textEditor", (p: Record<string, unknown>) => String(p.path ?? "Untitled").split("/").pop()!, "file-text", () => import("../views/TextEditor.svelte"), { identity: (p) => String(p.path), opens: ["*"] }),
 	v("fanwit.settings", "Settings", "settings", () => import("../views/settings/Settings.svelte"), { singleton: true, help: "settings" }),
 	v("fanwit.vaultManager", "Vaults", "library", () => import("../views/VaultManager.svelte"), { singleton: true, help: "vaults" }),
 	v("fanwit.onboarding", "Welcome", "sparkles", () => import("../views/Onboarding.svelte"), { singleton: true }),
@@ -60,7 +61,7 @@ export const coreViews: ViewContribution[] = [
 	v("fanwit.crash", "Crash report", "bug", () => import("../views/system/Crash.svelte"), { singleton: true }),
 	v("fanwit.quickCapture", "Quick capture", "zap", () => import("../views/QuickCapture.svelte"), { singleton: true }),
 	v("fanwit.menuEditor", "Context Menu Editor", "list-tree", () => import("../views/menu-editor/MenuEditor.svelte"), { singleton: true, help: "context-menus" }),
-	v("fanwit.themeStudio", "Theme Studio", "swatch-book", () => import("../views/ThemeStudio.svelte"), { singleton: true, help: "themes", category: "Labs" })
+	v("fanwit.themeStudio", "Theme Studio", "swatch-book", () => import("../views/ThemeStudio.svelte"), { singleton: true, help: "themes", category: "Labs", description: "Generate a theme from one colour; check contrast" })
 ];
 
 export const coreWindows: WindowKindSpec[] = [
@@ -183,13 +184,14 @@ export const coreModule = defineModule({
 			menus.registerProvider("layoutPresets", () => [...layout.presets.values()].map((p) => ({ id: `preset:${p.id}`, label: p.title, description: p.description, icon: "layout-template", command: "layout.applyPreset", args: { preset: p.id } }))),
 			menus.registerProvider("openWindows", async () => (await k.host.windows.list().catch(() => [])).filter((l) => l !== k.host.windows.label).map((l) => ({ id: `win:${l}`, label: l, icon: "app-window", command: "fanwit.focusWindow", args: { label: l } })))
 		);
+		ctx.commands.register({ id: "fanwit.menuDemo", title: "Menu demo", palette: false }, (args: Record<string, unknown>) => k.sys.notify.toast(`Menu item emitted ${JSON.stringify(args)}`));
 		ctx.commands.register({ id: "fanwit.focusWindow", title: "Focus window", palette: false, args: { label: { type: "string" } } }, ({ label }: { label: string }) => k.host.windows.focus(label));
 		if (k.windowKind === "main" && k.host.windows.label === "main") attachCliBridge(k);
 	}
 });
 
 export function coreModules(features: NonNullable<AppConfig["features"]>): ModuleDefinition[] {
-	const list: ModuleDefinition[] = [coreModule];
+	const list: ModuleDefinition[] = [coreModule, explorerModule];
 	if (features.labs !== false) list.push(labsModule);
 	if (features.devtools !== false) list.push(devtoolsModule);
 	if (features.manual !== false) list.push(manualModule);

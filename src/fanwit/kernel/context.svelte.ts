@@ -3,6 +3,7 @@
  * or scoped to a DOM subtree with `use:ctxkeys`; evaluation walks from the focused element (or
  * the element under the pointer for context menus) up to the root, merging scopes.
  */
+import { untrack } from "svelte";
 import { Emitter, toDisposable, type Disposable } from "./disposable";
 import { compileWhen, type Lookup, type WhenClause } from "./when";
 
@@ -42,7 +43,7 @@ export class ContextKeyService {
 	}
 
 	bump(keys: string[] = []) {
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		this.onDidChange.fire(keys);
 	}
 
@@ -94,15 +95,17 @@ export class ContextKeyService {
 		if (typeof document === "undefined") return toDisposable(() => {});
 		const isInput = (el: Element | null) =>
 			!!el && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || (el as HTMLElement).isContentEditable);
-		const onFocus = () => {
+		// focus events can fire while Svelte is removing nodes; apply after the current update
+		const later = (fn: () => void) => () => queueMicrotask(fn);
+		const onFocus = later(() => {
 			this.set("inputFocus", isInput(document.activeElement));
 			this.bump();
-		};
-		const onSel = () => {
+		});
+		const onSel = later(() => {
 			const s = document.getSelection();
 			this.set("textSelected", !!s && !s.isCollapsed);
-		};
-		const onWin = () => this.set("window.focused", document.hasFocus());
+		});
+		const onWin = later(() => this.set("window.focused", document.hasFocus()));
 		document.addEventListener("focusin", onFocus);
 		document.addEventListener("focusout", onFocus);
 		document.addEventListener("selectionchange", onSel);

@@ -3,6 +3,7 @@
  * context and hands over to the command pipeline. Precedence: user > plugin > module > core;
  * within a tier the most recently registered wins. `command = "-id"` removes a lower binding.
  */
+import { untrack } from "svelte";
 import { parse as parseToml } from "smol-toml";
 import { toDisposable, type Disposable } from "../kernel/disposable";
 import type { ContextKeyService } from "../kernel/context.svelte";
@@ -70,7 +71,7 @@ export class KeybindingService {
 		const rb: ResolvedBinding = {
 			...b,
 			command: removal ? b.command.slice(1) : b.command,
-			steps: b.key || this.pickKey(b) ? parseBinding(this.pickKey(b), this.platform) : [],
+			steps: this.pickKey(b) ? parseBinding(this.pickKey(b), this.platform) : [],
 			source,
 			owner,
 			order: ++this.seq,
@@ -78,11 +79,11 @@ export class KeybindingService {
 		};
 		this.bindings.push(rb);
 		if (rb.global && !removal) void this.registerGlobal(rb);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			this.bindings = this.bindings.filter((x) => x !== rb);
 			this.globals.get(rb.steps.join(" "))?.dispose();
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 
@@ -97,7 +98,7 @@ export class KeybindingService {
 		} catch (e) {
 			b.globalError = String((e as Error)?.message ?? e);
 			this.log.warn(`could not register global shortcut ${accel}: ${b.globalError}`);
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		}
 	}
 

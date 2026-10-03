@@ -2,7 +2,7 @@
  * Icon registry (Section 19.5): icons are referenced by name ("file-text"). Lucide by default,
  * loaded per icon on first use; modules can register SVG icons and icon themes can remap names.
  */
-import type { Component } from "svelte";
+import { untrack, type Component } from "svelte";
 import { toDisposable } from "../kernel/disposable";
 
 type Loader = () => Promise<unknown>;
@@ -21,17 +21,17 @@ class IconRegistry {
 			.replace(/\son\w+\s*=\s*(["']).*?\1/gi, "")
 			.replace(/(href|xlink:href)\s*=\s*(["'])(?!#)[^"']*\2/gi, "");
 		this.svgs.set(name, clean);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			this.svgs.delete(name);
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 
 	/** Icon themes: map names to other names or registered SVGs. */
 	setTheme(map: Record<string, string>) {
 		this.remap = new Map(Object.entries(map));
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	svg(name: string) {

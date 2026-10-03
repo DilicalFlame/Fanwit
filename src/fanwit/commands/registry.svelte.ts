@@ -3,6 +3,7 @@
  *   resolve id and aliases -> activate owner -> check when -> parse and prompt args
  *   -> confirm -> interceptors -> handler -> history -> log, recents -> result
  */
+import { untrack } from "svelte";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError, toFanwitError } from "../kernel/errors";
 import type { ContextKeyService } from "../kernel/context.svelte";
@@ -85,7 +86,7 @@ export class CommandService {
 	}
 
 	private changed() {
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		this.onDidChange.fire();
 	}
 

@@ -1,8 +1,12 @@
-<script>
-    import { Window } from "$lib";
-    const askDialog = Window.DialogWindow.ask;
-</script>
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import { onMount } from "svelte";
+	import Workbench from "$fanwit/workbench/Workbench.svelte";
+	import { getKernel } from "$fanwit/ui.svelte";
+	import { mainStartup } from "$fanwit/startup.svelte";
 
-<div onclick={() => askDialog("Hello", {title: "Tauri", kind: "warning"})}>Click</div>
+	/** The main window: the workbench frame with the workspace layout. */
+	const k = getKernel();
+	onMount(() => void mainStartup(k));
+</script>
+
+<Workbench windowId="main" />

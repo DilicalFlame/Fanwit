@@ -286,6 +286,29 @@
 	}
 }
 
+/* Manual and other long form text */
+.fw-prose {
+	line-height: 1.6;
+	font-size: 14px;
+	max-width: 860px;
+}
+.fw-prose h1 { font-size: 24px; font-weight: 650; margin: 0 0 12px; }
+.fw-prose h2 { font-size: 18px; font-weight: 600; margin: 28px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.fw-prose h3 { font-size: 15px; font-weight: 600; margin: 20px 0 6px; }
+.fw-prose p, .fw-prose ul, .fw-prose ol, .fw-prose table, .fw-prose pre, .fw-prose blockquote { margin: 0 0 12px; }
+.fw-prose ul { list-style: disc; padding-left: 22px; }
+.fw-prose ol { list-style: decimal; padding-left: 22px; }
+.fw-prose a { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+.fw-prose code { font-family: var(--font-mono); font-size: 12px; background: var(--muted); padding: 1px 4px; border-radius: 4px; }
+.fw-prose pre { background: var(--muted); padding: 10px 12px; border-radius: 8px; overflow: auto; }
+.fw-prose pre code { background: none; padding: 0; }
+.fw-prose blockquote { border-left: 3px solid var(--info); background: var(--info-muted); padding: 8px 12px; border-radius: 4px; }
+.fw-prose table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+.fw-prose th, .fw-prose td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: top; }
+.fw-prose th { background: var(--muted); font-weight: 600; }
+.fw-prose .fw-run { position: relative; }
+.fw-prose .fw-run button { position: absolute; top: 6px; right: 6px; background: var(--primary); color: var(--primary-foreground); font-size: 12px; padding: 2px 10px; border-radius: 6px; }
+
 [data-density="compact"] {
 	--control-h: 24px;
 	--row-h: 22px;

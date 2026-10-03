@@ -1,0 +1,39 @@
+[meta]
+id = "nord-ish"
+name = "Nord-ish"
+author = "Kiran"
+version = "1.0.0"
+extends = "fanwit-default"
+modes = ["light", "dark"]
+
+[common]
+radius = "0.5rem"
+density = "comfortable"
+
+[light]
+background = "oklch(0.98 0.005 240)"
+foreground = "oklch(0.25 0.02 250)"
+primary = "oklch(0.55 0.12 240)"
+primary-foreground = "oklch(0.98 0 0)"
+titlebar = "oklch(0.95 0.01 240)"
+statusbar = "oklch(0.55 0.12 240)"
+statusbar-foreground = "oklch(0.98 0 0)"
+tab-border = "oklch(0.55 0.12 240)"
+
+[dark]
+background = "oklch(0.24 0.02 250)"
+foreground = "oklch(0.92 0.01 240)"
+card = "oklch(0.27 0.02 250)"
+popover = "oklch(0.27 0.02 250)"
+primary = "oklch(0.72 0.1 220)"
+primary-foreground = "oklch(0.2 0.02 250)"
+muted = "oklch(0.3 0.02 250)"
+accent = "oklch(0.32 0.025 250)"
+border = "oklch(0.35 0.02 250)"
+titlebar = "oklch(0.21 0.02 250)"
+activity = "oklch(0.2 0.02 250)"
+sidebar = "oklch(0.22 0.02 250)"
+tab = "oklch(0.21 0.02 250)"
+tab-active = "oklch(0.24 0.02 250)"
+statusbar = "oklch(0.21 0.02 250)"
+tab-border = "oklch(0.72 0.1 220)"

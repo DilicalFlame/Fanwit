@@ -12,12 +12,14 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest run",
 		"tauri": "tauri",
-		"fw": "node packages/fw/fw.mjs"
+		"fw": "node packages/fw/fw.mjs",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
 		"@iarna/toml": "^2.2.5",
 		"@internationalized/date": "^3.12.4",
 		"@lucide/svelte": "^1.50.0",
+		"@playwright/test": "^1.63.0",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.50.2",

@@ -1,0 +1,28 @@
+id = "word-count"
+name = "Word Count"
+version = "1.2.0"
+author = "Kiran"
+description = "Live word count and reading time in the status bar."
+app = ">=0.0.1"
+fanwit = ">=0.0.1"
+entry = "main.js"
+isolation = "worker"
+activation = ["onStartupFinished"]
+permissions = ["vault.read", "statusbar"]
+
+[[contributes.commands]]
+id = "wordCount.show"
+title = "Show word count details"
+category = "Word Count"
+
+[[contributes.statusItems]]
+id = "wordCount.item"
+align = "right"
+priority = 50
+command = "wordCount.show"
+
+[[contributes.settings]]
+key = "wordCount.wpm"
+type = "number"
+default = 230
+title = "Reading speed (words per minute)"

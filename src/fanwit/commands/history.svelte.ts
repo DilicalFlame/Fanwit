@@ -2,6 +2,7 @@
  * Undo and redo (Section 5.5). Stacks per history scope: views set the scope with the
  * `history.scope` context key (one per document or view); otherwise one per window.
  */
+import { untrack } from "svelte";
 import type { UndoRecord } from "./types";
 
 interface Stack {
@@ -33,7 +34,7 @@ export class HistoryService {
 		s.undo.push(rec);
 		if (s.undo.length > LIMIT) s.undo.shift();
 		s.redo.length = 0;
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	/** Group everything pushed while `fn` runs into one undo step. */
@@ -82,7 +83,7 @@ export class HistoryService {
 		if (!rec) return false;
 		await rec.undo();
 		if (rec.redo) s.redo.push(rec);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return rec.label ?? true;
 	}
 
@@ -92,13 +93,13 @@ export class HistoryService {
 		if (!rec?.redo) return false;
 		await rec.redo();
 		s.undo.push(rec);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return rec.label ?? true;
 	}
 
 	clear(scope?: string) {
 		if (scope) this.stacks.delete(scope);
 		else this.stacks.clear();
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 }

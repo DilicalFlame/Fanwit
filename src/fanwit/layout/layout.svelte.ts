@@ -3,7 +3,7 @@
  * keeps workspace.toml in two way sync, and renders through the pane pool.
  */
 import { parse } from "smol-toml";
-import { mount, unmount, type Component } from "svelte";
+import { mount, unmount, type Component, untrack } from "svelte";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
 import type { Kernel } from "../kernel/kernel.svelte";
@@ -59,7 +59,7 @@ export class LayoutService {
 	readonly views = new Map<string, ViewEntry>();
 	readonly nodeTypes = new Map<string, CustomNodeType>();
 	readonly presets = new Map<string, Preset>();
-	file: TomlFile | null = null;
+	file: TomlFile<LayoutDoc & Record<string, unknown>> | null = null;
 	private interceptors: LayoutInterceptor[] = [];
 	private defaultText = "";
 	readonly pool: PanePool;
@@ -91,10 +91,10 @@ export class LayoutService {
 
 	registerView(v: ViewContribution, owner: string): Disposable {
 		this.views.set(v.id, { ...v, owner });
-		this.viewsVersion++;
+		this.viewsVersion = untrack(() => this.viewsVersion) + 1;
 		return toDisposable(() => {
 			if (this.views.get(v.id)?.owner === owner) this.views.delete(v.id);
-			this.viewsVersion++;
+			this.viewsVersion = untrack(() => this.viewsVersion) + 1;
 		});
 	}
 

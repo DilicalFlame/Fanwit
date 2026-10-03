@@ -4,6 +4,7 @@
  *   -> window -> cli (--set key=value, APPNAME_* env)
  * Invalid values are reported and fall back to the next lower layer.
  */
+import { untrack } from "svelte";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
 import type { ScopedLogger } from "../kernel/logger";
@@ -167,7 +168,7 @@ export class SettingsService {
 	}
 
 	private changed(keys: string[]) {
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		this.onDidChange.fire(keys);
 	}
 

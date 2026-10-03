@@ -3,6 +3,7 @@
  * and an optional sanitised [css]. The active theme becomes one <style id="fw-theme"> element;
  * the compiled CSS is cached so the next window paints themed from its very first frame.
  */
+import { untrack } from "svelte";
 import { parse } from "smol-toml";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
@@ -79,10 +80,10 @@ export class ThemeService {
 
 	add(def: ThemeDef, owner: string, source?: string): Disposable {
 		this.themes.set(def.meta.id, { def, owner, source });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			if (this.themes.get(def.meta.id)?.owner === owner) this.themes.delete(def.meta.id);
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 
@@ -161,7 +162,7 @@ export class ThemeService {
 		}
 		void this.host.windows.setTheme(mode).catch(() => {});
 		void this.host.windows.setBackgroundColor(bgHex).catch(() => {});
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		this.onDidApply.fire({ id, mode });
 	}
 

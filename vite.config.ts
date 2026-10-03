@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	clearScreen: false,
-	server: { strictPort: true },
+	server: { strictPort: true, fs: { allow: ['app.config.ts', 'docs', 'plugins'] } },
 	test: {
 		include: ['src/**/*.test.ts'],
 		environment: 'node'

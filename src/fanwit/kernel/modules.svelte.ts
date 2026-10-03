@@ -2,6 +2,7 @@
  * Module registry: reads contributions through registered contribution points, routes activation
  * events, and profiles activation (Section 20.5 module profiler).
  */
+import { untrack } from "svelte";
 import { DisposableStore, Emitter, toDisposable, type Disposable } from "./disposable";
 import { FanwitError, toFanwitError } from "./errors";
 import type { ScopedLogger } from "./logger";
@@ -75,7 +76,7 @@ export class ModuleRegistry {
 			if (!this.points.has(key)) this.log.debug(`module "${def.id}" contributes to unknown point "${key}" (applied when defined)`);
 			this.applyPoint(state, key, value);
 		}
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		// events that already fired (onStartupFinished, onVault) activate late registrations too
 		for (const ev of this.fired) if (state.events.some((p) => eventMatches(p, ev))) void this.activate(def.id, ev);
 		return toDisposable(() => this.unregister(def.id));
@@ -87,7 +88,7 @@ export class ModuleRegistry {
 		await this.deactivate(id);
 		m.contributions.dispose();
 		this.modules.delete(id);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	/** Fire an activation event: activates every module that declared a matching event. */
@@ -134,7 +135,7 @@ export class ModuleRegistry {
 				this.log.error(`module "${id}" failed to activate:`, e);
 			} finally {
 				this.pending.delete(id);
-				this.version++;
+				this.version = untrack(() => this.version) + 1;
 			}
 		})();
 		this.pending.set(id, p);
@@ -147,7 +148,7 @@ export class ModuleRegistry {
 		this.disposeContext(m.ctx);
 		m.ctx = undefined;
 		m.status = "idle";
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	list() {

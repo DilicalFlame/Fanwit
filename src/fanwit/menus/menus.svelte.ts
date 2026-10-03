@@ -3,7 +3,7 @@
  * and props. Kinds are registered renderers; they emit values passed as arguments to commands.
  * User changes are patches over contributed menus (menus.toml), never copies.
  */
-import type { Component } from "svelte";
+import { untrack, type Component } from "svelte";
 import { toDisposable, type Disposable } from "../kernel/disposable";
 import type { Kernel } from "../kernel/kernel.svelte";
 import { TomlFile } from "../data/toml-file.svelte";
@@ -214,9 +214,9 @@ export class MenuService {
 		});
 		await this.file.load();
 		await this.file.watch();
-		this.file.onDidChangeFromDisk.on(() => this.version++);
+		this.file.onDidChangeFromDisk.on(() => this.version = untrack(() => this.version) + 1);
 		for (const l of this.file.value.location ?? []) this.locations.set(l.id, { ...l, user: true, owner: "user" });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	get patches(): MenuPatch[] {
@@ -226,10 +226,10 @@ export class MenuService {
 
 	addLocation(l: MenuLocation, owner: string): Disposable {
 		this.locations.set(l.id, { ...l, owner });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			this.locations.delete(l.id);
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 
@@ -237,16 +237,16 @@ export class MenuService {
 		const tagged = items.map((i) => ({ ...i, owner, source }));
 		this.items.set(location, [...(this.items.get(location) ?? []), ...tagged]);
 		if (!this.locations.has(location)) this.locations.set(location, { id: location, owner });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			this.items.set(location, (this.items.get(location) ?? []).filter((i) => !tagged.includes(i as never)));
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 
 	registerKind(kind: MenuItemKind, owner: string): Disposable {
 		this.kinds.set(kind.kind, { ...kind, owner });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => this.kinds.delete(kind.kind));
 	}
 
@@ -366,7 +366,7 @@ export class MenuService {
 		if (!this.file) return;
 		const v = { ...this.file.value, patch: next };
 		this.file.set(v as never);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	patch(location: string, p: Omit<MenuPatch, "location">) {
@@ -391,7 +391,7 @@ export class MenuService {
 		const l: MenuLocation = { id, description, user: true, owner: "user" };
 		this.locations.set(id, l);
 		if (this.file) this.file.set({ ...this.file.value, location: [...(this.file.value.location ?? []), { id, description }] } as never);
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 	}
 
 	patchToml(location: string): string {

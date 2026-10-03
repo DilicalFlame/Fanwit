@@ -4,7 +4,7 @@
  *   const win = await ctx.windows.open("app.export", { doc: id });
  *   const choice = await win.result;   // resolves when the child calls close(value)
  */
-import { getContext, setContext, type Component } from "svelte";
+import { getContext, setContext, type Component, untrack } from "svelte";
 import { toDisposable, type Disposable } from "../kernel/disposable";
 import { FanwitError } from "../kernel/errors";
 import type { Kernel } from "../kernel/kernel.svelte";
@@ -146,10 +146,10 @@ export class WindowService {
 
 	register(spec: WindowKindSpec, owner: string): Disposable {
 		this.kinds.set(spec.kind, { ...resolveSpec(spec), owner });
-		this.version++;
+		this.version = untrack(() => this.version) + 1;
 		return toDisposable(() => {
 			this.kinds.delete(spec.kind);
-			this.version++;
+			this.version = untrack(() => this.version) + 1;
 		});
 	}
 

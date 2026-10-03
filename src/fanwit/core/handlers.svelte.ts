@@ -287,14 +287,14 @@ export function activateCore(ctx: ModuleContext) {
 	k.host.events.on<string[]>("fw://open-paths", (paths) => void k.commands.run("app.openPaths", { paths }, { source: "uri" }).catch((e) => notify.error(e)));
 
 	// layout regions as context keys for menus and bindings
-	$effectRoot(ctx, () => {
+	effectRoot(ctx, () => {
 		const w = layout.doc.window[win()];
 		for (const r of ["sidebar", "inspector", "panel"] as RegionName[]) k.context.set(`layout.${r}Visible`, w?.regions?.[r]?.visible ?? r === "sidebar");
 	});
 }
 
 /** Run an effect for the lifetime of a module (disposed with its subscriptions). */
-function $effectRoot(ctx: ModuleContext, fn: () => void) {
+function effectRoot(ctx: ModuleContext, fn: () => void) {
 	const stop = $effect.root(() => {
 		$effect(fn);
 	});
@@ -334,7 +334,7 @@ async function systemInfo(ctx: ModuleContext) {
 }
 
 /** Open a path or deep link handed to the app (CLI, file association, second instance). */
-export async function openPath(ctx: ModuleContext, p: string) {
+export async function openPath(ctx: ModuleContext, p: string): Promise<unknown> {
 	const k = ctx.kernel;
 	const scheme = `${identity.scheme}://`;
 	if (p.startsWith(scheme)) return handleDeepLink(ctx, p);
@@ -352,7 +352,7 @@ export async function openPath(ctx: ModuleContext, p: string) {
 }
 
 /** appname://run/<command>?arg=value enters the pipeline with source "uri" (Section 15.1.4). */
-export async function handleDeepLink(ctx: ModuleContext, url: string) {
+export async function handleDeepLink(ctx: ModuleContext, url: string): Promise<unknown> {
 	const k = ctx.kernel;
 	const u = new URL(url);
 	const [head, ...rest] = (u.host + u.pathname).split("/").filter(Boolean);

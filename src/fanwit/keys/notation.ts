@@ -163,12 +163,12 @@ const NAMES: Record<string, string> = {
 
 /** Human label for chips: "Ctrl+Shift+P" or "⌘⇧P". Returns one string per chord step. */
 export function formatSteps(steps: string[], platform: Platform): string[] {
-	return steps.map((step) => {
+	return steps.filter(Boolean).map((step) => {
 		const parts = step.split("+");
 		const key = parts.pop() ?? "";
 		const label = /^\[(.+)\]$/.test(key)
 			? key.slice(1, -1).replace(/^Key|^Digit/, "")
-			: NAMES[key] ?? (key.length === 1 ? key.toUpperCase() : key[0].toUpperCase() + key.slice(1));
+			: NAMES[key] ?? (key.length <= 1 ? key.toUpperCase() : key[0].toUpperCase() + key.slice(1));
 		if (platform === "macos") return parts.map((m) => MAC_SYMBOLS[m] ?? m).join("") + label;
 		const names: Record<string, string> = { ctrl: "Ctrl", alt: "Alt", shift: "Shift", meta: platform === "windows" ? "Win" : "Super" };
 		return [...parts.map((m) => names[m] ?? m), label].join("+");
