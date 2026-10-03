@@ -19,20 +19,21 @@ export const commandsProvider: PaletteProvider = {
 			const d = e.def;
 			if (d.palette === false) continue;
 			if (d.visibleWhen && !compileWhen(d.visibleWhen).eval(lookup)) continue;
-			const label = d.title;
-			const full = d.category ? `${d.category}: ${d.title}` : d.title;
+			const label = k.commands.title(d.id);
+			const category = k.commands.category(d.id);
+			const full = category ? `${category}: ${label}` : label;
 			const m = fuzzy(q, full) ?? fuzzy(q, d.id);
 			if (!m) continue;
 			const enabled = !d.when || compileWhen(d.when).eval(lookup);
 			// disabled commands show only on an exact title match, with the reason
 			if (!enabled && q.toLowerCase() !== label.toLowerCase() && q.toLowerCase() !== full.toLowerCase()) continue;
-			const offset = d.category ? d.category.length + 2 : 0;
+			const offset = category ? category.length + 2 : 0;
 			let score = m.score + k.commands.frecencyScore(d.id) * (q ? 2 : 10);
 			if (focused && d.when?.includes(focused)) score += 6;
 			out.push({
 				id: d.id,
 				label,
-				category: d.category,
+				category,
 				icon: d.icon ?? "square-terminal",
 				description: q ? d.id : d.description,
 				keys: k.keys.label(d.id),

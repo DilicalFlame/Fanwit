@@ -37,7 +37,7 @@
 						use:menu={{ location: "view/title", target: { command: c.def.id } }}
 					>
 						<Icon name={c.def.icon ?? "dot"} size={13} class="opacity-70" />
-						<span class="flex-1 truncate">{c.def.title}</span>
+						<span class="flex-1 truncate">{k.commands.title(c.def.id)}</span>
 						<KeyChip keys={k.keys.label(c.def.id)} />
 					</button>
 				{/each}

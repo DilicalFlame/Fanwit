@@ -166,10 +166,24 @@ export class CommandService {
 		return [...this.entries.values()];
 	}
 
+	/** Translation hook: `command.<id>` and `category.<name>` message keys (i18n). */
+	translate: (key: string, fallback: string) => string = (_k, f) => f;
+
+	title(id: string) {
+		const e = this.resolve(id);
+		return e ? this.translate(`command.${e.def.id}`, e.def.title) : id;
+	}
+
+	category(id: string) {
+		const c = this.resolve(id)?.def.category;
+		return c ? this.translate(`category.${c}`, c) : undefined;
+	}
+
 	label(id: string) {
 		const e = this.resolve(id);
 		if (!e) return id;
-		return e.def.category ? `${e.def.category}: ${e.def.title}` : e.def.title;
+		const cat = this.category(id);
+		return cat ? `${cat}: ${this.title(id)}` : this.title(id);
 	}
 
 	isEnabled(id: string, el?: Element | null, extra?: Record<string, unknown>) {

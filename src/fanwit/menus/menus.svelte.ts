@@ -323,7 +323,7 @@ export class MenuService {
 		const enabledWhen = ctx.evaluate(item.when, el, extra);
 		const cmdEnabled = !cmd || ctx.evaluate(cmd.def.when, el, extra);
 		const kind = item.kind ?? (item.items || item.submenu ? "submenu" : "action");
-		const label = item.label ?? (item.props?.label as string | undefined) ?? (cmd ? cmd.def.shortTitle ?? cmd.def.title : item.command ?? item.id);
+		const label = item.label ?? (item.props?.label as string | undefined) ?? (cmd ? cmd.def.shortTitle ?? this.k.commands.title(cmd.def.id) : item.command ?? item.id);
 		const disabledReason = !enabledWhen ? ctx.explain(item.when, ctx.lookup(el, extra)) : !cmdEnabled ? ctx.explain(cmd!.def.when, ctx.lookup(el, extra)) : null;
 		return {
 			...item,

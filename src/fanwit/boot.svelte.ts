@@ -28,6 +28,7 @@ import { PaletteService, type PaletteProvider } from "./workbench/palette-servic
 import { StatusService, type StatusItemSpec } from "./workbench/status.svelte";
 import { icons } from "./icons/registry.svelte";
 import { coreModules } from "./core";
+import { catalogs } from "./i18n/catalogs";
 import type { CommandDefinition } from "./commands/types";
 import presetWorkbench from "./layout/presets/workbench.toml?raw";
 import ViewHost from "./workbench/ViewHost.svelte";
@@ -233,6 +234,8 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	);
 	k.commands.setConfirmer((message, danger, okLabel) => dialog.ask(message, { title: "Confirm", kind: danger ? "warning" : "info", okLabel: okLabel ?? "Continue", cancelLabel: "Cancel" }));
 	k.keys.onError = (e) => notify.error(e);
+	k.commands.translate = (key, fallback) => i18n.t(key, {}, fallback);
+	for (const [loc, msgs] of Object.entries(catalogs)) i18n.add(loc, msgs);
 
 	// ----- contribution points -----
 	const point = (key: string, fn: (owner: string, value: never) => Disposable | void) => k.modules.definePoint(key, fn as never);

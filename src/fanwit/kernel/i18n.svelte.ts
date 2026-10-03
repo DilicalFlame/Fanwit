@@ -82,11 +82,11 @@ export class I18nService {
 		return !!(this.catalogs.get(this.locale)?.[key] ?? this.catalogs.get("en")?.[key]);
 	}
 
-	t(key: string, params: Record<string, unknown> = {}): string {
+	t(key: string, params: Record<string, unknown> = {}, fallback?: string): string {
 		void this.locale;
 		const loc = this.locale === "pseudo" ? "en" : this.locale;
 		const base = loc.split("-")[0];
-		const msg = this.catalogs.get(loc)?.[key] ?? this.catalogs.get(base)?.[key] ?? this.catalogs.get("en")?.[key] ?? key;
+		const msg = this.catalogs.get(loc)?.[key] ?? this.catalogs.get(base)?.[key] ?? this.catalogs.get("en")?.[key] ?? fallback ?? key;
 		const out = formatMessage(msg, params, loc);
 		if (this.locale !== "pseudo") return out;
 		return `［${[...out].map((ch) => PSEUDO[ch] ?? ch).join("")}${"~".repeat(Math.ceil(out.length * 0.3))}］`;
