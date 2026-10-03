@@ -118,3 +118,24 @@ test("backlinks come from the vault indexer and update on save", async ({ page }
 	await cmd(page, "show backlinks");
 	await expect(page.locator("[data-fw-region=inspector]").getByText("links.md")).toBeVisible({ timeout: 10_000 });
 });
+
+test("a user script in .fanwit/scripts registers a command", async ({ page }) => {
+	await start(page);
+	const name = `us-${Date.now().toString(36)}`;
+	await cmd(page, "create new vault");
+	await prompt(page, name);
+	await expect(page.getByText("Welcome.md")).toBeVisible();
+	await page.evaluate(async (vault) => {
+		let d = await navigator.storage.getDirectory();
+		for (const p of ["vaults", vault, ".fanwit", "scripts"]) d = await d.getDirectoryHandle(p, { create: true });
+		const w = await (await d.getFileHandle("greet.js", { create: true })).createWritable();
+		await w.write('// @command scripts.greet Greet from script\nexport default (ctx) => { ctx.commands.handle("scripts.greet", () => ctx.notify.toast("hello from a script")); };\n');
+		await w.close();
+	}, name);
+	await cmd(page, "open plugin manager");
+	await page.getByRole("button", { name: "Reload plugins" }).click();
+	await page.getByRole("switch", { name: "Enable Script: greet" }).click();
+	await page.getByRole("button", { name: "Close", exact: true }).last().click();
+	await cmd(page, "greet from script");
+	await expect(page.getByText("hello from a script")).toBeVisible({ timeout: 10_000 });
+});

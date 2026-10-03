@@ -89,3 +89,27 @@ export function satisfies(version: string, range = "*"): boolean {
 		return cmp(v0, n(part)) === 0;
 	});
 }
+
+/**
+ * A user script (.fanwit/scripts/name.js) as a worker plugin manifest. Header comments declare
+ * what it contributes: `// @command id Title`, `// @key ctrl+alt+d id`, `// @permission vault.read`.
+ */
+export function scriptManifest(file: string, src: string): PluginManifest {
+	const name = file.replace(/\.js$/, "");
+	const tags = [...src.matchAll(/^\s*\/\/\s*@(command|key|permission)\s+(\S+)(?:\s+(.*))?$/gm)];
+	const pick = (t: string) => tags.filter((m) => m[1] === t);
+	return {
+		id: `script-${name.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`,
+		name: `Script: ${name}`,
+		version: "0.0.0",
+		description: `User script ${file}`,
+		entry: file,
+		isolation: "worker",
+		activation: [],
+		permissions: pick("permission").map((m) => m[2]),
+		contributes: {
+			commands: pick("command").map((m) => ({ id: m[2], title: m[3]?.trim() || m[2], category: "Scripts" })),
+			keybindings: pick("key").map((m) => ({ key: m[2], command: (m[3] ?? "").trim() })).filter((b) => b.command)
+		}
+	};
+}

@@ -16,7 +16,7 @@ import { joinPath } from "../host/types";
 import { identity } from "../gen/identity";
 import { defineSettings, s as S, type SettingDef } from "../settings/define";
 import { parseTheme } from "../themes/themes.svelte";
-import { isDataOnly, parseManifest, satisfies, type PluginManifest } from "./manifest";
+import { isDataOnly, parseManifest, satisfies, scriptManifest, type PluginManifest } from "./manifest";
 import { WORKER_PRELUDE } from "./worker-prelude";
 
 export interface InstalledPlugin {
@@ -26,6 +26,8 @@ export interface InstalledPlugin {
 	enabled: boolean;
 	readme?: string;
 	error?: string;
+	/** A user script (scripts/*.js), not a packaged plugin. */
+	script?: boolean;
 }
 
 export interface RegistryEntry {
@@ -97,6 +99,14 @@ export class PluginService {
 				} catch (err) {
 					out.push({ manifest: { id: e.name, name: e.name, version: "0.0.0", isolation: "worker", activation: [], permissions: [], contributes: {} } as PluginManifest, dir: e.path, scope, enabled: false, error: (err as Error).message });
 				}
+			}
+			// user scripts: scripts/*.js next to plugins.toml, each a tiny worker plugin
+			const base = scope === "vault" ? this.k.sys.vault.current?.configDir : this.k.host.dirs.config;
+			const sdir = base && joinPath(base, "scripts");
+			for (const e of sdir ? await this.k.host.fs.list(sdir).catch(() => []) : []) {
+				if (e.dir || !e.name.endsWith(".js")) continue;
+				const manifest = scriptManifest(e.name, await this.k.host.fs.readText(e.path));
+				out.push({ manifest, dir: sdir!, scope, enabled: enabled.has(manifest.id), script: true });
 			}
 		}
 		this.installed = out;
@@ -358,7 +368,8 @@ export class PluginService {
 	async uninstall(id: string, scope: "global" | "vault") {
 		await this.setEnabled(id, scope, false);
 		const p = this.installed.find((x) => x.manifest.id === id && x.scope === scope);
-		if (p) await this.k.host.fs.remove(p.dir, { recursive: true });
+		// a script shares its folder with other scripts: remove only its file
+		if (p) await (p.script ? this.k.host.fs.remove(joinPath(p.dir, p.manifest.entry!)) : this.k.host.fs.remove(p.dir, { recursive: true }));
 		await this.scan();
 	}
 

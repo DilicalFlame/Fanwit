@@ -30,3 +30,23 @@ Start with `--safe-mode` to disable code plugins for one session. Develop with `
 ```fanwit-run
 plugins.open
 ```
+
+## User scripts
+
+For one off automation, drop a `.js` file in `.fanwit/scripts/` (in a vault) or `scripts/` in the
+config folder. Each script is a tiny worker isolated plugin; header comments stand in for `plugin.toml`:
+
+```js
+// @command scripts.stats Show vault stats
+// @key ctrl+alt+s scripts.stats
+// @permission vault.read
+export default (ctx) => {
+	ctx.commands.handle("scripts.stats", async () => {
+		const files = await ctx.vault.list("", { recursive: true });
+		ctx.notify.toast(`${files.length} files`);
+	});
+};
+```
+
+Scripts show up in the Plugin Manager as "Script: name" and stay off until you enable them, so a
+vault you receive from someone else cannot run code on open. Uninstall removes only that file.
