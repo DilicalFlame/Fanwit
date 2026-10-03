@@ -1,0 +1,55 @@
+#:schema ./schemas/installer.schema.json
+# Installer Kit (Chapter 16): one description, every platform.
+#   pnpm fw installer plan --os windows --scenario no-admin   what would happen on that machine
+#   pnpm fw installer build                                     native packages with compiled step hooks
+# App id, name and version come from fanwit.app.toml; the build injects them.
+
+[installer]
+preset = "branded"                  # classic | branded | one-click | dev-tool | enterprise | portable
+artefacts = ["native", "setup", "scripts", "managers"]
+scope = "user"                      # user | machine | ask
+theme = "fanwit-default"
+pages = ["welcome", "license", "components", "options", "prereqs", "summary", "progress", "finish"]
+languages = ["en"]
+# where release assets live; {version} is filled in. Used by install.sh, install.ps1 and the manifests.
+downloads = "https://github.com/DilicalFlame/Fanwit/releases/download/v{version}"
+
+[[component]]
+id = "core"
+title = "Fanwit"
+required = true
+
+[[component]]
+id = "cli"
+title = "Command line tool"
+default = true
+size = "2 MB"
+
+[[option]]                          # a page control, a --set flag, an MSI property and FANWIT_ADD_TO_PATH
+id = "addToPath"
+title = "Add the fanwit command to PATH"
+type = "boolean"
+default = true
+when = "component.cli"
+
+# Windows: put the install folder on the user PATH. Linux packages already ship the CLI in /usr/bin.
+[[step]]
+id = "cliPath"
+type = "path"
+title = "Add the fanwit command to PATH"
+component = "cli"
+when = "addToPath"
+platforms = ["windows"]
+phases = ["package", "firstRun"]
+target = "{installDir}/{slug}-cli"
+
+# macOS drag installs cannot run anything at install time, so this runs on first launch.
+[[step]]
+id = "cliPathMac"
+type = "path"
+title = "Link the fanwit command into ~/.local/bin"
+component = "cli"
+when = "addToPath"
+platforms = ["macos"]
+phases = ["firstRun"]
+target = "/Applications/{name}.app/Contents/MacOS/{slug}-cli"

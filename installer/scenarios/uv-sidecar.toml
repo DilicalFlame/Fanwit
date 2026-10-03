@@ -1,0 +1,2 @@
+# The build bundled uv for this target (externalBin).
+sidecars = ["uv"]

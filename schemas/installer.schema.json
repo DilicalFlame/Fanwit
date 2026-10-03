@@ -1,0 +1,473 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fanwit installer.toml (Chapter 16)",
+  "type": "object",
+  "properties": {
+    "installer": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "enum": [
+            "classic",
+            "branded",
+            "one-click",
+            "dev-tool",
+            "enterprise",
+            "portable"
+          ]
+        },
+        "artefacts": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "native",
+              "setup",
+              "portable",
+              "pkg",
+              "scripts",
+              "managers"
+            ]
+          }
+        },
+        "scope": {
+          "enum": [
+            "user",
+            "machine",
+            "ask"
+          ]
+        },
+        "theme": {
+          "type": "string"
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "examples": [
+              "welcome",
+              "license",
+              "scope",
+              "location",
+              "components",
+              "options",
+              "prereqs",
+              "summary",
+              "progress",
+              "finish",
+              "maintenance",
+              "uninstall"
+            ]
+          }
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "license": {
+          "type": "string"
+        },
+        "downloads": {
+          "type": "string",
+          "description": "Release asset base URL; {version} is filled in"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "enum": [
+                "offline",
+                "online"
+              ]
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https://"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{64}$"
+            },
+            "size": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "component": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "option": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "boolean",
+              "string",
+              "choice"
+            ]
+          },
+          "default": {},
+          "when": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "step": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "phases"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "prereq",
+              "download",
+              "sidecar",
+              "run",
+              "path",
+              "shortcut",
+              "fileAssociation",
+              "urlScheme",
+              "autostart",
+              "service",
+              "env",
+              "registry",
+              "plist",
+              "desktopEntry",
+              "firewallRule",
+              "font",
+              "certificate",
+              "custom"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "component": {
+            "type": "string"
+          },
+          "phases": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "build",
+                "bootstrap",
+                "package",
+                "firstRun",
+                "update",
+                "uninstall"
+              ]
+            }
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "windows",
+                "macos",
+                "linux"
+              ]
+            }
+          },
+          "after": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "when": {
+            "type": "string"
+          },
+          "requires": {
+            "type": "object",
+            "properties": {
+              "network": {
+                "type": "boolean"
+              },
+              "elevation": {
+                "type": "boolean"
+              },
+              "reboot": {
+                "type": "boolean"
+              },
+              "disk": {
+                "type": "string"
+              }
+            }
+          },
+          "detect": {
+            "type": "object",
+            "required": [
+              "command"
+            ],
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "parse": {
+                "type": "string"
+              },
+              "require": {
+                "type": "string"
+              }
+            }
+          },
+          "strategies": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "existing",
+                "sidecar",
+                "download"
+              ]
+            }
+          },
+          "expose": {
+            "type": "string"
+          },
+          "bin": {
+            "type": "string"
+          },
+          "sidecar": {
+            "type": "string"
+          },
+          "install_to": {
+            "type": "string"
+          },
+          "download": {
+            "type": "object",
+            "description": "Keyed by <os>-<arch>, <os> or any",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "url",
+                "sha256"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "pattern": "^https://"
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{64}$"
+                },
+                "size": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "check": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "success": {
+                "type": "integer"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "remove": {
+                "type": "string"
+              }
+            }
+          },
+          "apply": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "success": {
+                "type": "integer"
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "remove": {
+                "type": "string"
+              }
+            }
+          },
+          "uninstall": {
+            "oneOf": [
+              {
+                "enum": [
+                  "only-if-installed-by-us",
+                  "never"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "integer"
+                  },
+                  "env": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "remove": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "startMenu",
+                "desktop"
+              ]
+            }
+          },
+          "ext": {
+            "type": "string"
+          },
+          "progId": {
+            "type": "string"
+          },
+          "mime": {
+            "type": "string"
+          },
+          "scheme": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "value": {},
+          "valueType": {
+            "enum": [
+              "REG_SZ",
+              "REG_EXPAND_SZ",
+              "REG_DWORD",
+              "REG_QWORD"
+            ]
+          },
+          "domain": {
+            "type": "string"
+          },
+          "entry": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "port": {
+            "type": "integer"
+          },
+          "protocol": {
+            "enum": [
+              "tcp",
+              "udp",
+              "TCP",
+              "UDP"
+            ]
+          },
+          "program": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "user": {
+            "type": "boolean"
+          },
+          "runtime": {
+            "enum": [
+              "rust",
+              "ts"
+            ]
+          },
+          "handler": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

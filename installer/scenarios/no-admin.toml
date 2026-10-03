@@ -1,0 +1,2 @@
+# A standard user account: machine scope steps need elevation.
+admin = false

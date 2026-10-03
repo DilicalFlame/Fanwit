@@ -1,0 +1,2 @@
+# No network: download strategies are skipped, steps defer to a later phase or block.
+network = false

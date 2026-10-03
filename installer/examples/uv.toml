@@ -1,0 +1,49 @@
+# The worked example from Section 16.7: install uv only when it is missing, then a managed Python.
+# Paste into installer.toml (with a "python" [[component]]), or try it:
+#   pnpm fw installer plan --scenario uv-missing,offline
+[[component]]
+id = "python"
+title = "Python tools (uv and a managed Python)"
+default = true
+size = "45 MB"
+
+[[step]]
+id = "uv"
+type = "prereq"
+title = "uv, the Python package manager"
+component = "python"
+phases = ["bootstrap", "package", "firstRun"]   # earliest available wins
+platforms = ["windows", "macos", "linux"]
+detect = { command = "uv --version", parse = 'uv (\d+\.\d+\.\d+)', require = ">=0.5" }
+strategies = ["existing", "sidecar", "download"]  # tried in order
+sidecar = "binaries/uv"                           # bundled through externalBin, fetched in the build phase
+install_to = "{tools}/uv"
+expose = "UV_BIN"                                 # the app reads the resolved absolute path, never relies on PATH
+uninstall = "only-if-installed-by-us"
+
+[step.download.windows-x86_64]
+url = "https://github.com/astral-sh/uv/releases/download/0.5.0/uv-x86_64-pc-windows-msvc.zip"
+sha256 = "47ce6713934f9c692a2051551e04cc9d63ee2e418f4179dd3ec8545b5cc22cb3"
+size = "15 MB"
+
+[step.download.macos-aarch64]
+url = "https://github.com/astral-sh/uv/releases/download/0.5.0/uv-aarch64-apple-darwin.tar.gz"
+sha256 = "400f1e87d211af5ba4c412984b6d0e1e885cae480ee37cab58b5fabe9f9539c5"
+size = "14 MB"
+
+[step.download.linux-x86_64]
+url = "https://github.com/astral-sh/uv/releases/download/0.5.0/uv-x86_64-unknown-linux-gnu.tar.gz"
+sha256 = "e8f8c7e55ef2dfb0b57faba265faeb5049e30b9065a38e2a4fef89d6f6a492d0"
+size = "15 MB"
+
+[[step]]
+id = "python"
+type = "run"
+title = "Managed Python 3.12"
+component = "python"
+after = ["uv"]
+phases = ["bootstrap", "firstRun"]                # needs network and shows progress
+requires = { network = true, disk = "60 MB" }
+check = { command = "{env.UV_BIN} python find 3.12", success = 0 }
+apply = { command = "{env.UV_BIN} python install 3.12", env = { UV_PYTHON_INSTALL_DIR = "{appData}/python" } }
+uninstall = { remove = "{appData}/python" }
