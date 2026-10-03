@@ -14,7 +14,9 @@ const idle = (fn: () => void) => ("requestIdleCallback" in window ? (window as W
 export async function afterFirstPaint(k: Kernel) {
 	await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 	k.lifecycle.set("ready");
-	if (!k.sys.info.headless) await k.host.windows.show().catch(() => {});
+	// first run on desktop: the main window stays hidden until onboarding closes (mainStartup shows it)
+	const deferred = k.host.windows.label === "main" && k.host.caps.nativeWindows && (await needsOnboarding(k));
+	if (!k.sys.info.headless && !deferred) await k.host.windows.show().catch(() => {});
 	const log = logs.scoped("app");
 	window.addEventListener("error", (e) => log.error("uncaught:", e.message, { file: e.filename, line: e.lineno }));
 	window.addEventListener("unhandledrejection", (e) => log.error("unhandled rejection:", String((e.reason as Error)?.message ?? e.reason)));
@@ -61,10 +63,14 @@ async function flush(k: Kernel) {
 	await Promise.all([s.layout.flush(), s.settings.flush(), s.storage.flush(), s.menus.file?.flush()].map((p) => Promise.resolve(p).catch(() => {})));
 }
 
+async function needsOnboarding(k: Kernel) {
+	if (k.sys.info.headless || k.sys.config.features?.onboarding === false) return false;
+	return !(await k.sys.storage.get<boolean>("fanwit", "onboarded").catch(() => false));
+}
+
 /** Main window only: first launch flow and restoring state. */
 export async function mainStartup(k: Kernel) {
-	const { vault, settings, storage, windows, layout } = k.sys;
-	const features = k.sys.config.features ?? {};
+	const { vault, settings, windows, layout } = k.sys;
 	const params = new URLSearchParams(location.search);
 
 	// crash on the previous run
@@ -99,10 +105,13 @@ export async function mainStartup(k: Kernel) {
 	}
 
 	// first run: onboarding, then the vault manager when the data mode needs a vault
-	const onboarded = await storage.get<boolean>("fanwit", "onboarded");
-	if (!onboarded && features.onboarding !== false && !k.sys.info.headless) {
-		const w = await windows.open("onboarding");
-		await w.result;
+	if (await needsOnboarding(k)) {
+		try {
+			const w = await windows.open("onboarding");
+			await w.result;
+		} finally {
+			if (k.host.caps.nativeWindows) await k.host.windows.show().catch(() => {});
+		}
 	}
 	if (k.sys.config.data?.mode === "vault" && !vault.current && !k.sys.info.headless) void windows.open("vaults");
 
