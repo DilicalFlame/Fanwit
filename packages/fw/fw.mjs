@@ -368,6 +368,15 @@ function doctor() {
 		const missing = Object.values(doc.pane ?? {}).map((p) => p.view).filter((v) => !views.has(v));
 		ok(`preset ${f} views`, !missing.length, missing.join(", "));
 	}
+	// Installer Kit (Section 16.15): pinned downloads; unsigned installers trip SmartScreen and Gatekeeper
+	if (exists("installer.toml")) {
+		const steps = parseToml(read("installer.toml")).step ?? [];
+		const unpinned = steps.flatMap((s) => Object.entries(s.download ?? {}).filter(([, f]) => !/^[0-9a-f]{64}$/i.test(f.sha256 ?? "")).map(([t]) => `${s.id}[${t}]`));
+		ok("installer downloads pinned by SHA-256", !unpinned.length, unpinned.join(", "));
+		const w = conf.bundle?.windows ?? {};
+		const unsigned = process.platform === "win32" ? !w.certificateThumbprint && !w.signCommand : process.platform === "darwin" ? !process.env.APPLE_SIGNING_IDENTITY && !conf.bundle?.macOS?.signingIdentity : false;
+		if (unsigned) rows.push(`warn installer signing: no ${process.platform === "win32" ? "bundle.windows.certificateThumbprint or signCommand" : "APPLE_SIGNING_IDENTITY"}; release installers will be unsigned`);
+	}
 	console.log(rows.join("\n"));
 	if (rows.some((r) => r.startsWith("FAIL"))) process.exitCode = 1;
 }
@@ -636,6 +645,590 @@ function docs() {
 	else die("fw docs <check|build|serve>", 2);
 }
 
+// ---------- installer (Chapter 16) ----------
+const INST = "src-tauri/gen/installer";
+const ENGINE = "fanwit-install";
+const PRESETS = {
+	classic: { artefacts: ["native"], scope: "user", pages: [] },
+	branded: { artefacts: ["native", "setup", "scripts", "managers"], scope: "ask", pages: ["welcome", "license", "scope", "components", "options", "prereqs", "summary", "progress", "finish"] },
+	"one-click": { artefacts: ["setup"], scope: "user", pages: ["progress"] },
+	"dev-tool": { artefacts: ["native", "scripts", "managers"], scope: "user", pages: [] },
+	enterprise: { artefacts: ["native"], scope: "machine", pages: [] },
+	portable: { artefacts: ["portable"], scope: "user", pages: [] }
+};
+const STEP_TEMPLATES = {
+	prereq: (id) => `[[step]]\nid = "${id}"\ntype = "prereq"\ntitle = "${id}"\nphases = ["bootstrap", "package", "firstRun"]   # earliest available wins\ndetect = { command = "${id} --version", parse = '(\\d+\\.\\d+\\.\\d+)', require = ">=1.0" }\nstrategies = ["existing", "sidecar", "download"]  # tried in order\nsidecar = "binaries/${id}"                       # fetched in the build phase from the download below\ninstall_to = "{tools}/${id}"\nexpose = "${id.toUpperCase()}_BIN"                          # later steps use {env.${id.toUpperCase()}_BIN}; never rely on PATH\nuninstall = "only-if-installed-by-us"\n\n[step.download.windows-x86_64]\nurl = "https://example.com/${id}-x86_64-pc-windows-msvc.zip"\nsha256 = ""                                     # required: the build fails without a pinned hash\nsize = "10 MB"\n`,
+	download: (id) => `[[step]]\nid = "${id}"\ntype = "download"\ntitle = "Download ${id}"\nphases = ["bootstrap", "firstRun"]\ninstall_to = "{appData}/${id}.bin"\n\n[step.download.any]\nurl = "https://example.com/${id}.bin"\nsha256 = ""\nsize = "1 MB"\n`,
+	sidecar: (id) => `[[step]]\nid = "${id}"\ntype = "sidecar"\ntitle = "Install ${id}"\nphases = ["package", "firstRun"]\nsidecar = "binaries/${id}"\ninstall_to = "{tools}"\nexpose = "${id.toUpperCase()}_BIN"\n`,
+	run: (id) => `[[step]]\nid = "${id}"\ntype = "run"\ntitle = "${id}"\nphases = ["bootstrap", "firstRun"]\ncheck = { command = "${id} --check", success = 0 }\napply = { command = "${id} --apply" }\nuninstall = { command = "${id} --remove" }\n`,
+	path: (id) => `[[step]]\nid = "${id}"\ntype = "path"\ntitle = "Add ${id} to PATH"\nphases = ["package", "firstRun"]\ntarget = "{installDir}/${id}"\n`,
+	shortcut: (id) => `[[step]]\nid = "${id}"\ntype = "shortcut"\nphases = ["package", "firstRun"]\ntarget = "{installDir}/{slug}"\nlocation = ["startMenu", "desktop"]\n`,
+	fileAssociation: (id) => `[[step]]\nid = "${id}"\ntype = "fileAssociation"\nphases = ["package", "firstRun"]\next = ".${id.toLowerCase()}"\ntarget = "{installDir}/{slug}"\ndescription = "${id} file"\n`,
+	urlScheme: (id) => `[[step]]\nid = "${id}"\ntype = "urlScheme"\nphases = ["package", "firstRun"]\nscheme = "${id.toLowerCase()}"\ntarget = "{installDir}/{slug}"\n`,
+	autostart: (id) => `[[step]]\nid = "${id}"\ntype = "autostart"\nphases = ["package", "firstRun"]\ntarget = "{installDir}/{slug}"\nargs = ["--headless"]\n`,
+	service: (id) => `[[step]]\nid = "${id}"\ntype = "service"\nphases = ["package"]\nname = "${id}"\ntarget = "{installDir}/{slug}"\nargs = ["--service"]\nuser = true                                     # false: a system service (asks for administrator rights)\n`,
+	env: (id) => `[[step]]\nid = "${id}"\ntype = "env"\nphases = ["package", "firstRun"]\nname = "${id.toUpperCase()}"\nvalue = "{installDir}"\n`,
+	firewallRule: (id) => `[[step]]\nid = "${id}"\ntype = "firewallRule"\nphases = ["package"]\nname = "${id}"\nprogram = "{installDir}/{slug}.exe"\nport = 8443\n`,
+	custom: (id) => `[[step]]\nid = "${id}"\ntype = "custom"\nruntime = "rust"                                 # or "ts": a defineInstallStep in src-setup/steps/\nhandler = "example.defaultConfig"\nphases = ["package", "firstRun"]\n`
+};
+const hostTriple = () => /host: (\S+)/.exec(execSync("rustc -vV").toString())[1];
+const exeExt = (triple) => (triple.includes("windows") ? ".exe" : "");
+
+/** installer.toml with the app identity injected, so the source never repeats fanwit.app.toml. */
+function installerManifest() {
+	if (!exists("installer.toml")) die("no installer.toml; run `fw installer init`");
+	// --with uv merges installer/examples/uv.toml, to try an example without editing installer.toml
+	const extra = (flag("with") ?? "").split(",").filter(Boolean).map((n) => read(exists(n) ? n : `installer/examples/${n}.toml`));
+	const text = [read("installer.toml"), ...extra].join("\n");
+	const doc = parseToml(text);
+	const { app } = identity();
+	const head = `# Generated by fw installer from installer.toml and fanwit.app.toml. Do not edit.\n[app]\nid = ${JSON.stringify(app.identifier)}\nname = ${JSON.stringify(app.name)}\nslug = ${JSON.stringify(app.slug)}\nversion = ${JSON.stringify(app.version)}\n\n`;
+	return { doc, app, text: head + text.replace(/^\[app\][\s\S]*?(?=^\[)/m, "") };
+}
+
+function engine(a) {
+	const r = spawnSync("cargo", ["run", "-q", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE, "--", ...a], { cwd: ROOT, stdio: "inherit" });
+	return r.status ?? 1;
+}
+
+function scenarioFiles(list) {
+	return list
+		.split(",")
+		.filter(Boolean)
+		.map((n) => (fs.existsSync(n) ? n : `installer/scenarios/${n}.toml`))
+		.map((f) => (fs.existsSync(abs(f)) || fs.existsSync(f) ? f : die(`no scenario ${f} (see installer/scenarios)`)))
+		.join(",");
+}
+
+/** Release asset names Tauri produces, by artefact kind. */
+function assetNames(app) {
+	const v = app.version;
+	return { nsis: `${app.name}_${v}_x64-setup.exe`, msi: `${app.name}_${v}_x64_en-US.msi`, deb: `${app.name}_${v}_amd64.deb`, rpm: `${app.name}-${v}-1.x86_64.rpm`, appimage: `${app.name}_${v}_amd64.AppImage`, dmg: `${app.name}_${v}_aarch64.dmg` };
+}
+
+/** SHA-256 of every asset found under dir (bundle output, or release assets downloaded with --assets). */
+function assetHashes(dir, names) {
+	const found = {};
+	const walk = (d) => {
+		if (!fs.existsSync(d)) return;
+		for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+			const p = path.join(d, e.name);
+			if (e.isDirectory()) walk(p);
+			else for (const [k, n] of Object.entries(names)) if (e.name === n) found[k] = createHash("sha256").update(fs.readFileSync(p)).digest("hex");
+		}
+	};
+	walk(dir);
+	return found;
+}
+
+function glue(doc, app, hashes) {
+	const conf = JSON.parse(read("src-tauri/tauri.conf.json"));
+	const mode = nsisInstallMode(doc, conf);
+	const nsisScope = mode === "perMachine" ? "machine" : "user";
+	const opts = doc.option ?? [];
+	const env = app.slug.toUpperCase().replace(/-/g, "_");
+	const base = (doc.installer?.downloads ?? "").replace("{version}", app.version);
+	const names = assetNames(app);
+	const sha = (k) => hashes[k] ?? "";
+	const linuxDir = `/usr/lib/${app.name}`;
+	// the Setup app copies itself here to serve as the uninstaller and the Modify entry
+	const setupExe = `${app.slug}-setup.exe`;
+	const files = {};
+	const header = (c) => `${c} Generated by fw installer build from installer.toml. Edit that file, not this one.\n`;
+
+	files["hooks.nsh"] = `${header(";")}; Tauri includes this through bundle.windows.nsis.installerHooks.
+!macro NSIS_HOOK_POSTINSTALL
+  DetailPrint "Running install steps"
+  ; installMode "both": the scope is the one the user (or /AllUsers, /CurrentUser) chose
+  !ifdef MULTIUSER_INSTALLMODE_COMMANDLINE
+    \${If} $MultiUser.InstallMode == "AllUsers"
+      StrCpy $R9 "machine"
+    \${Else}
+      StrCpy $R9 "user"
+    \${EndIf}
+  !else
+    StrCpy $R9 "${nsisScope}"
+  !endif
+  nsExec::ExecToLog '"$INSTDIR\\${ENGINE}.exe" run --phase package --scope $R9 --no-elevate --install-dir "$INSTDIR" --manifest "$INSTDIR\\installer.toml" --log "$INSTDIR\\.install\\install.log"'
+  Pop $0
+  \${If} $0 == "3010"
+    SetRebootFlag true
+  \${ElseIf} $0 != "0"
+    DetailPrint "Install steps failed ($0); ${app.name} retries them on first launch"
+  \${EndIf}
+  ; Installed through the Setup app: Apps and features opens its uninstall and modify pages
+  ; instead of the plain NSIS dialog. Rewritten on every install, so updates keep it.
+  \${If} \${FileExists} "$INSTDIR\\${setupExe}"
+    WriteRegStr SHCTX "\${UNINSTKEY}" "UninstallString" '"$INSTDIR\\${setupExe}" --uninstall'
+    WriteRegStr SHCTX "\${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\\uninstall.exe" /S'
+    WriteRegStr SHCTX "\${UNINSTKEY}" "ModifyPath" '"$INSTDIR\\${setupExe}"'
+    WriteRegDWORD SHCTX "\${UNINSTKEY}" "NoModify" 0
+    WriteRegDWORD SHCTX "\${UNINSTKEY}" "NoRepair" 0
+  \${EndIf}
+!macroend
+
+!macro NSIS_HOOK_PREUNINSTALL
+  \${If} $DeleteAppDataCheckboxState = 1
+    nsExec::ExecToLog '"$INSTDIR\\${ENGINE}.exe" uninstall --purge --no-elevate --install-dir "$INSTDIR" --manifest "$INSTDIR\\installer.toml"'
+  \${Else}
+    nsExec::ExecToLog '"$INSTDIR\\${ENGINE}.exe" uninstall --no-elevate --install-dir "$INSTDIR" --manifest "$INSTDIR\\installer.toml"'
+  \${EndIf}
+  Pop $0
+  ; the Setup app's maintenance copy is not part of the package, so remove it here
+  Delete "$INSTDIR\\${setupExe}"
+!macroend
+`;
+	const props = opts.map((o) => o.id.toUpperCase());
+	const sets = opts.map((o) => ` --set &quot;${o.id}=[${o.id.toUpperCase()}]&quot;`).join("");
+	const cmd = (c) => `&quot;[INSTALLDIR]${ENGINE}.exe&quot; ${c} --scope machine --install-dir &quot;[INSTALLDIR]&quot; --manifest &quot;[INSTALLDIR]installer.toml&quot;`;
+	files["fanwit-install.wxs"] = `<?xml version="1.0" encoding="utf-8"?>
+<!--${header("").trim()} -->
+<!-- msiexec /i app.msi /qn COMPONENTS=core,cli ${props.map((p) => `${p}=1`).join(" ")} -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Property Id="COMPONENTS" Secure="yes" />
+${props.map((p) => `    <Property Id="${p}" Secure="yes" />`).join("\n")}
+    <CustomAction Id="FanwitInstallSteps" Directory="INSTALLDIR" Execute="deferred" Impersonate="no" Return="ignore"
+      ExeCommand="${cmd("run --phase package")} --components &quot;[COMPONENTS]&quot;${sets}" />
+    <CustomAction Id="FanwitUninstallSteps" Directory="INSTALLDIR" Execute="deferred" Impersonate="no" Return="ignore"
+      ExeCommand="${cmd("uninstall")}" />
+    <InstallExecuteSequence>
+      <Custom Action="FanwitInstallSteps" Before="InstallFinalize">NOT REMOVE</Custom>
+      <Custom Action="FanwitUninstallSteps" Before="RemoveFiles">REMOVE~="ALL"</Custom>
+    </InstallExecuteSequence>
+    <ComponentGroup Id="FanwitInstallKit" />
+  </Fragment>
+</Wix>
+`;
+	const linuxRun = `/usr/bin/${ENGINE} run --phase package --scope machine --install-dir "${linuxDir}" --manifest "${linuxDir}/installer.toml"`;
+	const linuxUn = `/usr/bin/${ENGINE} uninstall --install-dir "${linuxDir}" --manifest "${linuxDir}/installer.toml" || true`;
+	files["deb-postinst.sh"] = `#!/bin/sh\n${header("#")}# Choices: sudo ${env}_COMPONENTS=core,cli apt install ./${names.deb}\nset -e\n[ "$1" = "configure" ] || exit 0\n${linuxRun} || echo "${app.name}: install steps failed; they run again on first launch" >&2\n`;
+	files["deb-prerm.sh"] = `#!/bin/sh\n${header("#")}[ "$1" = "remove" ] || [ "$1" = "purge" ] || exit 0\n${linuxUn}\n`;
+	files["rpm-post.sh"] = `#!/bin/sh\n${header("#")}${linuxRun} || echo "${app.name}: install steps failed; they run again on first launch" >&2\n`;
+	files["rpm-preun.sh"] = `#!/bin/sh\n${header("#")}# $1 is the number of versions left after this one; 0 means removal, not upgrade\n[ "$1" = "0" ] || exit 0\n${linuxUn}\n`;
+
+	const hashCheck = (k) => (sha(k) ? sha(k) : "PENDING");
+	files["install.ps1"] = `${header("#")}# Read before you run: irm ${base}/install.ps1 | iex
+# Choices pass through the environment: $env:${env}_COMPONENTS = "core,cli"
+$ErrorActionPreference = "Stop"
+$file = "${names.nsis}"
+$sha = "${hashCheck("nsis")}"
+if ($sha -eq "PENDING") { throw "This script was generated before the release was built; download it from the release page." }
+if ($env:PROCESSOR_ARCHITECTURE -ne "AMD64") { throw "${app.name} is available for x64 Windows only." }
+$tmp = Join-Path $env:TEMP $file
+Write-Host "Downloading ${app.name} ${app.version}"
+Invoke-WebRequest "${base}/$file" -OutFile $tmp -UseBasicParsing
+if ((Get-FileHash $tmp -Algorithm SHA256).Hash -ne $sha.ToUpper()) { Remove-Item $tmp; throw "SHA-256 mismatch for $file" }
+Write-Host "Installing (install steps run through ${ENGINE})"
+$p = Start-Process $tmp -ArgumentList "/S" -Wait -PassThru
+Remove-Item $tmp
+if ($p.ExitCode -ne 0) { throw "Installer exited with $($p.ExitCode)" }
+Write-Host "Done. Open a new terminal to use the ${app.slug} command."
+`;
+	files["install.sh"] = `#!/bin/sh
+${header("#")}# Read before you pipe: curl -fsSL ${base}/install.sh | sh
+set -eu
+base="${base}"
+os=$(uname -s); arch=$(uname -m)
+case "$os-$arch" in
+  Linux-x86_64) file="${names.appimage}"; sha="${hashCheck("appimage")}" ;;
+  Darwin-arm64) file="${names.dmg}"; sha="${hashCheck("dmg")}" ;;
+  *) echo "${app.name} has no build for $os $arch" >&2; exit 1 ;;
+esac
+[ "$sha" != "PENDING" ] || { echo "This script was generated before the release was built" >&2; exit 1; }
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+printf 'downloading %s ... ' "$file"
+curl -fsSL "$base/$file" -o "$tmp/$file"
+got=$( (sha256sum "$tmp/$file" 2>/dev/null || shasum -a 256 "$tmp/$file") | cut -d' ' -f1)
+[ "$got" = "$sha" ] || { echo "SHA-256 mismatch" >&2; exit 1; }
+echo "verified"
+if [ "$os" = "Linux" ]; then
+  dir="\${XDG_DATA_HOME:-$HOME/.local/share}/${app.slug}"
+  install -Dm755 "$tmp/$file" "$dir/${app.name}.AppImage"
+  mkdir -p "$HOME/.local/bin"; ln -sf "$dir/${app.name}.AppImage" "$HOME/.local/bin/${app.slug}"
+  echo "installed to $dir; install steps run on first launch"
+else
+  hdiutil attach -nobrowse -quiet -mountpoint "$tmp/mnt" "$tmp/$file"
+  mkdir -p "$HOME/Applications"; rm -rf "$HOME/Applications/${app.name}.app"
+  cp -R "$tmp/mnt/${app.name}.app" "$HOME/Applications/"
+  hdiutil detach -quiet "$tmp/mnt"
+  app="$HOME/Applications/${app.name}.app/Contents"
+  "$app/MacOS/${ENGINE}" run --phase package --install-dir "$HOME/Applications" --manifest "$app/Resources/installer.toml"
+  echo "installed ${app.name} ${app.version}"
+fi
+`;
+	const id = app.identifier;
+	const pub = identity().developer?.name || app.name;
+	files["managers/winget/" + id + ".yaml"] = `${header("#")}PackageIdentifier: ${pub}.${app.name}\nPackageVersion: ${app.version}\nDefaultLocale: en-US\nManifestType: version\nManifestVersion: 1.6.0\n`;
+	files["managers/winget/" + id + ".installer.yaml"] = `${header("#")}PackageIdentifier: ${pub}.${app.name}\nPackageVersion: ${app.version}\nInstallerType: nullsoft\nScope: user\nInstallers:\n  - Architecture: x64\n    InstallerUrl: ${base}/${names.nsis}\n    InstallerSha256: ${sha("nsis").toUpperCase() || "PENDING"}\nManifestType: installer\nManifestVersion: 1.6.0\n`;
+	files["managers/winget/" + id + ".locale.en-US.yaml"] = `${header("#")}PackageIdentifier: ${pub}.${app.name}\nPackageVersion: ${app.version}\nPackageLocale: en-US\nPublisher: ${pub}\nPackageName: ${app.name}\nLicense: see repository\nShortDescription: ${app.name}\nManifestType: defaultLocale\nManifestVersion: 1.6.0\n`;
+	files[`managers/scoop/${app.slug}.json`] = JSON.stringify({ version: app.version, description: app.name, homepage: base.replace(/\/releases\/.*/, ""), architecture: { "64bit": { url: `${base}/${names.nsis}#/setup.exe`, hash: sha("nsis") || "PENDING" } }, installer: { script: ['Start-Process "$dir\\setup.exe" -ArgumentList "/S" -Wait'] }, uninstaller: { script: [`& "$env:LOCALAPPDATA\\${app.name}\\uninstall.exe" /S`] } }, null, "\t") + "\n";
+	files[`managers/homebrew/${app.slug}.rb`] = `${header("#")}cask "${app.slug}" do\n  version "${app.version}"\n  sha256 "${sha("dmg") || "PENDING"}"\n  url "${base.replace(app.version, "#{version}")}/${names.dmg.replace(app.version, "#{version}")}"\n  name "${app.name}"\n  desc "${app.name}"\n  depends_on arch: :arm64\n  app "${app.name}.app"\n  postflight do\n    system_command "#{appdir}/${app.name}.app/Contents/MacOS/${ENGINE}", args: ["run", "--phase", "package", "--install-dir", appdir.to_s, "--manifest", "#{appdir}/${app.name}.app/Contents/Resources/installer.toml"]\n  end\n  uninstall_preflight do\n    system_command "#{appdir}/${app.name}.app/Contents/MacOS/${ENGINE}", args: ["uninstall", "--install-dir", appdir.to_s, "--manifest", "#{appdir}/${app.name}.app/Contents/Resources/installer.toml"]\n  end\nend\n`;
+	files[`managers/aur/PKGBUILD`] = `${header("#")}pkgname=${app.slug}-bin\npkgver=${app.version}\npkgrel=1\npkgdesc="${app.name}"\narch=('x86_64')\nlicense=('custom')\ndepends=('webkit2gtk-4.1' 'gtk3')\nsource=("${base.replace(app.version, "$pkgver")}/${names.deb.replace(app.version, "$pkgver")}")\nsha256sums=('${sha("deb") || "SKIP"}')\ninstall=${app.slug}.install\n\npackage() {\n  bsdtar -xf data.tar.* -C "$pkgdir"\n}\n`;
+	files[`managers/aur/${app.slug}.install`] = `${header("#")}post_install() {\n  ${linuxRun} || true\n}\npre_remove() {\n  ${linuxUn}\n}\n`;
+	// macOS pkg (pkgbuild): installs the .app into /Applications, then runs the package phase as root
+	const macApp = `/Applications/${app.name}.app/Contents`;
+	files["pkg/postinstall"] = `#!/bin/sh\n${header("#")}"${macApp}/MacOS/${ENGINE}" run --phase package --scope machine --no-elevate --install-dir /Applications --manifest "${macApp}/Resources/installer.toml" || echo "${app.name}: install steps failed; they run again on first launch" >&2\nexit 0\n`;
+	files["pkg/uninstall.sh"] = `#!/bin/sh\n${header("#")}# A pkg has no uninstaller: ship this script (or run the Setup app's maintenance page)\nset -e\n"${macApp}/MacOS/${ENGINE}" uninstall --scope machine --no-elevate --install-dir /Applications --manifest "${macApp}/Resources/installer.toml" || true\nrm -rf "/Applications/${app.name}.app"\npkgutil --forget "${app.identifier}" >/dev/null 2>&1 || true\n`;
+	files["managers/flathub.md"] = `Generated by fw installer build.\n\nFlatpak sandboxes cannot change the host system, so every step runs in firstRun inside the sandbox; steps that need the host (PATH, services) are skipped. Start from https://docs.flathub.org/docs/for-app-authors/submission and ship ${names.deb} as the source.\n`;
+	return files;
+}
+
+/**
+ * NSIS install mode from installer.toml: "ask" offers both (/AllUsers, /CurrentUser; note that
+ * administrators then see one UAC prompt even for a per user install), "machine" is per machine.
+ * An explicit installMode in tauri.conf.json wins.
+ */
+function nsisInstallMode(doc, conf = JSON.parse(read("src-tauri/tauri.conf.json"))) {
+	const own = conf.bundle?.windows?.nsis?.installMode;
+	if (own) return own;
+	return { ask: "both", machine: "perMachine" }[doc.installer?.scope] ?? "currentUser";
+}
+
+function installerTauriConf(doc, sidecars) {
+	return {
+		bundle: {
+			externalBin: [`binaries/${ENGINE}`, ...sidecars.map((s) => `binaries/${s}`)],
+			resources: { "gen/installer/installer.toml": "installer.toml" },
+			windows: { nsis: { installerHooks: "gen/installer/hooks.nsh", installMode: nsisInstallMode(doc) }, wix: { fragmentPaths: ["gen/installer/fanwit-install.wxs"], componentGroupRefs: ["FanwitInstallKit"] } },
+			linux: { deb: { postInstallScript: "gen/installer/deb-postinst.sh", preRemoveScript: "gen/installer/deb-prerm.sh" }, rpm: { postInstallScript: "gen/installer/rpm-post.sh", preRemoveScript: "gen/installer/rpm-preun.sh" } }
+		}
+	};
+}
+
+/** Build phase: download every sidecar the host target needs, verify it, and place it for externalBin. */
+async function fetchSidecars(doc, triple) {
+	const [os, arch] = triple.includes("windows") ? ["windows", triple.split("-")[0]] : triple.includes("apple") ? ["macos", triple.split("-")[0]] : ["linux", triple.split("-")[0]];
+	const names = [];
+	for (const s of (doc.step ?? []).filter((s) => s.sidecar)) {
+		const name = s.sidecar.split("/").pop();
+		const out = `src-tauri/binaries/${name}-${triple}${exeExt(triple)}`;
+		const d = s.download ?? {};
+		const f = d[`${os}-${arch}`] ?? d[os] ?? d.any;
+		if (exists(out)) {
+			names.push(name);
+			continue;
+		}
+		if (!f) {
+			console.log(`  sidecar ${name}: no download for ${os}-${arch}; the step falls back to its other strategies`);
+			continue;
+		}
+		console.log(`  sidecar ${name}: ${f.url}`);
+		if (DRY) continue;
+		const res = await fetch(f.url);
+		if (!res.ok) die(`download failed (${res.status}): ${f.url}`);
+		const buf = Buffer.from(await res.arrayBuffer());
+		const got = createHash("sha256").update(buf).digest("hex");
+		if (got !== f.sha256.toLowerCase()) die(`SHA-256 mismatch for ${f.url}\n  expected ${f.sha256}\n  got      ${got}`);
+		const cache = abs(`${INST}/cache/${name}`);
+		fs.rmSync(cache, { recursive: true, force: true });
+		fs.mkdirSync(cache, { recursive: true });
+		const file = path.join(cache, f.url.split("/").pop());
+		fs.writeFileSync(file, buf);
+		if (/\.(zip|tar\.gz|tgz|tar\.xz|tar\.zst)$/.test(file)) execSync(`tar -xf "${path.basename(file)}"`, { cwd: cache });
+		const bin = `${s.bin ?? s.id}${exeExt(triple)}`;
+		const find = (d) => {
+			for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+				const p = path.join(d, e.name);
+				if (e.isDirectory()) {
+					const r = find(p);
+					if (r) return r;
+				} else if (e.name === bin || p === file) return p;
+			}
+		};
+		const src = find(cache) ?? die(`${bin} not found in ${f.url}`);
+		fs.mkdirSync(path.dirname(abs(out)), { recursive: true });
+		fs.copyFileSync(src, abs(out));
+		fs.chmodSync(abs(out), 0o755);
+		changed.push(`create ${out}`);
+		names.push(name);
+	}
+	return names;
+}
+
+/** Bundles Tauri produced on this machine, by kind. */
+function bundles(app) {
+	// tauri build --target <triple> (the universal macOS release) bundles under target/<triple>/release
+	const dirs = [abs("src-tauri/target/release/bundle"), ...(fs.existsSync(abs("src-tauri/target")) ? fs.readdirSync(abs("src-tauri/target")).map((t) => abs(`src-tauri/target/${t}/release/bundle`)) : [])];
+	const find = (sub, re) => dirs.flatMap((dir) => (fs.existsSync(path.join(dir, sub)) ? fs.readdirSync(path.join(dir, sub)).filter((f) => re.test(f)).map((f) => path.join(dir, sub, f)) : []))[0];
+	return { nsis: find("nsis", /-setup\.exe$/), msi: find("msi", /\.msi$/), dmg: find("dmg", /\.dmg$/), app: find("macos", /\.app$/), deb: find("deb", /\.deb$/), rpm: find("rpm", /\.rpm$/), appimage: find("appimage", /\.AppImage$/) };
+}
+
+/**
+ * Sign a file when signing is configured (Section 16.15). Windows: bundle.windows.signCommand
+ * (%1 is the file) or certificateThumbprint with signtool; macOS: codesign with
+ * APPLE_SIGNING_IDENTITY; Linux: a detached GPG signature with FW_GPG_KEY. Unsigned otherwise.
+ */
+function sign(file) {
+	const conf = JSON.parse(read("src-tauri/tauri.conf.json"));
+	const w = conf.bundle?.windows ?? {};
+	const sh = (cmd) => spawnSync(cmd, { cwd: ROOT, stdio: "inherit", shell: true }).status === 0;
+	let ok = true;
+	if (process.platform === "win32") {
+		const signCommand = process.env.FW_WINDOWS_SIGN_COMMAND ?? (typeof w.signCommand === "string" ? w.signCommand : w.signCommand?.cmd ? [w.signCommand.cmd, ...(w.signCommand.args ?? [])].join(" ") : undefined);
+		const thumb = process.env.FW_WINDOWS_CERT_THUMBPRINT ?? w.certificateThumbprint;
+		if (signCommand) ok = sh(signCommand.replace("%1", `"${file}"`));
+		else if (thumb) ok = sh(`signtool sign /sha1 ${thumb} /fd sha256 /tr ${w.timestampUrl ?? "http://timestamp.digicert.com"} /td sha256 "${file}"`);
+		else return console.log(`  not signed (no signCommand or certificateThumbprint): ${rel(file)}`);
+	} else if (process.platform === "darwin") {
+		const id = process.env.APPLE_SIGNING_IDENTITY ?? conf.bundle?.macOS?.signingIdentity;
+		if (!id) return console.log(`  not signed (no APPLE_SIGNING_IDENTITY): ${rel(file)}`);
+		ok = sh(`codesign --force --options runtime --timestamp --sign "${id}" "${file}"`);
+		if (ok && process.env.APPLE_ID && process.env.APPLE_PASSWORD && process.env.APPLE_TEAM_ID && /\.(dmg|pkg|zip)$/.test(file)) {
+			ok = sh(`xcrun notarytool submit "${file}" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait`) && sh(`xcrun stapler staple "${file}"`);
+		}
+	} else if (process.env.FW_GPG_KEY) {
+		ok = sh(`gpg --batch --yes --local-user "${process.env.FW_GPG_KEY}" --detach-sign --armor "${file}"`);
+	} else return console.log(`  not signed (no FW_GPG_KEY): ${rel(file)}`);
+	if (!ok) die(`signing failed: ${rel(file)}`);
+	console.log(`  signed ${rel(file)}`);
+}
+
+/** The Tauri CLI would find the main app first; point it at the Setup app, commands run from the root. */
+const SETUP_PATHS = () => ({ TAURI_APP_PATH: abs("src-tauri/setup"), TAURI_FRONTEND_PATH: ROOT });
+
+/**
+ * The Setup app (Section 16.9.1): one program embedding installer.toml and the native package it
+ * chains (or, online, the URL and pinned hash it downloads). Windows: an exe chaining NSIS. macOS:
+ * a DMG of the Setup app chaining the app's DMG. Linux: an AppImage chaining the AppImage (user
+ * scope) or the deb or rpm (machine scope).
+ */
+function buildSetup(doc, app, triple) {
+	const b = bundles(app);
+	const machine = doc.installer?.scope === "machine";
+	const payload = process.platform === "win32" ? b.nsis : process.platform === "darwin" ? b.dmg : machine ? b.deb ?? b.rpm : b.appimage ?? b.deb;
+	if (!payload) die("build the native package first (fw installer build --artefacts native)");
+	const lic = doc.installer?.license;
+	if (lic && exists(lic)) write(`${INST}/license.md`, read(lic));
+	const online = doc.installer?.payload?.mode === "online";
+	const env = { ...process.env, ...SETUP_PATHS(), FW_SETUP_MANIFEST: abs(`${INST}/installer.toml`), FW_SETUP_LICENSE: abs(`${INST}/license.md`) };
+	if (online) {
+		// the Setup app downloads the package: pin the hash of the one we just built
+		const base = (doc.installer?.downloads ?? "").replace("{version}", app.version);
+		const url = doc.installer.payload.url ?? `${base}/${path.basename(payload)}`;
+		if (!url.startsWith("https://")) die("[installer.payload] online needs [installer] downloads or payload.url (https)");
+		const sha = createHash("sha256").update(fs.readFileSync(payload)).digest("hex");
+		const size = `${Math.ceil(fs.statSync(payload).size / 1e6)} MB`;
+		const text = read(`${INST}/installer.toml`).replace(/^\[installer\.payload\][\s\S]*?(?=^\[|(?![\s\S]))/m, "");
+		write(`${INST}/installer.toml`, `${text.trimEnd()}\n\n[installer.payload]\nmode = "online"\nurl = ${JSON.stringify(url)}\nsha256 = "${sha}"\nsize = "${size}"\n`);
+		console.log(`online Setup: downloads ${url} (${size}); upload that file to the release`);
+	} else env.FW_SETUP_PAYLOAD = payload;
+	if (!DRY) report();
+	// Windows: the bare exe is the Setup app; macOS and Linux: bundle it as a DMG or an AppImage
+	const win = process.platform === "win32";
+	const bundleArgs = win ? ["--no-bundle"] : ["--bundles", process.platform === "darwin" ? "dmg" : "appimage", "--config", JSON.stringify({ bundle: { active: true } })];
+	const r = spawnSync("pnpm", ["tauri", "build", ...bundleArgs], { cwd: ROOT, stdio: "inherit", shell: win, env });
+	if (r.status !== 0) return void (process.exitCode = r.status ?? 1);
+	const outDir = abs("src-tauri/target/release/bundle/setup");
+	fs.mkdirSync(outDir, { recursive: true });
+	let out;
+	if (process.platform === "win32") {
+		out = path.join(outDir, `${app.name}_${app.version}_x64-Setup${online ? "-online" : ""}.exe`);
+		fs.copyFileSync(abs(`src-tauri/target/release/fanwit-setup${exeExt(triple)}`), out);
+	} else {
+		// tauri bundled the Setup app itself (DMG or AppImage); give it the product's name
+		const kind = process.platform === "darwin" ? "dmg" : "appimage";
+		const dir = abs(`src-tauri/target/release/bundle/${kind}`);
+		const built = fs.readdirSync(dir).filter((f) => f.startsWith("Fanwit Setup") || f.toLowerCase().includes("setup")).map((f) => path.join(dir, f)).sort((x, y) => fs.statSync(y).mtimeMs - fs.statSync(x).mtimeMs)[0];
+		if (!built) die(`no Setup ${kind} was produced`);
+		out = path.join(outDir, `${app.name}_${app.version}_Setup.${kind === "dmg" ? "dmg" : "AppImage"}`);
+		fs.copyFileSync(built, out);
+	}
+	sign(out);
+	console.log(`Setup app: ${rel(out)} (${(fs.statSync(out).size / 1e6).toFixed(1)} MB${online ? ", downloads the package" : " including the native package"})`);
+}
+
+/** Portable build (Section 16.10): no installer; the app runs its steps on first launch. */
+function buildPortable(app, triple) {
+	const outDir = abs("src-tauri/target/release/bundle/portable");
+	fs.mkdirSync(outDir, { recursive: true });
+	const b = bundles(app);
+	if (process.platform === "linux") {
+		if (!b.appimage) die("build the native packages first: the AppImage is the portable Linux build");
+		const out = path.join(outDir, path.basename(b.appimage));
+		fs.copyFileSync(b.appimage, out);
+		return console.log(`portable: ${rel(out)}`);
+	}
+	const stage = path.join(outDir, `${app.name}`);
+	fs.rmSync(stage, { recursive: true, force: true });
+	fs.mkdirSync(stage, { recursive: true });
+	if (process.platform === "darwin") {
+		if (!b.app) die("build the native packages first (bundle/macos/*.app)");
+		const out = path.join(outDir, `${app.name}_${app.version}_portable.zip`);
+		execSync(`ditto -c -k --keepParent "${b.app}" "${out}"`);
+		return console.log(`portable: ${rel(out)}`);
+	}
+	const rel_ = (f) => abs(`src-tauri/target/release/${f}${exeExt(triple)}`);
+	for (const f of [app.slug, `${app.slug}-cli`, ENGINE]) if (fs.existsSync(rel_(f))) fs.copyFileSync(rel_(f), path.join(stage, path.basename(rel_(f))));
+	fs.copyFileSync(abs(`${INST}/installer.toml`), path.join(stage, "installer.toml"));
+	const out = path.join(outDir, `${app.name}_${app.version}_x64_portable.zip`);
+	fs.rmSync(out, { force: true });
+	// bsdtar (Windows 10+) writes zip with -a
+	execSync(`tar -a -cf "${out}" -C "${outDir}" "${app.name}"`);
+	fs.rmSync(stage, { recursive: true, force: true });
+	sign(out);
+	console.log(`portable: ${rel(out)} (unzip and run ${app.slug}${exeExt(triple)}; steps run on first launch)`);
+}
+
+/** macOS pkg (Section 16.16, pkgbuild and productbuild; Tauri does not make one). */
+function buildPkg(app) {
+	if (process.platform !== "darwin") return console.log("skipped pkg: pkgbuild runs on macOS only");
+	const b = bundles(app);
+	if (!b.app) die("build the native packages first (bundle/macos/*.app)");
+	const work = abs(`${INST}/pkg-build`);
+	fs.rmSync(work, { recursive: true, force: true });
+	fs.mkdirSync(path.join(work, "root"), { recursive: true });
+	fs.mkdirSync(path.join(work, "scripts"), { recursive: true });
+	execSync(`cp -R "${b.app}" "${path.join(work, "root")}/"`);
+	fs.copyFileSync(abs(`${INST}/pkg/postinstall`), path.join(work, "scripts", "postinstall"));
+	fs.chmodSync(path.join(work, "scripts", "postinstall"), 0o755);
+	const outDir = abs("src-tauri/target/release/bundle/pkg");
+	fs.mkdirSync(outDir, { recursive: true });
+	const component = path.join(work, "component.pkg");
+	const out = path.join(outDir, `${app.name}_${app.version}.pkg`);
+	execSync(`pkgbuild --root "${path.join(work, "root")}" --scripts "${path.join(work, "scripts")}" --identifier "${app.identifier}" --version "${app.version}" --install-location /Applications "${component}"`, { stdio: "inherit" });
+	const installerId = process.env.APPLE_INSTALLER_IDENTITY;
+	execSync(`productbuild --package "${component}" ${installerId ? `--sign "${installerId}"` : ""} "${out}"`, { stdio: "inherit" });
+	fs.copyFileSync(abs(`${INST}/pkg/uninstall.sh`), path.join(outDir, `uninstall-${app.slug}.sh`));
+	console.log(`pkg: ${rel(out)}${installerId ? "" : " (unsigned: set APPLE_INSTALLER_IDENTITY)"}`);
+}
+
+/** Real installs in Linux containers (Section 16.16): e2e and elevation tests per distro. */
+function testLinux() {
+	const distros = (flag("distros") ?? "ubuntu:24.04,fedora:41").split(",");
+	if (spawnSync("docker", ["info"], { stdio: "ignore" }).status !== 0) die("docker is not running");
+	const out = abs(`${INST}/linux`);
+	fs.mkdirSync(out, { recursive: true });
+	const env = { ...process.env, MSYS_NO_PATHCONV: "1" };
+	console.log("building the Linux engine (rust:1-slim)");
+	// touch: bind mounts from Windows can keep old timestamps, and cargo would reuse a stale build
+	const build = spawnSync("docker", ["run", "--rm", "-v", `${abs("src-tauri")}:/src`, "-v", `${out}:/out`, "-v", "fw-cargo-registry:/usr/local/cargo/registry", "-v", "fw-linux-target:/target", "-e", "CARGO_TARGET_DIR=/target", "-w", "/src", "rust:1-slim", "sh", "-c", `find install/src -name '*.rs' -exec touch {} + && cargo build -p ${ENGINE} && cp /target/debug/${ENGINE} /out/${ENGINE}`], { stdio: "inherit", env });
+	if (build.status !== 0) die("the Linux build failed");
+	let failed = 0;
+	for (const img of distros) {
+		for (const test of ["e2e", "elevated"]) {
+			const r = spawnSync("docker", ["run", "--rm", "-t", "-v", `${path.join(out, ENGINE)}:/engine:ro`, "-v", `${abs("installer/tests")}:/tests:ro`, img, "sh", `/tests/${test}.sh`], { env, encoding: "utf8" });
+			const pass = r.status === 0 && /^PASS/m.test(r.stdout);
+			console.log(`${pass ? "ok  " : "FAIL"} ${test} on ${img}`);
+			if (!pass) {
+				failed++;
+				console.log(r.stdout.split("\n").slice(-25).join("\n"));
+			}
+		}
+	}
+	if (failed) process.exitCode = 1;
+}
+
+async function installer() {
+	const [, sub, a3, a4] = args;
+	const pass = (names) => names.flatMap((n) => (flag(n) !== undefined ? [`--${n}`, flag(n)] : []));
+	if (sub === "init") {
+		const preset = flag("preset", "classic");
+		const p = PRESETS[preset] ?? die(`presets: ${Object.keys(PRESETS).join(", ")}`, 2);
+		if (exists("installer.toml")) {
+			let t = read("installer.toml");
+			t = setTomlKey(t, "installer", "preset", preset);
+			t = setTomlKey(t, "installer", "scope", p.scope);
+			t = setTomlKey(t, "installer", "artefacts", p.artefacts);
+			if (p.pages.length) t = setTomlKey(t, "installer", "pages", p.pages);
+			write("installer.toml", t);
+		} else write("installer.toml", `#:schema ./schemas/installer.schema.json\n[installer]\npreset = "${preset}"\nartefacts = ${JSON.stringify(p.artefacts)}\nscope = "${p.scope}"\npages = ${JSON.stringify(p.pages)}\nlanguages = ["en"]\ndownloads = ""\n\n[[component]]\nid = "core"\ntitle = "${identity().app.name}"\nrequired = true\n`);
+		return report();
+	}
+	if (sub === "add-step") {
+		if (!STEP_TEMPLATES[a3] || !a4) die(`fw installer add-step <${Object.keys(STEP_TEMPLATES).join("|")}> <id>`, 2);
+		if (new RegExp(`^id\\s*=\\s*"${a4}"`, "m").test(read("installer.toml"))) die(`step ${a4} exists`);
+		write("installer.toml", read("installer.toml").trimEnd() + "\n\n" + STEP_TEMPLATES[a3](a4));
+		report();
+		return console.log(`Next: fill in the hashes, then pnpm fw installer plan --scenario offline`);
+	}
+	const { doc, app, text } = installerManifest();
+	write(`${INST}/installer.toml`, text);
+	if (sub === "plan" || sub === "run") {
+		const sc = flag("scenario");
+		const a = [sub === "plan" ? "plan" : "run", "--manifest", `${INST}/installer.toml`, ...pass(["phase", "os", "arch", "scope", "components", "answers", "step"])];
+		for (let i = 0; i < args.length; i++) if (args[i] === "--set") a.push("--set", args[i + 1]);
+		if (sc) a.push("--scenario", scenarioFiles(sc));
+		if (has("json")) a.push("--json");
+		if (DRY && sub === "run") a.push("--dry-run");
+		process.exitCode = engine(a);
+		return;
+	}
+	if (sub === "build" || sub === "explain") {
+		const triple = sub === "build" ? hostTriple() : "";
+		const assets = flag("assets");
+		const hashes = assetHashes(assets ? path.resolve(assets) : abs("src-tauri/target/release/bundle"), assetNames(app));
+		const files = glue(doc, app, hashes);
+		if (sub === "explain") {
+			const pick = { pkg: ["pkg/postinstall", "pkg/uninstall.sh"], nsis: ["hooks.nsh"], wix: ["fanwit-install.wxs"], msi: ["fanwit-install.wxs"], deb: ["deb-postinst.sh", "deb-prerm.sh"], rpm: ["rpm-post.sh", "rpm-preun.sh"], scripts: ["install.sh", "install.ps1"], managers: Object.keys(files).filter((f) => f.startsWith("managers/")), conf: [] }[a3];
+			if (!pick) die("fw installer explain <nsis|wix|deb|rpm|pkg|scripts|managers|conf>", 2);
+			for (const f of pick) console.log(`----- ${INST}/${f}\n${files[f]}`);
+			if (a3 === "conf") console.log(JSON.stringify(installerTauriConf(doc, []), null, 2));
+			return;
+		}
+		const want = (flag("artefacts") ?? (doc.installer?.artefacts ?? ["native"]).join(",")).split(",");
+		if (engine(["validate", "--manifest", `${INST}/installer.toml`]) !== 0) die("installer.toml is invalid");
+		console.log("build phase:");
+		const sidecars = await fetchSidecars(doc, triple);
+		for (const [f, t] of Object.entries(files)) if (want.includes("native") || want.includes("pkg") || (want.includes("scripts") && f.startsWith("install.")) || (want.includes("managers") && f.startsWith("managers/"))) write(`${INST}/${f}`, t);
+		if (want.includes("native")) {
+			if (!DRY && spawnSync("cargo", ["build", "--release", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die("could not build the engine");
+			const bin = `src-tauri/binaries/${ENGINE}-${triple}${exeExt(triple)}`;
+			if (!DRY) {
+				fs.mkdirSync(abs("src-tauri/binaries"), { recursive: true });
+				fs.copyFileSync(abs(`src-tauri/target/release/${ENGINE}${exeExt(triple)}`), abs(bin));
+			}
+			changed.push(`update ${bin}`);
+			write(`${INST}/tauri.installer.conf.json`, JSON.stringify(installerTauriConf(doc, sidecars), null, "\t") + "\n");
+		}
+		report();
+		if (want.includes("native") && !has("no-bundle") && !DRY) {
+			run("pnpm", ["tauri", "build", "--config", `${INST}/tauri.installer.conf.json`]);
+			if (process.exitCode) return;
+			// now that the bundles exist, write their hashes into the scripts and manifests
+			const after = glue(doc, app, assetHashes(abs("src-tauri/target/release/bundle"), assetNames(app)));
+			for (const [f, t] of Object.entries(after)) if ((want.includes("scripts") && f.startsWith("install.")) || (want.includes("managers") && f.startsWith("managers/"))) write(`${INST}/${f}`, t);
+			report();
+		}
+		if (process.exitCode || DRY) return;
+		if (want.includes("setup")) buildSetup(doc, app, triple);
+		if (want.includes("portable")) buildPortable(app, triple);
+		if (want.includes("pkg")) buildPkg(app);
+		return;
+	}
+	if (sub === "test" && has("linux")) return testLinux();
+	if (sub === "test" && has("windows")) {
+		// a real per user install and uninstall on this machine (installer/tests/e2e-windows.toml)
+		if (spawnSync("cargo", ["build", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die("could not build the engine");
+		process.exitCode = spawnSync("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", abs("installer/tests/e2e-windows.ps1"), "-Engine", abs(`src-tauri/target/debug/${ENGINE}.exe`)], { stdio: "inherit" }).status ?? 1;
+		return;
+	}
+	if (sub === "test") {
+		write(`${INST}/sandbox.wsb`, `<Configuration>\n  <MappedFolders>\n    <MappedFolder>\n      <HostFolder>${abs("src-tauri/target/release/bundle")}</HostFolder>\n      <SandboxFolder>C:\\bundle</SandboxFolder>\n      <ReadOnly>true</ReadOnly>\n    </MappedFolder>\n  </MappedFolders>\n  <LogonCommand>\n    <Command>powershell -NoExit -Command "Get-ChildItem C:\\bundle\\nsis\\*.exe | ForEach-Object { Start-Process $_ -ArgumentList '/S' -Wait }; Write-Host 'Installed. Check the PATH and %LOCALAPPDATA%\\${app.name}\\.install\\receipt.toml'"</Command>\n  </LogonCommand>\n</Configuration>\n`);
+		report();
+		process.exitCode = spawnSync("cargo", ["test", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status ?? 1;
+		if (!process.exitCode) {
+			for (const os of ["windows", "macos", "linux"]) {
+				console.log(`\n== ${os}`);
+				if (engine(["plan", "--manifest", `${INST}/installer.toml`, "--os", os]) > 1) process.exitCode = 1;
+			}
+			console.log(`\nReal install: build with \`fw installer build\`, then open ${INST}/sandbox.wsb (Windows Sandbox).`);
+		}
+		return;
+	}
+	if (sub === "dev") {
+		// the Setup app with hot reload against a simulated machine: nothing real changes
+		const sc = scenarioFiles(flag("scenario") ?? "no-admin");
+		const env = { ...process.env, ...SETUP_PATHS(), FW_SETUP_SCENARIO: sc.split(",").map((f) => path.resolve(ROOT, f)).join(","), FW_SETUP_MANIFEST: abs(`${INST}/installer.toml`) };
+		if (has("real")) delete env.FW_SETUP_SCENARIO;
+		if (has("uninstall")) env.FW_SETUP_UNINSTALL = "1";
+		console.log(`Setup app: ${has("real") ? "REAL machine (changes are made)" : `simulated (${sc})`}`);
+		process.exitCode = spawnSync("pnpm", ["tauri", "dev"], { cwd: ROOT, stdio: "inherit", shell: true, env }).status ?? 1;
+		return;
+	}
+	die("fw installer <init|plan|run|add-step|build|explain|test> (see docs/guides/installer.md)", 2);
+}
+
 // ---------- create ----------
 function create() {
 	const [, dir] = args;
@@ -674,6 +1267,9 @@ const HELP = `fw: Fanwit developer CLI
   fw strip                            remove Labs and samples, keep the systems
   fw lock | eject <file> | upgrade --from <dir>
   fw docs <check|build|serve>
+  fw installer init [--preset p] | plan [--os --scenario a,b --phase --json] | add-step <type> <id>
+               build [--artefacts native,setup,scripts,managers] [--no-bundle] [--assets dir] | explain <artefact> | test
+               dev [--scenario a,b] [--with uv] [--real]   the Setup app with hot reload (simulated by default)
   fw test [unit|e2e|native]
   fw release <patch|minor|major>      bump, changelog, tag
 
@@ -737,6 +1333,9 @@ switch (cmd) {
 		break;
 	case "docs":
 		docs();
+		break;
+	case "installer":
+		await installer();
 		break;
 	case "test":
 		if (!sub || sub === "unit") run("pnpm", ["test"]);
