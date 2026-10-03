@@ -209,6 +209,10 @@ export interface Host {
 	dialog: HostDialog;
 	log: HostLog;
 	invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>;
+	/** Start at login (desktop); undefined where the platform cannot. */
+	autostart?: { get(): Promise<boolean>; set(on: boolean): Promise<void> };
+	/** Files dropped from the OS onto the window: host paths (desktop) or upload:// keys (web). */
+	onFileDrop(cb: (paths: string[]) => void): Disposable;
 	app(): Promise<AppInfo>;
 	openExternal(url: string): Promise<void>;
 	reveal(path: string): Promise<void>;

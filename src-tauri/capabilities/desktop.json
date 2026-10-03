@@ -2,11 +2,20 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "fanwit-desktop",
   "description": "Desktop only: OS wide shortcuts for the main window.",
-  "platforms": ["macOS", "windows", "linux"],
-  "windows": ["main"],
+  "platforms": [
+    "macOS",
+    "windows",
+    "linux"
+  ],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
-    "global-shortcut:allow-is-registered"
+    "global-shortcut:allow-is-registered",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

@@ -207,6 +207,7 @@ export function createMemoryHost(o: { files?: Record<string, string>; platform?:
 		invoke: async (cmd) => {
 			throw new Error(`No backend for "${cmd}" on the memory host`);
 		},
+		onFileDrop: () => toDisposable(() => {}),
 		app: async () => ({
 			name: "Fanwit",
 			version: "0.0.0",

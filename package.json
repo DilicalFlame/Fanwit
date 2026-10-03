@@ -44,6 +44,7 @@
 	"dependencies": {
 		"@sqlite.org/sqlite-wasm": "3.53.4-build1",
 		"@tauri-apps/api": "^2.12.1",
+		"@tauri-apps/plugin-autostart": "^2.7.0",
 		"@tauri-apps/plugin-deep-link": "^2.6.1",
 		"@tauri-apps/plugin-dialog": "^2.7.1",
 		"@tauri-apps/plugin-global-shortcut": "^2.4.0",

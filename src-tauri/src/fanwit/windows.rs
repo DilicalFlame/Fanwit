@@ -89,7 +89,7 @@ pub struct OpenOpts {
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> Result<()> {
     let state = app.state::<State>();
-    let file = app.path().app_config_dir().map_err(err)?.join("windows.toml");
+    let file = super::app_dir(app, super::Dir::Config)?.join("windows.toml");
     if let Ok(text) = std::fs::read_to_string(&file) {
         if let Ok(map) = saved_file::parse(&text) {
             *state.windows.saved.lock().unwrap() = map;

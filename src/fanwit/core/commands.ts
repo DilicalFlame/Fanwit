@@ -24,6 +24,9 @@ export const coreCommands: CommandDefinition[] = [
 	c("app.checkForUpdates", "Check for updates", "App", { icon: "download", cli: true }),
 	c("app.openPaths", "Open files or folders", "App", { args: { paths: { type: "json", description: "List of paths or deep links" } }, palette: false }),
 	c("app.version", "Show version", "App", { cli: true, palette: false, runtime: "any" }),
+	c("app.print", "Print", "App", { icon: "printer" }),
+	c("app.exportConfig", "Export configuration", "App", { icon: "download", description: "Settings, keybindings, menus and user commands as one file", cli: true }),
+	c("app.importConfig", "Import configuration", "App", { icon: "upload", args: { data: { type: "json", description: "A configuration exported by Export configuration" } }, cli: true }),
 	c("commands.list", "List commands", "App", { cli: true, palette: false, runtime: "any" }),
 
 	// windows

@@ -377,6 +377,20 @@ export function createBrowserHost(): Host {
 		invoke: async (cmd) => {
 			throw new Error(`No backend command "${cmd}" in the browser host`);
 		},
+		onFileDrop(cb) {
+			const over = (e: DragEvent) => e.dataTransfer?.types.includes("Files") && e.preventDefault();
+			const drop = (e: DragEvent) => {
+				if (!e.dataTransfer?.files.length) return;
+				e.preventDefault();
+				cb([...e.dataTransfer.files].map((f) => fs.addUpload(f)));
+			};
+			window.addEventListener("dragover", over);
+			window.addEventListener("drop", drop);
+			return toDisposable(() => {
+				window.removeEventListener("dragover", over);
+				window.removeEventListener("drop", drop);
+			});
+		},
 		app: async () => {
 			const params = new URLSearchParams(location.search);
 			return {

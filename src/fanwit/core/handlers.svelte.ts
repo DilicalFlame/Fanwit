@@ -75,6 +75,23 @@ export function activateCore(ctx: ModuleContext) {
 		const r = await windows.open("update");
 		return r.label;
 	});
+	h("app.print", () => window.print());
+	// settings sync hooks (Section 21.1): every human file in one portable object
+	const CONFIG_FILES = { settings: "settings.toml", keys: "keys.toml", menus: "menus.toml", commands: "commands.toml" } as const;
+	h("app.exportConfig", async () => {
+		const out: Record<string, string> = { app: k.sys.info.name, version: k.sys.info.version };
+		for (const [key, file] of Object.entries(CONFIG_FILES)) out[key] = await k.host.fs.readText(joinPath(k.host.dirs.config, file)).catch(() => "");
+		await navigator.clipboard.writeText(JSON.stringify(out, null, 1)).catch(() => {});
+		notify.toast("Configuration copied to the clipboard", "success");
+		return out;
+	});
+	h("app.importConfig", async ({ data }: { data: Record<string, string> }) => {
+		const ok = await k.sys.dialog.ask("Replace your settings, keybindings, menus and user commands with the imported configuration?", { title: "Import configuration", okLabel: "Replace", kind: "warning" });
+		if (!ok) return false;
+		for (const [key, file] of Object.entries(CONFIG_FILES)) if (typeof data?.[key] === "string" && data[key]) await k.host.fs.writeText(joinPath(k.host.dirs.config, file), data[key]);
+		notify.toast("Configuration imported; files reload automatically", "success");
+		return true;
+	});
 	h("app.openPaths", async ({ paths }: { paths: string[] }) => {
 		for (const p of paths ?? []) await openPath(ctx, p);
 	});

@@ -56,7 +56,7 @@ fn os_version() -> String {
 
 /// Write the crash marker; the next launch offers the crash report (Section 21.1).
 pub fn install_panic_hook<R: Runtime>(app: &AppHandle<R>) {
-    let dir = app.path().app_log_dir().ok();
+    let dir = super::app_dir(app, super::Dir::Log).ok();
     let prev = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
         if let Some(d) = &dir {

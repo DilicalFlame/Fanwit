@@ -56,6 +56,7 @@ keyring = { version = "3", features = ["apple-native", "windows-native", "sync-s
   features = ["image-png", "isolation", "tray-icon"]
 
 [target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
+tauri-plugin-autostart = "2.5.1"
 tauri-plugin-global-shortcut = "2.3.2"
 tauri-plugin-single-instance = { version = "2.4.5", features = ["deep-link"] }
 

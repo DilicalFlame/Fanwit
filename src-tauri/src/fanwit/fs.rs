@@ -251,12 +251,12 @@ pub struct Dirs {
 
 #[tauri::command]
 pub fn fw_dirs<R: Runtime>(app: AppHandle<R>) -> Result<Dirs> {
-    let p = app.path();
+    use super::{app_dir, Dir};
     Ok(Dirs {
-        config: to_front(&p.app_config_dir().map_err(err)?),
-        data: to_front(&p.app_data_dir().map_err(err)?),
-        cache: to_front(&p.app_cache_dir().map_err(err)?),
-        log: to_front(&p.app_log_dir().map_err(err)?),
-        home: p.home_dir().ok().map(|h| to_front(&h)),
+        config: to_front(&app_dir(&app, Dir::Config)?),
+        data: to_front(&app_dir(&app, Dir::Data)?),
+        cache: to_front(&app_dir(&app, Dir::Cache)?),
+        log: to_front(&app_dir(&app, Dir::Log)?),
+        home: app.path().home_dir().ok().map(|h| to_front(&h)),
     })
 }

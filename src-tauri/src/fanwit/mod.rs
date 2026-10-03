@@ -44,6 +44,30 @@ impl State {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum Dir {
+    Config,
+    Data,
+    Cache,
+    Log,
+}
+
+/// App directories, separated per profile when started with `--profile <name>` (Section 21.1).
+pub fn app_dir<R: tauri::Runtime>(app: &tauri::AppHandle<R>, d: Dir) -> Result<std::path::PathBuf> {
+    use tauri::Manager;
+    let p = app.path();
+    let base = match d {
+        Dir::Config => p.app_config_dir(),
+        Dir::Data => p.app_data_dir(),
+        Dir::Cache => p.app_cache_dir(),
+        Dir::Log => p.app_log_dir(),
+    }
+    .map_err(err)?;
+    let profile = app.state::<State>().launch.profile.clone().unwrap_or_default();
+    let clean: String = profile.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
+    Ok(if clean.is_empty() { base } else { base.join("profiles").join(clean) })
+}
+
 /// Normalises a path for the frontend: forward slashes, no `\\?\` prefix.
 pub fn to_front(p: &std::path::Path) -> String {
     dunce::simplified(p).to_string_lossy().replace('\\', "/")

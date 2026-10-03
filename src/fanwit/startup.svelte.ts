@@ -27,6 +27,14 @@ export async function afterFirstPaint(k: Kernel) {
 		await flush(k);
 		return true;
 	});
+	// network status for when clauses and retry logic
+	const online = () => k.context.set("network.online", navigator.onLine);
+	online();
+	window.addEventListener("online", online);
+	window.addEventListener("offline", online);
+	k.context.declare("network.online", "boolean", "The device is online");
+	// files dropped from the OS route to a command (Section 21.1)
+	k.host.onFileDrop((paths) => void dropped(k, paths));
 	k.lifecycle.set("restored");
 	idle(() => {
 		void k.modules.fire("onStartupFinished", true).then(() => {
@@ -34,6 +42,18 @@ export async function afterFirstPaint(k: Kernel) {
 			log.info(`startup finished (${Math.round(performance.now())} ms since navigation)`);
 		});
 	});
+}
+
+async function dropped(k: Kernel, paths: string[]) {
+	if (k.host.kind === "tauri") return k.commands.run("app.openPaths", { paths }, { source: "api" }).catch((e) => k.sys.notify.error(e));
+	// web: copy dropped files into the open vault
+	const v = k.sys.vault;
+	if (!v.current) return k.sys.notify.toast("Open a vault to import dropped files", "warning");
+	for (const p of paths) {
+		const name = p.split("/").pop()!;
+		await v.fs.write(name, await k.host.fs.read(p));
+	}
+	k.sys.notify.toast(`Imported ${paths.length} file${paths.length > 1 ? "s" : ""} into ${v.current.name}`, "success");
 }
 
 async function flush(k: Kernel) {

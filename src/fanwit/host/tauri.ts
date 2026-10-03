@@ -203,6 +203,32 @@ export async function createTauriHost(): Promise<Host> {
 			}
 		},
 		invoke: (cmd, args) => invoke(cmd, args),
+		autostart: {
+			async get() {
+				const a = await import("@tauri-apps/plugin-autostart");
+				return a.isEnabled();
+			},
+			async set(on) {
+				const a = await import("@tauri-apps/plugin-autostart");
+				if (on) await a.enable();
+				else await a.disable();
+			}
+		},
+		onFileDrop(cb) {
+			let un: (() => void) | undefined;
+			let gone = false;
+			void import("@tauri-apps/api/webview").then(({ getCurrentWebview }) =>
+				getCurrentWebview()
+					.onDragDropEvent((e) => {
+						if (e.payload.type === "drop") cb(e.payload.paths.map((p) => p.replace(/\\/g, "/")));
+					})
+					.then((u) => (gone ? u() : (un = u)))
+			);
+			return toDisposable(() => {
+				gone = true;
+				un?.();
+			});
+		},
 		app: async () => (info ??= await invoke<AppInfo>("fw_app_info")),
 		openExternal: async (url) => {
 			const o = await import("@tauri-apps/plugin-opener");

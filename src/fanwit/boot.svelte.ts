@@ -423,6 +423,8 @@ function wireSettings(k: Kernel) {
 		root.dir = i18n.dir;
 		notify.channelPrefs = (settings.get<Record<string, object>>("notify.channels") ?? {}) as typeof notify.channelPrefs;
 		notify.quietHours = settings.get<string>("notify.quietHours") ?? "";
+		const auto = !!settings.get<boolean>("general.autostart");
+		void k.host.autostart?.get().then((on) => (on !== auto ? k.host.autostart?.set(auto) : undefined)).catch(() => {});
 		const dnd = settings.get<boolean>("notify.dnd");
 		if (dnd && !notify.dnd) notify.setDnd(24 * 60);
 		if (!dnd && notify.dnd) notify.setDnd(null);

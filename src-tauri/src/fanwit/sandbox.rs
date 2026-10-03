@@ -5,7 +5,7 @@
 use super::{err, Result};
 use std::path::{Path, PathBuf};
 use std::sync::RwLock;
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Runtime};
 
 #[derive(Default)]
 pub struct Sandbox {
@@ -44,14 +44,14 @@ fn canon(p: &Path) -> PathBuf {
 
 impl Sandbox {
     pub fn init<R: Runtime>(&self, app: &AppHandle<R>) -> Result<()> {
-        let p = app.path();
-        let dirs = [p.app_config_dir(), p.app_data_dir(), p.app_cache_dir(), p.app_log_dir()];
+        use super::{app_dir, Dir};
+        let dirs = [app_dir(app, Dir::Config), app_dir(app, Dir::Data), app_dir(app, Dir::Cache), app_dir(app, Dir::Log)];
         let mut roots = self.app_roots.write().unwrap();
         for d in dirs.into_iter().flatten() {
             std::fs::create_dir_all(&d).map_err(err)?;
             roots.push(canon(&d));
         }
-        let file = p.app_data_dir().map_err(err)?.join("roots.json");
+        let file = app_dir(app, Dir::Data)?.join("roots.json");
         if let Ok(text) = std::fs::read_to_string(&file) {
             if let Ok(list) = serde_json::from_str::<Vec<String>>(&text) {
                 *self.known.write().unwrap() = list.into_iter().map(PathBuf::from).collect();

@@ -12,6 +12,7 @@ export const coreSettings = [
 		"startup.restoreVault": s.boolean(true, { title: "Reopen the last vault on start", category: "General" }),
 		"startup.showWelcome": s.boolean(true, { title: "Show the welcome tab on start", category: "General" }),
 		confirmQuit: s.boolean(false, { title: "Confirm before quitting", category: "General" }),
+		autostart: s.boolean(false, { title: "Start at login", description: "Starts hidden in the tray (desktop only).", category: "General", scope: ["global"] }),
 		"update.check": s.boolean(true, { title: "Check for updates automatically", category: "Privacy and Updates" })
 	}),
 	defineSettings("theme", {
