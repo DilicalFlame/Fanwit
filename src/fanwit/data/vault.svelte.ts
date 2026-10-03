@@ -69,6 +69,8 @@ export class VaultService {
 	readonly onWillClose = new Emitter<VetoableEvent>();
 	readonly onDidClose = new Emitter<void>();
 	private instance = crypto.randomUUID();
+	/** Opened with attach: the lock belongs to another window of this app. */
+	private attached = false;
 	private heartbeat: ReturnType<typeof setInterval> | undefined;
 	private ignore: RegExp[] = [];
 	readonly folder = identity.vaultFolder;
@@ -103,7 +105,11 @@ export class VaultService {
 	}
 
 	/** Open a vault folder; without a path, ask with the folder picker. */
-	async open(path?: string, o: { readonly?: boolean } = {}): Promise<VaultInfo> {
+	/**
+	 * Open a vault. `attach` is for secondary windows of this app instance: they share the vault
+	 * the main window owns, so they skip the lock, the recent list and the indexer.
+	 */
+	async open(path?: string, o: { readonly?: boolean; attach?: boolean } = {}): Promise<VaultInfo> {
 		if (!path) {
 			const picked = await this.k.host.fs.pickFolder({ title: "Open folder as vault" });
 			if (!picked) throw new FanwitError("CANCELLED", { message: "Cancelled." });
@@ -135,7 +141,7 @@ export class VaultService {
 		const lockPath = joinPath(configDir, "lock");
 		try {
 			const lock = JSON.parse(await fs.readText(lockPath)) as { instance: string; time: number };
-			if (lock.instance !== this.instance && Date.now() - lock.time < HEARTBEAT * 3 && !readonly) {
+			if (!o.attach && lock.instance !== this.instance && Date.now() - lock.time < HEARTBEAT * 3 && !readonly) {
 				const ok = await this.k.host.dialog.ask(`"${meta.name}" is open in another window or app instance. Open it read only?`, {
 					title: "Vault in use",
 					okLabel: "Open read only",
@@ -148,7 +154,8 @@ export class VaultService {
 			if ((e as FanwitError).code === "CANCELLED") throw e;
 		}
 		const info: VaultInfo = { id: String(meta.id), name: String(meta.name ?? basename(path)), path, configDir, readonly };
-		if (!readonly) {
+		this.attached = !!o.attach;
+		if (!readonly && !o.attach) {
 			const beat = () => void fs.writeText(lockPath, JSON.stringify({ instance: this.instance, time: Date.now() })).catch(() => {});
 			beat();
 			this.heartbeat = setInterval(beat, HEARTBEAT);
@@ -160,13 +167,15 @@ export class VaultService {
 		this.k.context.set("vault.readonly", readonly);
 		this.k.sys.storage.setVaultDir(joinPath(configDir, "data"));
 		await this.k.sys.settings.setVault(configDir);
-		const rec = this.recentList.filter((v) => v.path !== path && v.id !== info.id);
-		this.recentList = [{ id: info.id, name: info.name, path, lastOpened: Date.now(), pinned: this.recentList.find((v) => v.path === path)?.pinned }, ...rec].slice(0, 30);
-		await this.saveRecent();
+		if (!o.attach) {
+			const rec = this.recentList.filter((v) => v.path !== path && v.id !== info.id);
+			this.recentList = [{ id: info.id, name: info.name, path, lastOpened: Date.now(), pinned: this.recentList.find((v) => v.path === path)?.pinned }, ...rec].slice(0, 30);
+			await this.saveRecent();
+		}
 		this.onDidOpen.fire(info);
 		this.indexWatch?.dispose();
 		this.indexWatch = null;
-		void this.reindex().catch((e) => this.k.scopedLog("vault").warn("indexing failed:", (e as Error).message));
+		if (!o.attach) void this.reindex().catch((e) => this.k.scopedLog("vault").warn("indexing failed:", (e as Error).message));
 		this.k.events.emit("vault:opened" as never, { name: info.name, path } as never);
 		await this.k.modules.fire("onVault", true);
 		void this.fireFileEvents();
@@ -218,7 +227,7 @@ export class VaultService {
 		await this.k.sys.settings.flush();
 		await this.k.sys.storage.flush();
 		clearInterval(this.heartbeat);
-		if (!this.current.readonly) await this.k.host.fs.remove(joinPath(this.current.configDir, "lock")).catch(() => {});
+		if (!this.current.readonly && !this.attached) await this.k.host.fs.remove(joinPath(this.current.configDir, "lock")).catch(() => {});
 		this.current = null;
 		this.k.sys.storage.setVaultDir(null);
 		await this.k.sys.settings.setVault(null);

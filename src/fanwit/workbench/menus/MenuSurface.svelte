@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick, type Component } from "svelte";
-	import { getKernel } from "../../ui.svelte";
+	import { getKernel, uiZoom } from "../../ui.svelte";
 	import type { MenuKindProps, ResolvedGroup, ResolvedItem } from "../../menus/menus.svelte";
 	import Icon from "../../icons/Icon.svelte";
 	import KeyChip from "../KeyChip.svelte";
@@ -87,9 +87,16 @@
 		left = Math.max(8, Math.min(left, vw - 8 - r.width));
 		const maxH = vh - 16;
 		const h = Math.min(r.height, maxH);
-		if (top + h > vh - 8) top = anchor && level > 0 ? vh - 8 - h : Math.max(8, y - h);
-		top = Math.max(8, top);
-		pos = { left, top, maxH };
+		if (top + h > vh - 8) {
+			// flip: a menu below its anchor opens above it; one beside it lines up with its bottom edge
+			if (!anchor) top = y - h;
+			else if (level > 0) top = vh - 8 - h;
+			else top = y >= anchor.bottom - 1 ? anchor.top - h - 2 : anchor.bottom - h;
+		}
+		top = Math.max(8, Math.min(top, vh - 8 - h));
+		// everything above is in viewport pixels; body zoom (ui.zoom) scales the px we set
+		const z = uiZoom();
+		pos = { left: left / z, top: top / z, maxH: maxH / z };
 	}
 
 	function valueOf(item: ResolvedItem): unknown {

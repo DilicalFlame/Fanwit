@@ -190,6 +190,7 @@ export class WindowService {
 		const parent = spec.parent === "opener" ? opener : spec.parent;
 		const route = spec.route ?? kind;
 		const q = new URLSearchParams({ label, opener });
+		if (this.k.sys.vault.current) q.set("vault", this.k.sys.vault.current.path);
 		if (Object.keys(props).length) q.set("props", JSON.stringify(props));
 		const result = new Promise<R | undefined>((resolve) => this.pending.set(label, resolve as (v: unknown) => void));
 		const cascade = spec.position === "cascade" ? this.cascade(kind) : undefined;
@@ -300,6 +301,7 @@ export class WindowService {
 		if (web === "popup" || web === "tab") {
 			const route = spec.route ?? spec.kind;
 			const q = new URLSearchParams({ label: vwin.id, opener: "main" });
+			if (this.k.sys.vault.current) q.set("vault", this.k.sys.vault.current.path);
 			if (Object.keys(props).length) q.set("props", JSON.stringify(props));
 			window.open(`/w/${route}?${q}`, web === "popup" ? vwin.id : "_blank", web === "popup" ? `width=${w},height=${h}` : undefined);
 			return this.virtualHandle<R>(vwin, result);

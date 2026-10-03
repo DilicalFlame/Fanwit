@@ -132,7 +132,11 @@ function watchLayoutWindows(k: Kernel) {
 				if (open.has(id)) continue;
 				open.add(id);
 				if (k.host.caps.nativeWindows) {
-					void k.host.windows.open({ label: `aux-${id}`, url: `/w/view?window=${encodeURIComponent(id)}`, title: layout.paneTitle(firstPane(k, id) ?? id), width: 900, height: 640, stateKey: `view:${id}`, visible: false });
+					const q = new URLSearchParams({ window: id });
+					if (k.sys.vault.current) q.set("vault", k.sys.vault.current.path);
+					const title = layout.paneTitle(firstPane(k, id) ?? id);
+					// the new window reads workspace.toml from disk: write the pop out first
+					void layout.flush().then(() => k.host.windows.open({ label: `aux-${id}`, url: `/w/view?${q}`, title, width: 900, height: 640, stateKey: `view:${id}`, visible: false }));
 				} else {
 					const v = { id: `aux-${id}`, kind: "view", spec: { kind: "view", base: "aux" as const, view: "layout" }, props: {}, title: layout.paneTitle(firstPane(k, id) ?? id), rect: { x: 120 + open.size * 24, y: 80 + open.size * 24, w: 720, h: 480 }, z: 50, minimized: false, maximized: false, modal: false, opener: "main", resolve: () => void layout.dispatch({ type: "popIn", window: id }), feedback: null, layoutWindow: id };
 					windows.virtual = [...windows.virtual, v];

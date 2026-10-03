@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel } from "../../ui.svelte";
+	import { getKernel, uiZoom } from "../../ui.svelte";
 	import Icon from "../../icons/Icon.svelte";
 	import PaneSlot from "./PaneSlot.svelte";
 
@@ -32,10 +32,15 @@
 		const sy = e.clientY;
 		const el = e.currentTarget as HTMLElement;
 		el.setPointerCapture(e.pointerId);
-		const snap = (v: number, max: number) => (f.snap ? (v < 12 ? 0 : v > max - 12 ? max : v) : v);
+		// clamp inside the layer: a negative x/y would read as an anchor to the right/bottom edge
+		const snap = (v: number, max: number) => {
+			const c = Math.min(Math.max(0, v), Math.max(0, max));
+			return f.snap ? (c < 12 ? 0 : c > max - 12 ? max : c) : c;
+		};
+		const z = uiZoom();
 		const move = (ev: PointerEvent) => {
-			const dx = ev.clientX - sx;
-			const dy = ev.clientY - sy;
+			const dx = (ev.clientX - sx) / z;
+			const dy = (ev.clientY - sy) / z;
 			if (mode === "move") live[id] = [snap(p.left + dx, w - p.width), snap(p.top + dy, h - p.height), p.width, p.height];
 			else live[id] = [p.left, p.top, Math.max(180, p.width + dx), Math.max(120, p.height + dy)];
 		};

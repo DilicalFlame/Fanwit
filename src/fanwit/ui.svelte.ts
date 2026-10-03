@@ -5,6 +5,12 @@ import type { Disposable } from "./kernel/disposable";
 
 export const KERNEL_KEY = "fanwit";
 
+/**
+ * The ui.zoom factor (CSS zoom on body). Pointer and getBoundingClientRect values are screen
+ * pixels; divide by this before writing them to left/top/width/height inside the app.
+ */
+export const uiZoom = () => parseFloat(getComputedStyle(document.body).zoom) || 1;
+
 /** The window's kernel (set by the root layout and by mounted panes). */
 export function getKernel(): Kernel {
 	const k = getContext<Kernel>(KERNEL_KEY);

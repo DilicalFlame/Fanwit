@@ -395,6 +395,9 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 		if (persist === "vault") await layout.load(host.dirs.data, defaultText);
 	});
 	await vault.loadRecent();
+	// child windows share the opener's vault (and with it the per vault workspace)
+	const shared = o.windowKind !== "main" ? new URLSearchParams(location.search).get("vault") : null;
+	if (shared) await vault.open(shared, { attach: true }).catch((e) => log.warn("could not attach to the vault:", (e as Error).message));
 	await loadUserThemes(k);
 
 	// dev builds: the kernel on window for the browser console and tests

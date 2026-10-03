@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel } from "../ui.svelte";
+	import { getKernel, uiZoom } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import WindowView from "./WindowView.svelte";
 	import type { VirtualWindow } from "../windows/windows.svelte";
@@ -25,12 +25,13 @@
 		const r0 = { ...v.rect };
 		const el = e.currentTarget as HTMLElement;
 		el.setPointerCapture(e.pointerId);
+		const z = uiZoom();
 		const move = (ev: PointerEvent) => {
-			const dx = ev.clientX - sx;
-			const dy = ev.clientY - sy;
+			const dx = (ev.clientX - sx) / z;
+			const dy = (ev.clientY - sy) / z;
 			if (mode === "move") {
-				v.rect.x = Math.min(window.innerWidth - 80, Math.max(-r0.w + 80, r0.x + dx));
-				v.rect.y = Math.min(window.innerHeight - 32, Math.max(0, r0.y + dy));
+				v.rect.x = Math.min(window.innerWidth / z - 80, Math.max(-r0.w + 80, r0.x + dx));
+				v.rect.y = Math.min(window.innerHeight / z - 32, Math.max(0, r0.y + dy));
 			} else {
 				v.rect.w = Math.max(240, r0.w + dx);
 				v.rect.h = Math.max(160, r0.h + dy);

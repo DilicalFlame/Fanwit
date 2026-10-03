@@ -62,7 +62,7 @@
 		<div class="flex-1"></div>
 		<button class="flex size-10 items-center justify-center rounded-md hover:text-activity-active" aria-label="Manage" title="Manage" onclick={(e) => {
 			const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-			k.sys.menus.show("activity/manage", r.right + 4, r.top - 120, { anchor: r });
+			k.sys.menus.show("activity/manage", r.right + 4, r.top, { anchor: r });
 		}}>
 			<Icon name="settings" size={20} />
 		</button>
