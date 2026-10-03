@@ -144,6 +144,13 @@ fn serve<R: Runtime>(app: AppHandle<R>, conn: Stream) {
                 }
                 std::thread::sleep(Duration::from_millis(50));
             }
+            // paths typed on the command line are the user's choice, like launch paths
+            for a in &req.argv {
+                let p = std::path::Path::new(&req.cwd).join(a);
+                if !a.starts_with('-') && p.exists() {
+                    state.sandbox.remember(&p);
+                }
+            }
             let id = state.cli.next.fetch_add(1, Ordering::SeqCst) + 1;
             let (tx, rx) = channel::<String>();
             state.cli.pending.lock().unwrap().insert(id, tx);

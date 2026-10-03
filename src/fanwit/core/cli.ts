@@ -74,7 +74,8 @@ function completions(k: Kernel, shell: string): string {
 }
 
 /** Run one CLI invocation inside the app. `send` streams progress to the client. */
-export async function runCli(k: Kernel, argv: string[], send: (msg: Record<string, unknown>) => void): Promise<CliResult> {
+export async function runCli(k: Kernel, argv: string[], send: (msg: Record<string, unknown>) => void, cwd = ""): Promise<CliResult> {
+	const abs = (p: string) => (!cwd || /^([a-zA-Z]:)?[\\/]/.test(p) || p.includes("://") ? p : `${cwd.replace(/[\\/]+$/, "")}/${p}`.replace(/\\/g, "/"));
 	const args = [...argv];
 	const flag = (name: string) => {
 		const i = args.indexOf(name);
@@ -87,7 +88,7 @@ export async function runCli(k: Kernel, argv: string[], send: (msg: Record<strin
 	const vi = args.indexOf("--vault");
 	if (vi >= 0) {
 		const path = args.splice(vi, 2)[1];
-		if (path) await k.sys.vault.open(path);
+		if (path) await k.sys.vault.open(abs(path));
 	}
 	const out = (v: unknown): CliResult => ({ code: 0, stdout: json ? JSON.stringify(v ?? null, null, 2) : formatHuman(v) });
 	try {
@@ -144,6 +145,7 @@ export async function runCli(k: Kernel, argv: string[], send: (msg: Record<strin
 			const name = positional[i];
 			if (name && parsed[name] === undefined) parsed[name] = v;
 		});
+		for (const [name, spec] of Object.entries(specs)) if (spec.type === "path" && typeof parsed[name] === "string") parsed[name] = abs(parsed[name] as string);
 		const ac = new AbortController();
 		const result = await k.commands.run(def.id, parsed, {
 			source: "cli",
@@ -160,9 +162,9 @@ export async function runCli(k: Kernel, argv: string[], send: (msg: Record<strin
 
 /** Listen for CLI requests forwarded by Rust over the local socket (main window only). */
 export function attachCliBridge(k: Kernel) {
-	k.host.events.on<{ id: number; argv: string[] }>("fw://cli", async (req) => {
+	k.host.events.on<{ id: number; argv: string[]; cwd: string }>("fw://cli", async (req) => {
 		const send = (message: Record<string, unknown>) => void k.host.invoke("fw_cli_send", { id: req.id, message }).catch(() => {});
-		const r = await runCli(k, req.argv, send);
+		const r = await runCli(k, req.argv, send, req.cwd);
 		send({ type: "done", ...r });
 	});
 	void k.host.invoke("fw_cli_ready").catch(() => {});
