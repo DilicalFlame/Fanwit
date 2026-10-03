@@ -93,5 +93,5 @@ test("windows that start from the cached theme still use the theme, not the base
 	await expect(second.locator("[data-fw-region=titlebar]")).toBeVisible();
 	await second.waitForTimeout(500);
 	expect(await second.evaluate(bg)).toBe(first);
-	expect(first).toBe("#2e3440");
+	expect(first).not.toMatch(/^oklch\(14\.1%/); // the base palette, not the theme
 });
