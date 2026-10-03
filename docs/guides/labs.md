@@ -34,3 +34,7 @@ Tables per scope and a query editor; read only unless developer mode.
 ## commandLab
 
 Any command with a generated form and its CLI equivalent.
+
+## installerLab
+
+Edit `installer.toml`, switch presets, toggle simulated machines (the scenarios in `installer/scenarios`) and read the plan per OS, scope and phase. The Generated glue tab shows the NSIS, WiX, deb, rpm and pkg files that `fw installer build` wrote. Nothing on this computer changes. See [the Installer Kit](manual://guides/installer).

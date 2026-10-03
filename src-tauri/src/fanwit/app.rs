@@ -117,6 +117,7 @@ pub fn setup<R: Runtime>(app: &mut App<R>) -> Result<()> {
     super::windows::init(&handle)?;
     super::windows::create_main(&handle)?;
     super::cli::start_server(&handle);
+    super::install::run_pending_phases(&handle);
     #[cfg(desktop)]
     if !state.launch.headless {
         super::tray::init(&handle).map_err(err)?;

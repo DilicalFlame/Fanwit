@@ -17,6 +17,7 @@ export const labsModule = defineModule({
 			lab("fanwit.notificationLab", "Notification Lab", "bell-ring", "Every route, kind, progress and dedupe", () => import("../views/labs/NotificationLab.svelte")),
 			lab("fanwit.componentGallery", "Component Gallery", "shapes", "shadcn-svelte and workbench components", () => import("../views/labs/ComponentGallery.svelte")),
 			lab("fanwit.dbExplorer", "Database Explorer", "database", "Browse tables per scope and run queries", () => import("../views/labs/DbExplorer.svelte")),
+			lab("fanwit.installerLab", "Installer Lab", "package", "installer.toml, presets, simulated machines, the plan and the generated glue", () => import("../views/labs/InstallerLab.svelte")),
 			lab("fanwit.commandLab", "Command and CLI Lab", "square-terminal", "Run any command with a generated form; see its CLI", () => import("../views/labs/CommandLab.svelte")),
 			{ id: "fanwit.labExport", title: "Export", icon: "download", component: () => import("../views/labs/ExportDialog.svelte") },
 			{ id: "fanwit.colorPicker", title: "Colour picker", icon: "pipette", component: () => import("../views/labs/ColorPickerView.svelte"), singleton: true }

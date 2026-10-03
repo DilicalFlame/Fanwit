@@ -5,6 +5,7 @@ pub mod app;
 pub mod cli;
 pub mod db;
 pub mod fs;
+pub mod install;
 pub mod sandbox;
 pub mod toml;
 pub mod tray;

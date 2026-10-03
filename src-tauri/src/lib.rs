@@ -63,6 +63,8 @@ pub fn run() {
             fanwit::cli::fw_cli_ready,
             fanwit::cli::fw_cli_send,
             fanwit::cli::fw_take_launch_paths,
+            fanwit::install::fw_installer_lab_load,
+            fanwit::install::fw_installer_lab_plan,
         ])
         .setup(|app| {
             fanwit::app::setup(app).map_err(|e| e.into())
