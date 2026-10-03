@@ -9,7 +9,8 @@ export default defineModule({
 		commands: [
 			{ id: "notes.newDaily", title: "Open today's daily note", category: "Notes", icon: "calendar", when: "vault.open", cli: true },
 			{ id: "notes.togglePreview", title: "Toggle preview", category: "Notes", icon: "eye", when: "focusedView == 'notes.editor'" },
-			{ id: "notes.openPreview", title: "Open preview to the side", category: "Notes", icon: "columns-2", when: "resource.ext == 'md'" }
+			{ id: "notes.openPreview", title: "Open preview to the side", category: "Notes", icon: "columns-2", when: "resource.ext == 'md'" },
+			{ id: "notes.showBacklinks", title: "Show backlinks", category: "Notes", icon: "link", when: "vault.open" }
 		],
 		keybindings: [
 			{ key: "mod+e", command: "notes.togglePreview", when: "focusedView == 'notes.editor'" },
@@ -23,12 +24,14 @@ export default defineModule({
 		}),
 		views: [
 			{ id: "notes.editor", title: (p: Record<string, unknown>) => String(p.path ?? "Untitled").split("/").pop()!, icon: "file-text", component: () => import("./views/NoteEditor.svelte"), identity: (p: Record<string, unknown>) => String(p.path), opens: ["md", "markdown", "txt"], help: "recipes" },
-			{ id: "notes.preview", title: (p: Record<string, unknown>) => `Preview ${String(p.path ?? "").split("/").pop()}`, icon: "eye", component: () => import("./views/NotePreview.svelte"), identity: (p: Record<string, unknown>) => `preview:${p.path}` }
+			{ id: "notes.preview", title: (p: Record<string, unknown>) => `Preview ${String(p.path ?? "").split("/").pop()}`, icon: "eye", component: () => import("./views/NotePreview.svelte"), identity: (p: Record<string, unknown>) => `preview:${p.path}` },
+			{ id: "notes.backlinks", title: "Backlinks", icon: "link", component: () => import("./views/Backlinks.svelte"), regions: ["inspector"], singleton: true }
 		],
 		menus: {
 			"explorer/item": [{ id: "notes.openPreview", command: "notes.openPreview", group: "navigation", order: 3, args: { path: "${target.path}" }, when: "resource.ext == 'md'" }],
 			"tab/context": [{ id: "notes.tabPreview", command: "notes.openPreview", group: "view", order: 2, args: { path: "${target.path}" }, when: "resource.ext == 'md'" }]
 		}
 	},
+	activationEvents: ["onVault"],
 	activate: () => import("./activate")
 });

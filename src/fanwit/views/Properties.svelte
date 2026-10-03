@@ -5,7 +5,7 @@
 	/** Properties of the active pane: view, props, file metadata. Bound to the active tab. */
 	const k = getKernel();
 	const { layout, vault } = k.sys;
-	const pane = $derived(layout.activePane ? { id: layout.activePane, ...layout.doc.pane[layout.activePane] } : null);
+	const pane = $derived(layout.activeDocument ? { id: layout.activeDocument, ...layout.doc.pane[layout.activeDocument] } : null);
 	let stat = $state<{ size: number; mtime: number } | null>(null);
 	$effect(() => {
 		const p = pane?.props?.path as string | undefined;

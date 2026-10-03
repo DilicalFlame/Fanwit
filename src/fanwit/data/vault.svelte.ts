@@ -42,13 +42,23 @@ export interface Indexer {
 	parse(path: string, text: string): Record<string, unknown> | Promise<Record<string, unknown>>;
 }
 
-function globToRegExp(glob: string) {
-	const re = glob
-		.replace(/[.+^${}()|[\]\\]/g, "\\$&")
-		.replace(/\*\*\//g, "(?:.*/)?")
-		.replace(/\*\*/g, ".*")
-		.replace(/\*/g, "[^/]*")
-		.replace(/\?/g, "[^/]");
+/** Glob to RegExp in one pass, so replacements never rewrite each other's output. */
+export function globToRegExp(glob: string) {
+	let re = "";
+	for (let i = 0; i < glob.length; i++) {
+		const c = glob[i];
+		if (c === "*" && glob[i + 1] === "*") {
+			if (glob[i + 2] === "/") {
+				re += "(?:.*/)?";
+				i += 2;
+			} else {
+				re += ".*";
+				i += 1;
+			}
+		} else if (c === "*") re += "[^/]*";
+		else if (c === "?") re += "[^/]";
+		else re += c.replace(/[.+^${}()|[\]\\]/, "\\$&");
+	}
 	return new RegExp(`^${re}$`);
 }
 
@@ -154,6 +164,9 @@ export class VaultService {
 		this.recentList = [{ id: info.id, name: info.name, path, lastOpened: Date.now(), pinned: this.recentList.find((v) => v.path === path)?.pinned }, ...rec].slice(0, 30);
 		await this.saveRecent();
 		this.onDidOpen.fire(info);
+		this.indexWatch?.dispose();
+		this.indexWatch = null;
+		void this.reindex().catch((e) => this.k.scopedLog("vault").warn("indexing failed:", (e as Error).message));
 		this.k.events.emit("vault:opened" as never, { name: info.name, path } as never);
 		await this.k.modules.fire("onVault", true);
 		void this.fireFileEvents();
@@ -289,12 +302,74 @@ export class VaultService {
 	};
 
 	/** App defined metadata indexers (Obsidian style fast queries). */
+	/**
+	 * Indexers (Section 12.4.1): app defined metadata extracted from vault files, rebuilt
+	 * incrementally on change and queryable with SQL (table _fanwit_index in the vault's index.db).
+	 */
 	readonly index = {
 		register: (ix: Indexer) => {
 			this.indexers.set(ix.id, ix);
+			if (this.current) void this.reindex(ix.id);
 			return { dispose: () => this.indexers.delete(ix.id) };
-		}
+		},
+		/** Rows for an indexer, optionally filtered by a JSON path value: query("links", "$.target", "b.md"). */
+		query: async (indexer: string, jsonPath?: string, equals?: unknown): Promise<{ path: string; data: Record<string, unknown> }[]> => {
+			const db = this.indexDb();
+			if (!db) return [];
+			const rows = jsonPath
+				? await db.query<{ path: string; data: string }>({ text: "SELECT path, data FROM _fanwit_index WHERE indexer = ? AND EXISTS (SELECT 1 FROM json_each(data, ?) WHERE value = ?) ORDER BY path", params: [indexer, jsonPath, equals] }).catch(() => [])
+				: await db.query<{ path: string; data: string }>({ text: "SELECT path, data FROM _fanwit_index WHERE indexer = ? ORDER BY path", params: [indexer] });
+			return rows.map((r) => ({ path: r.path, data: JSON.parse(r.data) }));
+		},
+		rebuild: (id?: string) => this.reindex(id)
 	};
+
+	private indexWatch: Disposable | null = null;
+	private indexDb() {
+		if (!this.current || !this.k.host.caps.sql) return null;
+		return this.k.sys.db.sql("fanwit", { scope: "vault", file: "index.db" });
+	}
+
+	private async indexFile(db: NonNullable<ReturnType<VaultService["indexDb"]>>, ix: Indexer, path: string) {
+		const re = globToRegExp(ix.glob);
+		if (!re.test(path)) return;
+		let data: Record<string, unknown> | null = null;
+		try {
+			data = await ix.parse(path, await this.fs.readText(path));
+		} catch {
+			data = null;
+		}
+		await db.transaction((tx) => {
+			tx.exec({ text: "DELETE FROM _fanwit_index WHERE indexer = ? AND path = ?", params: [ix.id, path] });
+			if (data) tx.exec({ text: "INSERT INTO _fanwit_index (indexer, path, data) VALUES (?, ?, ?)", params: [ix.id, path, JSON.stringify(data)] });
+		});
+	}
+
+	private async reindex(only?: string) {
+		const db = this.indexDb();
+		if (!db || !this.indexers.size) return;
+		await db.exec("CREATE TABLE IF NOT EXISTS _fanwit_index (indexer TEXT NOT NULL, path TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (indexer, path))");
+		const files = (await this.fs.list("", { recursive: true }).catch(() => [])).filter((f) => !f.dir);
+		const list = [...this.indexers.values()].filter((ix) => !only || ix.id === only);
+		await this.k.sys.jobs.run(`Index ${this.current!.name}`, async ({ report }) => {
+			for (const ix of list) {
+				await db.exec({ text: "DELETE FROM _fanwit_index WHERE indexer = ?", params: [ix.id] });
+				for (const [i, f] of files.entries()) {
+					await this.indexFile(db, ix, f.path);
+					if (i % 20 === 0) report(i / files.length, f.path);
+				}
+			}
+		}, { silent: files.length < 200 });
+		this.indexWatch ??= await this.fs.watch("**", async (e) => {
+			const d = this.indexDb();
+			if (!d) return;
+			for (const ix of this.indexers.values()) {
+				if (e.kind === "deleted" || e.kind === "renamed") await d.exec({ text: "DELETE FROM _fanwit_index WHERE indexer = ? AND path = ?", params: [ix.id, e.from ?? e.path] }).catch(() => {});
+				if (e.kind !== "deleted") await this.indexFile(d, ix, e.path).catch(() => {});
+			}
+			this.k.events.emit("vault:indexed" as never, { path: e.path } as never);
+		});
+	}
 
 	async openInNewWindow(path: string) {
 		if (!this.k.host.caps.nativeWindows) {

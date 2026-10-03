@@ -47,6 +47,8 @@ export class LayoutService {
 	doc = $state.raw<LayoutDoc>({ version: 1, window: {}, node: {}, pane: {} });
 	activeTabset = $state<string | undefined>(undefined);
 	activePane = $state<string | undefined>(undefined);
+	/** Last focused pane in the main area: what inspectors (properties, outline) follow. */
+	activeDocument = $state<string | undefined>(undefined);
 	/** Runtime only: dirty panes and dynamic titles reported by views. */
 	dirty = $state<Record<string, boolean>>({});
 	titles = $state<Record<string, string>>({});
@@ -154,6 +156,7 @@ export class LayoutService {
 		this.doc = d;
 		if (this.activeTabset && !d.node[this.activeTabset]) this.activeTabset = undefined;
 		if (this.activePane && !d.pane[this.activePane]) this.activePane = undefined;
+		if (this.activeDocument && !d.pane[this.activeDocument]) this.activeDocument = undefined;
 		this.pool.sweep(d);
 		if (persist) this.file?.set(clean(d) as LayoutDoc & Record<string, unknown>);
 		this.k.context.set("layout.maximized", !!d.window[this.windowId]?.maximized);
@@ -221,6 +224,7 @@ export class LayoutService {
 		const p = parentOf(this.doc, pane);
 		this.activePane = pane;
 		if (p) this.activeTabset = p.parent;
+		if (p && locateNode(this.doc, p.parent)?.region === "main") this.activeDocument = pane;
 		this.k.context.set("activeTab", this.doc.pane[pane]?.view);
 		this.k.context.set("focusedView", this.doc.pane[pane]?.view);
 		const props = this.doc.pane[pane]?.props ?? {};

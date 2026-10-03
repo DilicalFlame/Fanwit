@@ -5,7 +5,7 @@
 	/** Heading outline of the active document (Markdown headings), click to reveal. */
 	const k = getKernel();
 	const { layout, vault } = k.sys;
-	const path = $derived(layout.activePane ? (layout.doc.pane[layout.activePane]?.props?.path as string | undefined) : undefined);
+	const path = $derived(layout.activeDocument ? (layout.doc.pane[layout.activeDocument]?.props?.path as string | undefined) : undefined);
 	let text = $state("");
 	$effect(() => {
 		const p = path;

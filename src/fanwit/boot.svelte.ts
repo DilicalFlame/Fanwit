@@ -397,6 +397,8 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	await vault.loadRecent();
 	await loadUserThemes(k);
 
+	// dev builds: the kernel on window for the browser console and tests
+	if (import.meta.env.DEV) (window as unknown as { __fanwit: Kernel }).__fanwit = k;
 	k.keys.attach(document);
 	k.context.trackDom();
 	log.info(`kernel ready in ${Math.round(performance.now() - t0)} ms (${host.kind}, ${host.platform}, window ${host.windows.label})`);

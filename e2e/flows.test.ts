@@ -100,3 +100,21 @@ test("settings window is generated and changes apply live", async ({ page }) => 
 	await page.getByLabel("Search settings").fill("@modified");
 	await expect(page.getByText("theme.mode")).toBeVisible();
 });
+
+test("backlinks come from the vault indexer and update on save", async ({ page }) => {
+	await start(page);
+	await cmd(page, "create new vault");
+	await prompt(page, `bl-${Date.now().toString(36)}`);
+	await expect(page.getByText("Welcome.md")).toBeVisible();
+	await cmd(page, "explorer: new file");
+	await prompt(page, "links");
+	const editor = page.getByLabel("Note links.md");
+	await editor.click();
+	await page.keyboard.press("End");
+	await page.keyboard.type("\nsee [[Welcome]]");
+	await page.keyboard.press("Control+s");
+	await expect(page.getByLabel("unsaved")).toHaveCount(0);
+	await page.getByText("Welcome.md").click();
+	await cmd(page, "show backlinks");
+	await expect(page.locator("[data-fw-region=inspector]").getByText("links.md")).toBeVisible({ timeout: 10_000 });
+});
