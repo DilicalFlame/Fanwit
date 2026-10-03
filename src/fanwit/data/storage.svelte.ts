@@ -95,7 +95,10 @@ class SqlKv implements KvStore {
 /** JSON file kv for hosts without SQL (web, tests). Writes are debounced. */
 class FileKv implements KvStore {
 	private data: Record<string, unknown> | null = null;
-	private save = debounce(() => void this.host.fs.writeText(this.path, JSON.stringify(this.data, null, 1)).catch(() => {}), 300);
+	private writing: Promise<void> = Promise.resolve();
+	private save = debounce(() => {
+		this.writing = this.host.fs.writeText(this.path, JSON.stringify(this.data, null, 1)).catch(() => {});
+	}, 300);
 	constructor(
 		private host: Host,
 		private path: string
@@ -123,8 +126,10 @@ class FileKv implements KvStore {
 	async keys(prefix = "") {
 		return Object.keys(await this.load()).filter((k) => k.startsWith(prefix));
 	}
+	/** Write now and wait for it (a reload right after a change must not lose it). */
 	async flush() {
 		this.save.flush();
+		await this.writing;
 	}
 }
 

@@ -62,13 +62,27 @@ export function globToRegExp(glob: string) {
 	return new RegExp(`^${re}$`);
 }
 
+/**
+ * Lock owner id: stable across reloads of this window (sessionStorage survives a reload,
+ * not a new window or app launch), so a hot reload does not see its own lock as foreign.
+ */
+function windowInstanceId(): string {
+	try {
+		const id = sessionStorage.getItem("fanwit:instance") ?? crypto.randomUUID();
+		sessionStorage.setItem("fanwit:instance", id);
+		return id;
+	} catch {
+		return crypto.randomUUID();
+	}
+}
+
 export class VaultService {
 	current = $state<VaultInfo | null>(null);
 	recentList = $state<RecentVault[]>([]);
 	readonly onDidOpen = new Emitter<VaultInfo>();
 	readonly onWillClose = new Emitter<VetoableEvent>();
 	readonly onDidClose = new Emitter<void>();
-	private instance = crypto.randomUUID();
+	private instance = windowInstanceId();
 	/** Opened with attach: the lock belongs to another window of this app. */
 	private attached = false;
 	private heartbeat: ReturnType<typeof setInterval> | undefined;
@@ -118,6 +132,7 @@ export class VaultService {
 
 	private async saveRecent() {
 		await this.k.sys.storage.set("fanwit", "vaults/recent", $state.snapshot(this.recentList));
+		await this.k.sys.storage.flush();
 	}
 
 	async forget(path: string) {

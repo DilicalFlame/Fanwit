@@ -139,3 +139,14 @@ test("a user script in .fanwit/scripts registers a command", async ({ page }) =>
 	await cmd(page, "greet from script");
 	await expect(page.getByText("hello from a script")).toBeVisible({ timeout: 10_000 });
 });
+
+test("a reload reopens the vault instead of finding it locked by itself", async ({ page }) => {
+	await start(page);
+	const name = `rl-${Date.now().toString(36)}`;
+	await cmd(page, "create new vault");
+	await prompt(page, name);
+	await expect(page.locator("[data-fw-region=statusbar]")).toContainText(name);
+	await page.reload();
+	await expect(page.locator("[data-fw-region=statusbar]")).toContainText(name, { timeout: 10_000 });
+	await expect(page.getByText(/is open in another window/)).toHaveCount(0);
+});

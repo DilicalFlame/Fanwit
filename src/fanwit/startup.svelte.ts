@@ -21,6 +21,8 @@ export async function afterFirstPaint(k: Kernel) {
 	window.addEventListener("error", (e) => log.error("uncaught:", e.message, { file: e.filename, line: e.lineno }));
 	window.addEventListener("unhandledrejection", (e) => log.error("unhandled rejection:", String((e.reason as Error)?.message ?? e.reason)));
 	window.addEventListener("blur", () => void flush(k));
+	// reloads (including dev hot reloads) and closing a browser tab: best effort
+	window.addEventListener("pagehide", () => void flush(k));
 	k.host.windows.onCloseRequested(async () => {
 		if (k.windowKind === "main" && k.host.windows.label === "main") {
 			const reasons = await k.lifecycle.collectVetoes("close");
