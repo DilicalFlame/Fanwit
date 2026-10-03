@@ -1,0 +1,82 @@
+# End-to-end install test for real Linux containers (`pnpm fw installer test --linux`).
+# Every step here runs without systemd, a desktop or administrator rights, so it works in Docker.
+[app]
+id = "dev.fanwit.e2e"
+name = "Fanwit E2E"
+slug = "fwe2e"
+version = "1.0.0"
+
+[installer]
+scope = "user"
+
+[[component]]
+id = "core"
+required = true
+
+[[step]]
+id = "binary"
+type = "run"
+title = "Put the app binary in place"
+phases = ["package"]
+check = { command = "test -x {installDir}/fwe2e", success = 0 }
+apply = { command = "sh -c 'mkdir -p {installDir} && printf \"#!/bin/sh\necho fwe2e\n\" > {installDir}/fwe2e && chmod +x {installDir}/fwe2e'" }
+uninstall = { remove = "{installDir}/fwe2e" }
+
+[[step]]
+id = "cli"
+type = "path"
+after = ["binary"]
+phases = ["package"]
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "menu"
+type = "shortcut"
+after = ["binary"]
+phases = ["package"]
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "login"
+type = "autostart"
+phases = ["package"]
+target = "{installDir}/fwe2e"
+args = ["--headless"]
+
+[[step]]
+id = "home"
+type = "env"
+phases = ["package"]
+name = "FWE2E_HOME"
+value = "{installDir}"
+
+[[step]]
+id = "notes"
+type = "fileAssociation"
+phases = ["package"]
+ext = ".fwe"
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "links"
+type = "urlScheme"
+phases = ["package"]
+scheme = "fwe2e"
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "tools"
+type = "desktopEntry"
+phases = ["package"]
+name = "fwe2e-tools"
+[step.entry]
+Name = "Fanwit E2E Tools"
+Exec = "{installDir}/fwe2e --tools"
+
+[[step]]
+id = "config"
+type = "custom"
+runtime = "rust"
+handler = "example.defaultConfig"
+phases = ["package"]
+value = "theme = \"dark\"\n"

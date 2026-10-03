@@ -1,0 +1,55 @@
+name: installer
+
+# The Installer Kit on every OS: engine tests, real installs and uninstalls, elevation (Chapter 16).
+on:
+  pull_request:
+    paths: ["src-tauri/install/**", "src-tauri/setup/**", "src-setup/**", "installer/**", "installer.toml", "packages/fw/**"]
+  push:
+    branches: [main]
+    paths: ["src-tauri/install/**", "src-tauri/setup/**", "src-setup/**", "installer/**", "installer.toml", "packages/fw/**"]
+
+jobs:
+  engine:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Engine tests
+        run: cargo test --manifest-path src-tauri/install/Cargo.toml
+      - name: Build the engine
+        run: cargo build --manifest-path src-tauri/install/Cargo.toml
+      - name: Real install and uninstall (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./installer/tests/e2e-windows.ps1 -Engine "$PWD/src-tauri/target/debug/fanwit-install.exe"
+      - name: Real install and uninstall (macOS)
+        if: runner.os == 'macOS'
+        run: sh installer/tests/e2e-macos.sh "$PWD/src-tauri/target/debug/fanwit-install"
+      - name: Real install, uninstall and elevation (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo cp src-tauri/target/debug/fanwit-install /engine
+          sudo mkdir -p /tests && sudo cp installer/tests/* /tests/
+          sh /tests/e2e.sh
+          sudo sh /tests/elevated.sh
+
+  distros:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:24.04", "fedora:41", "debian:12"]
+    steps:
+      - uses: actions/checkout@v4
+      # build against an older glibc (Debian 12) so the binary runs on every image
+      - name: Build the engine
+        run: docker run --rm -v "$PWD/src-tauri:/src" -w /src rust:1-slim cargo build -p fanwit-install
+      - name: e2e and elevation in ${{ matrix.image }}
+        run: |
+          for t in e2e elevated; do
+            docker run --rm -t -v "$PWD/src-tauri/target/debug/fanwit-install:/engine:ro" -v "$PWD/installer/tests:/tests:ro" ${{ matrix.image }} sh /tests/$t.sh
+          done

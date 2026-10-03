@@ -1,0 +1,28 @@
+# Elevation test (`pnpm fw installer test --linux`): a normal user installs a step that needs root.
+[app]
+id = "dev.fanwit.e2e"
+name = "Fanwit E2E"
+slug = "fwe2e"
+version = "1.0.0"
+
+[[component]]
+id = "core"
+required = true
+
+[[step]]
+id = "userfile"
+type = "run"
+phases = ["package"]
+check = { command = "test -f {appData}/user-marker", success = 0 }
+apply = { command = "sh -c 'mkdir -p {appData} && touch {appData}/user-marker'" }
+uninstall = { remove = "{appData}/user-marker" }
+
+[[step]]
+id = "sysfile"
+type = "run"
+title = "Write a file only root may write"
+phases = ["package"]
+requires = { elevation = true }
+check = { command = "test -f /opt/fwe2e-elevated", success = 0 }
+apply = { command = "touch /opt/fwe2e-elevated" }
+uninstall = { remove = "/opt/fwe2e-elevated" }

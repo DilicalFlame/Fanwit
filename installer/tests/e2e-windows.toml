@@ -1,0 +1,72 @@
+# End-to-end install test for Windows (per user, no administrator rights): `pnpm fw installer test --windows`.
+[app]
+id = "dev.fanwit.e2e"
+name = "Fanwit E2E"
+slug = "fwe2e"
+version = "1.0.0"
+
+[[component]]
+id = "core"
+required = true
+
+[[step]]
+id = "binary"
+type = "run"
+title = "Put the app binary in place"
+phases = ["package"]
+check = { command = '''powershell -NoProfile -Command "if (Test-Path '{installDir}/fwe2e.exe') { exit 0 } else { exit 1 }"''', success = 0 }
+apply = { command = '''powershell -NoProfile -Command "New-Item -ItemType Directory -Force '{installDir}' | Out-Null; Copy-Item $env:SystemRoot/System32/whoami.exe '{installDir}/fwe2e.exe'"''' }
+uninstall = { remove = "{installDir}" }
+
+[[step]]
+id = "menu"
+type = "shortcut"
+after = ["binary"]
+phases = ["package"]
+target = "{installDir}/fwe2e"
+location = ["startMenu"]
+
+[[step]]
+id = "login"
+type = "autostart"
+phases = ["package"]
+target = "{installDir}/fwe2e"
+args = ["--headless"]
+
+[[step]]
+id = "home"
+type = "env"
+phases = ["package"]
+name = "FWE2E_HOME"
+value = "{installDir}"
+
+[[step]]
+id = "notes"
+type = "fileAssociation"
+phases = ["package"]
+ext = ".fwe2e"
+target = "{installDir}/fwe2e"
+description = "Fanwit E2E note"
+
+[[step]]
+id = "links"
+type = "urlScheme"
+phases = ["package"]
+scheme = "fwe2e"
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "setting"
+type = "registry"
+phases = ["package"]
+key = 'HKCU\Software\FanwitE2E'
+name = "Telemetry"
+value = 0
+
+[[step]]
+id = "config"
+type = "custom"
+runtime = "rust"
+handler = "example.defaultConfig"
+phases = ["package"]
+value = "theme = \"dark\"\n"

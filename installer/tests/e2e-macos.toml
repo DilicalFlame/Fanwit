@@ -1,0 +1,56 @@
+# End-to-end install test for macOS (per user): run by .github/workflows/installer.yml.
+[app]
+id = "dev.fanwit.e2e"
+name = "Fanwit E2E"
+slug = "fwe2e"
+version = "1.0.0"
+
+[[component]]
+id = "core"
+required = true
+
+[[step]]
+id = "binary"
+type = "run"
+title = "Put the app binary in place"
+phases = ["package"]
+check = { command = "test -x {installDir}/fwe2e", success = 0 }
+apply = { command = '''sh -c "mkdir -p {installDir} && printf '#!/bin/sh\necho fwe2e\n' > {installDir}/fwe2e && chmod +x {installDir}/fwe2e"''' }
+uninstall = { remove = "{installDir}/fwe2e" }
+
+[[step]]
+id = "cli"
+type = "path"
+after = ["binary"]
+phases = ["package"]
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "desk"
+type = "shortcut"
+after = ["binary"]
+phases = ["package"]
+target = "{installDir}/fwe2e"
+location = ["desktop"]
+
+[[step]]
+id = "login"
+type = "autostart"
+phases = ["package"]
+target = "{installDir}/fwe2e"
+
+[[step]]
+id = "pref"
+type = "plist"
+phases = ["package"]
+domain = "dev.fanwit.e2e"
+key = "Telemetry"
+value = false
+
+[[step]]
+id = "config"
+type = "custom"
+runtime = "rust"
+handler = "example.defaultConfig"
+phases = ["package"]
+value = "theme = \"dark\"\n"
