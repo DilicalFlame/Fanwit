@@ -19,6 +19,9 @@ jobs:
           - os: ubuntu-22.04
             args: ""
     runs-on: ${{ matrix.os }}
+    env:
+      # secrets cannot be read in `if:`; this flag can
+      HAS_WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Linux packages
@@ -33,6 +36,23 @@ jobs:
         with:
           targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - run: pnpm install --frozen-lockfile
+      # Installer Kit (Chapter 16): engine, sidecars and the NSIS, WiX, deb, rpm glue
+      - name: Installer Kit glue
+        run: pnpm fw installer build --artefacts native --no-bundle
+      # Windows code signing: a base64 .pfx in WINDOWS_CERTIFICATE; signtool signs the packages,
+      # the Setup exe and the portable zip (fw reads FW_WINDOWS_CERT_THUMBPRINT)
+      - name: Import the Windows certificate
+        if: runner.os == 'Windows' && env.HAS_WINDOWS_CERTIFICATE == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP cert.pfx
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force)
+          "FW_WINDOWS_CERT_THUMBPRINT=$($cert.Thumbprint)" >> $env:GITHUB_ENV
+          Remove-Item $pfx
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,4 +68,21 @@ jobs:
           releaseName: ${{ github.ref_name }}
           releaseBody: See CHANGELOG.md
           releaseDraft: true
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} --config src-tauri/gen/installer/tauri.installer.conf.json ${{ env.FW_WINDOWS_CERT_THUMBPRINT != '' && format('--config {{"bundle":{{"windows":{{"certificateThumbprint":"{0}"}}}}}}', env.FW_WINDOWS_CERT_THUMBPRINT) || '' }}
+      # the Setup app, portable build, macOS pkg, terminal scripts and package manager manifests,
+      # signed when the secrets exist, then added to the draft release
+      - name: Installer Kit artefacts
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_INSTALLER_IDENTITY: ${{ secrets.APPLE_INSTALLER_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          FW_GPG_KEY: ${{ secrets.FW_GPG_KEY }}
+        run: |
+          pnpm fw installer build --artefacts setup,portable,pkg,scripts,managers
+          shopt -s nullglob
+          files=(src-tauri/target/release/bundle/{setup,portable,pkg}/* src-tauri/gen/installer/install.sh src-tauri/gen/installer/install.ps1)
+          gh release upload "${{ github.ref_name }}" "${files[@]}" --clobber
