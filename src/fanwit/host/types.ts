@@ -193,6 +193,8 @@ export interface AppInfo {
 	safeMode: boolean;
 	headless: boolean;
 	devtools: boolean;
+	/** Desktop: this process id (vault locks record it). */
+	pid?: number;
 }
 
 export interface Host {
@@ -214,6 +216,8 @@ export interface Host {
 	/** Files dropped from the OS onto the window: host paths (desktop) or upload:// keys (web). */
 	onFileDrop(cb: (paths: string[]) => void): Disposable;
 	app(): Promise<AppInfo>;
+	/** Desktop: whether a process is still running; undefined where unknowable. */
+	processAlive?(pid: number): Promise<boolean>;
 	openExternal(url: string): Promise<void>;
 	reveal(path: string): Promise<void>;
 	exit(code?: number): Promise<void>;

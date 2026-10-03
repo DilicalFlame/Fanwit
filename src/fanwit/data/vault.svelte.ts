@@ -105,6 +105,17 @@ export class VaultService {
 		});
 	}
 
+	/**
+	 * A fresh lock from another instance id still may be dead: a closed, killed or restarted
+	 * app leaves its last heartbeat behind. Desktop asks whether the recorded process runs.
+	 */
+	private async lockOwnerLive(pid: number | undefined): Promise<boolean> {
+		if (!pid || !this.k.host.processAlive) return true;
+		// only the main window takes locks, so one from this very process is ours
+		if (pid === (await this.k.host.app()).pid) return false;
+		return this.k.host.processAlive(pid).catch(() => true);
+	}
+
 	/** A secondary window's open: forwarded to the main window, which holds the lock. */
 	private openInMain(path: string, readonly?: boolean): Promise<VaultInfo> {
 		const id = crypto.randomUUID();
@@ -183,8 +194,8 @@ export class VaultService {
 		let readonly = !!o.readonly;
 		const lockPath = joinPath(configDir, "lock");
 		try {
-			const lock = JSON.parse(await fs.readText(lockPath)) as { instance: string; time: number };
-			if (!o.attach && lock.instance !== this.instance && Date.now() - lock.time < HEARTBEAT * 3 && !readonly) {
+			const lock = JSON.parse(await fs.readText(lockPath)) as { instance: string; time: number; pid?: number };
+			if (!o.attach && !readonly && lock.instance !== this.instance && Date.now() - lock.time < HEARTBEAT * 3 && (await this.lockOwnerLive(lock.pid))) {
 				const ok = await this.k.host.dialog.ask(`"${meta.name}" is open in another window or app instance. Open it read only?`, {
 					title: "Vault in use",
 					okLabel: "Open read only",
@@ -199,22 +210,24 @@ export class VaultService {
 		const info: VaultInfo = { id: String(meta.id), name: String(meta.name ?? basename(path)), path, configDir, readonly };
 		this.attached = !!o.attach;
 		if (!readonly && !o.attach) {
-			const beat = () => void fs.writeText(lockPath, JSON.stringify({ instance: this.instance, time: Date.now() })).catch(() => {});
+			const pid = (await this.k.host.app()).pid;
+			const beat = () => void fs.writeText(lockPath, JSON.stringify({ instance: this.instance, pid, time: Date.now() })).catch(() => {});
 			beat();
 			this.heartbeat = setInterval(beat, HEARTBEAT);
 		}
 		await this.loadIgnore(path);
+		// remember it before announcing it: a reload once the vault shows must find it again
+		if (!o.attach) {
+			const rec = this.recentList.filter((v) => v.path !== path && v.id !== info.id);
+			this.recentList = [{ id: info.id, name: info.name, path, lastOpened: Date.now(), pinned: this.recentList.find((v) => v.path === path)?.pinned }, ...rec].slice(0, 30);
+			await this.saveRecent();
+		}
 		this.current = info;
 		this.k.context.set("vault.open", true);
 		this.k.context.set("vault.name", info.name);
 		this.k.context.set("vault.readonly", readonly);
 		this.k.sys.storage.setVaultDir(joinPath(configDir, "data"));
 		await this.k.sys.settings.setVault(configDir);
-		if (!o.attach) {
-			const rec = this.recentList.filter((v) => v.path !== path && v.id !== info.id);
-			this.recentList = [{ id: info.id, name: info.name, path, lastOpened: Date.now(), pinned: this.recentList.find((v) => v.path === path)?.pinned }, ...rec].slice(0, 30);
-			await this.saveRecent();
-		}
 		this.onDidOpen.fire(info);
 		this.indexWatch?.dispose();
 		this.indexWatch = null;

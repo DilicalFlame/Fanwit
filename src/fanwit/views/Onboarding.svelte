@@ -13,6 +13,11 @@
 		self = null;
 	}
 	const STEPS = ["Look", "Data", "Keys", "Tour"];
+	/** Preview tiles drawn from the selected theme, not fixed colours. */
+	function swatch(mode: "light" | "dark") {
+		const t = k.sys.themes.resolve(String(s.get(mode === "dark" ? "theme.dark" : "theme.light") ?? "fanwit-default"), mode);
+		return { frame: t.titlebar ?? t.background, panel: t.background, text: t["muted-foreground"] ?? t.foreground, primary: t.primary };
+	}
 	let step = $state(0);
 	let done = $state(0);
 
@@ -50,7 +55,17 @@
 			<div class="grid grid-cols-3 gap-3">
 				{#each [["light", "Light", "sun"], ["dark", "Dark", "moon"], ["system", "System", "monitor"]] as [m, label, icon] (m)}
 					<button class="flex flex-col items-center gap-2 rounded-xl border-2 p-4 {s.get('theme.mode') === m ? 'border-primary' : 'border-border hover:border-muted-foreground'}" aria-pressed={s.get("theme.mode") === m} onclick={() => s.set("theme.mode", m)}>
-						<div class="h-16 w-full rounded-md border border-border {m === 'dark' ? 'bg-zinc-900' : m === 'light' ? 'bg-white' : 'bg-gradient-to-r from-white to-zinc-900'}"></div>
+						<div class="flex h-16 w-full overflow-hidden rounded-md border border-border" aria-hidden="true">
+							{#each m === "system" ? [swatch("light"), swatch("dark")] : [swatch(m === "dark" ? "dark" : "light")] as t, i (i)}
+								<div class="flex flex-1 gap-1 p-1.5" style:background={t.frame}>
+									<div class="w-1/4 rounded-sm" style:background={t.panel}></div>
+									<div class="flex flex-1 flex-col gap-1 rounded-sm p-1" style:background={t.panel}>
+										<div class="h-1.5 w-2/3 rounded-full" style:background={t.text}></div>
+										<div class="h-1.5 w-1/3 rounded-full" style:background={t.primary}></div>
+									</div>
+								</div>
+							{/each}
+						</div>
 						<span class="flex items-center gap-1 text-sm"><Icon name={icon} size={14} />{label}</span>
 					</button>
 				{/each}
