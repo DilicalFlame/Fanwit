@@ -20,6 +20,8 @@ Guidance for AI coding assistants working in this repository (Section 20.9).
 | Window | `pnpm fw add window <kind> --base child` |
 | Preference | `pnpm fw add setting <module>.<key>` |
 | Right click menu | `pnpm fw add menu-location <loc> --module <id>`, then `use:menu` |
+| Install step | `pnpm fw installer add-step <type> <id>`, then `pnpm fw installer plan --scenario ...` (never hand edit generated installer glue) |
+| Installer page | A Svelte page in `src-setup/pages/` registered in `src-setup/pages/custom.ts`; preview with `pnpm fw installer dev` (docs/guides/installer.md) |
 | Data | `ctx.storage`, `ctx.persisted`, `ctx.db.sql({ scope })` with `<module>__` table prefixes |
 
 ## Conventions
@@ -35,5 +37,5 @@ Guidance for AI coding assistants working in this repository (Section 20.9).
 
 ```sh
 pnpm check && pnpm test && node packages/fw/fw.mjs doctor && node packages/fw/fw.mjs docs check
-cargo test --manifest-path src-tauri/Cargo.toml
+cargo test --manifest-path src-tauri/Cargo.toml --workspace
 ```
