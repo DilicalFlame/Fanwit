@@ -12,7 +12,8 @@ import readline from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import { parse as parseToml } from "smol-toml";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+// FW_ROOT points the CLI at another checkout (fw.test.mjs uses a temp copy)
+const ROOT = process.env.FW_ROOT ? path.resolve(process.env.FW_ROOT) : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
 const args = argv.filter((a) => a !== "--dry-run");
@@ -536,17 +537,170 @@ function sdk() {
 }
 
 // ---------- strip ----------
+// A part is a folder with a part.toml (or any plugins/<id>/ folder). Stripping moves it, plus the
+// extra `paths` it lists, to .trash/<id>/ under the same repo relative paths; .trash/journal.json
+// records every strip and restore so --undo can reverse the last one.
+const TRASH = ".trash";
+const SKIP_DIRS = new Set(["node_modules", ".git", TRASH, "target", ".svelte-kit", "build", "dist", "test-results", "gen"]);
+
+function presentParts() {
+	const out = new Map();
+	const walk = (d) => {
+		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
+			if (!e.isDirectory() || SKIP_DIRS.has(e.name)) continue;
+			const dir = d ? `${d}/${e.name}` : e.name;
+			if (fs.existsSync(abs(`${dir}/part.toml`))) {
+				const t = parseToml(read(`${dir}/part.toml`));
+				out.set(t.id, { id: t.id, title: t.title ?? t.id, kind: t.kind ?? "part", requires: t.requires ?? [], paths: [dir, ...(t.paths ?? [])] });
+			} else walk(dir);
+		}
+	};
+	walk("");
+	// a bundled plugin is a part even without part.toml
+	if (exists("plugins"))
+		for (const e of fs.readdirSync(abs("plugins"), { withFileTypes: true })) {
+			const dir = `plugins/${e.name}`;
+			if (e.isDirectory() && ![...out.values()].some((p) => p.paths[0] === dir)) out.set(`plugin-${e.name}`, { id: `plugin-${e.name}`, title: e.name, kind: "plugin", requires: [], paths: [dir] });
+		}
+	return out;
+}
+function trashedParts() {
+	const out = new Map();
+	if (!exists(TRASH)) return out;
+	for (const e of fs.readdirSync(abs(TRASH), { withFileTypes: true })) {
+		const f = `${TRASH}/${e.name}/part.json`;
+		if (e.isDirectory() && exists(f)) out.set(e.name, JSON.parse(read(f)));
+	}
+	return out;
+}
+const journal = () => (exists(`${TRASH}/journal.json`) ? JSON.parse(read(`${TRASH}/journal.json`)) : { ops: [] });
+function saveJournal(j) {
+	if (!DRY) write(`${TRASH}/journal.json`, JSON.stringify(j, null, 1) + "\n");
+}
+function move(from, to) {
+	if (!exists(from)) return false;
+	if (exists(to)) die(`${to} already exists; move it away first`);
+	changed.push(`move ${from} -> ${to}`);
+	if (DRY) return true;
+	fs.mkdirSync(path.dirname(abs(to)), { recursive: true });
+	fs.renameSync(abs(from), abs(to));
+	// drop folders the move left empty (src/app/showcase once its last part goes)
+	for (let d = path.dirname(abs(from)); d.startsWith(ROOT) && d !== ROOT && !fs.readdirSync(d).length; d = path.dirname(d)) fs.rmdirSync(d);
+	return true;
+}
+/** Move parts to the trash. Returns the moves made. */
+function trashParts(list) {
+	const moves = [];
+	for (const p of list) {
+		for (const from of p.paths) if (move(from, `${TRASH}/${p.id}/${from}`)) moves.push([from, `${TRASH}/${p.id}/${from}`]);
+		if (!DRY) fs.mkdirSync(abs(`${TRASH}/${p.id}`), { recursive: true });
+		if (!DRY) fs.writeFileSync(abs(`${TRASH}/${p.id}/part.json`), JSON.stringify(p, null, 1) + "\n");
+	}
+	return moves;
+}
+function untrashParts(list) {
+	const moves = [];
+	for (const p of list) {
+		for (const to of p.paths) if (move(`${TRASH}/${p.id}/${to}`, to)) moves.push([`${TRASH}/${p.id}/${to}`, to]);
+		if (!DRY) fs.rmSync(abs(`${TRASH}/${p.id}`), { recursive: true, force: true });
+	}
+	return moves;
+}
+function record(action, list, moves, edits = []) {
+	const j = journal();
+	j.ops.push({ n: (j.ops.at(-1)?.n ?? 0) + 1, at: new Date().toISOString(), action, parts: list, moves, edits });
+	saveJournal(j);
+}
+
+function parts() {
+	const here = presentParts();
+	const gone = trashedParts();
+	const rows = [...[...here.values()].map((p) => ({ ...p, state: "present" })), ...[...gone.values()].map((p) => ({ ...p, state: "trashed" }))].sort((a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id));
+	if (!rows.length) return console.log("No parts.");
+	const w = Math.max(...rows.map((r) => r.id.length));
+	for (const r of rows) {
+		const missing = r.state === "present" ? r.requires.filter((q) => !here.has(q)) : [];
+		console.log(`  ${r.state === "present" ? "●" : "○"} ${r.id.padEnd(w)}  ${r.kind.padEnd(8)} ${r.title}${missing.length ? `  (needs ${missing.join(", ")})` : ""}`);
+	}
+	console.log(`\n● present  ○ in ${TRASH}/   strip with \`pnpm fw strip <id>\`, bring back with \`pnpm fw restore <id>\``);
+}
+
 function strip() {
-	let cfg = read("app.config.ts");
-	cfg = cfg.replace(/labs: true/, "labs: false").replace(/samples: true/, "samples: false");
-	write("app.config.ts", cfg);
-	write("src/app/modules/index.ts", `import type { ModuleDefinition } from "$fanwit";\n\n/** Your compile time modules. \`pnpm fw add module <id>\` appends here. */\nexport const appModules: ModuleDefinition[] = [];\n`);
-	remove("src/app/modules/hello");
-	remove("src/app/modules/notes");
-	remove("plugins/word-count");
-	remove("plugins/nord-ish");
+	if (has("undo")) return undo();
+	const here = presentParts();
+	const ids = args.slice(1).filter((a) => !a.startsWith("--") && a !== flag("kind"));
+	const bare = !ids.length && !has("showcase") && !has("kind") && !has("all");
+	let want = bare || has("all") ? [...here.keys()] : has("showcase") ? [...here.values()].filter((p) => p.kind === "showcase").map((p) => p.id) : has("kind") ? [...here.values()].filter((p) => p.kind === flag("kind")).map((p) => p.id) : ids;
+	for (const id of want) if (!here.has(id)) die(`no part "${id}" (see \`pnpm fw parts\`)`, 2);
+	// parts that stay must not need a part that goes
+	for (;;) {
+		const set = new Set(want);
+		const dependents = [...here.values()].filter((p) => !set.has(p.id) && p.requires.some((r) => set.has(r)));
+		if (!dependents.length) break;
+		// a group (--showcase, --kind, --all) takes what depends on it along; named parts ask first
+		if (ids.length && !has("with-dependents")) die(`${dependents.map((d) => `${d.id} requires ${d.requires.filter((r) => set.has(r)).join(", ")}`).join("; ")}. Strip those too or pass --with-dependents.`);
+		want = [...want, ...dependents.map((d) => d.id)];
+	}
+	if (!want.length) return console.log("Nothing to strip.");
+	const list = want.map((id) => here.get(id));
+	const edits = [];
+	if (bare && exists("app.config.ts")) {
+		const before = read("app.config.ts");
+		const after = before.replace(/labs: true/, "labs: false");
+		if (after !== before) (edits.push({ file: "app.config.ts", before }), write("app.config.ts", after));
+	}
+	const moves = trashParts(list);
+	record("strip", list, moves, edits);
 	report();
-	console.log("Labs and samples removed; every system stays. Developer tools and the manual remain (features in app.config.ts).");
+	if (!DRY) console.log(`Stripped ${list.map((p) => p.id).join(", ")}. \`pnpm fw strip --undo\` or \`pnpm fw restore <id>\` brings them back.`);
+}
+
+function restore() {
+	const gone = trashedParts();
+	const ids = has("all") ? [...gone.keys()] : args.slice(1).filter((a) => !a.startsWith("--"));
+	if (!ids.length) die("fw restore <part...> | --all", 2);
+	const want = new Set();
+	const add = (id) => {
+		if (want.has(id) || presentParts().has(id)) return;
+		if (!gone.has(id)) die(`no part "${id}" in ${TRASH}/ (see \`pnpm fw parts\`)`, 2);
+		want.add(id);
+		for (const r of gone.get(id).requires) add(r);
+	};
+	ids.forEach(add);
+	const list = [...want].map((id) => gone.get(id));
+	const moves = untrashParts(list);
+	record("restore", list, moves);
+	report();
+}
+
+function undo() {
+	const j = journal();
+	const op = j.ops.pop();
+	if (!op) return console.log("Nothing to undo.");
+	if (op.action === "strip") {
+		untrashParts(op.parts);
+		for (const e of op.edits ?? []) write(e.file, e.before);
+	} else trashParts(op.parts);
+	saveJournal(j);
+	report();
+	if (!DRY) console.log(`Undid ${op.action} of ${op.parts.map((p) => p.id).join(", ")}.`);
+}
+
+async function trash() {
+	const gone = trashedParts();
+	if (sub === "empty") {
+		if (!gone.size) return console.log("The trash is empty.");
+		if (!has("yes")) {
+			const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+			const ok = (await rl.question(`Delete ${[...gone.keys()].join(", ")} for good? [y/N] `)).trim().toLowerCase() === "y";
+			rl.close();
+			if (!ok) return;
+		}
+		remove(TRASH);
+		return report();
+	}
+	if (!gone.size) return console.log("The trash is empty.");
+	for (const p of gone.values()) console.log(`  ${p.id}  (${p.kind}) ${p.paths.join(", ")}`);
 }
 
 // ---------- eject / upgrade ----------
@@ -1267,7 +1421,12 @@ const HELP = `fw: Fanwit developer CLI
   fw layout validate <file> | preset <name> <workspace.toml>
   fw plugin new <id> | pack <id>
   fw sdk build                        typed plugin SDK for this app
-  fw strip                            remove Labs and samples, keep the systems
+  fw parts                            strippable parts (showcase apps, samples, bundled plugins) and their state
+  fw strip <part...> | --showcase | --kind <k> | --all [--with-dependents]   move parts to .trash/
+  fw strip                            every part, and Labs off
+  fw strip --undo                     reverse the last strip or restore
+  fw restore <part...> | --all        bring parts back from .trash/ (with what they require)
+  fw trash list | empty [--yes]
   fw lock | eject <file> | upgrade --from <dir>
   fw docs <check|build|serve>
   fw installer init [--preset p] | plan [--os --scenario a,b --phase --json] | add-step <type> <id>
@@ -1322,8 +1481,17 @@ switch (cmd) {
 	case "sdk":
 		sdk();
 		break;
+	case "parts":
+		parts();
+		break;
 	case "strip":
 		strip();
+		break;
+	case "restore":
+		restore();
+		break;
+	case "trash":
+		await trash();
 		break;
 	case "lock":
 		lock();

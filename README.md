@@ -13,7 +13,7 @@ pnpm tauri dev          # desktop
 pnpm dev                # web build in the browser
 ```
 
-`pnpm fw doctor` checks toolchains, capabilities, CSP and presets. `pnpm fw strip` removes the Labs and samples when you are ready to build your own app.
+`pnpm fw doctor` checks toolchains, capabilities, CSP and presets. `pnpm fw strip` moves the showcase, samples and bundled plugins to `.trash/` (restorable with `pnpm fw restore`) when you are ready to build your own app.
 
 ## What is in the box
 

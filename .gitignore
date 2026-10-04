@@ -34,3 +34,11 @@ dooing.json
 /test-results
 /playwright-report
 /src-setup/dist
+
+# Stripped parts (pnpm fw strip / restore)
+/.trash
+
+# Rust build output of bundled plugins
+/plugins/*/wasm/target
+
+FANWIT-Specification.pdf
