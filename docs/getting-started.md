@@ -36,7 +36,8 @@ palette.open
 | `src-tauri/src/fanwit` | Rust core: sandboxed fs, SQLite, windows, CLI bridge. |
 | `src/lib/components/ui` | shadcn-svelte components you own. |
 | `docs` | This manual. |
-| `plugins` | Sample runtime plugins. |
+| `plugins` | Built-in plugins: they ship with the app and stay off until turned on. |
+| `packages/fanwit-plugin-rs` | Rust SDK for WebAssembly and native sidecar plugins. |
 | `packages/fw` | The developer CLI. |
 
 ## Your first feature
