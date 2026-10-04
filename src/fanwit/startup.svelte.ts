@@ -22,7 +22,11 @@ export async function afterFirstPaint(k: Kernel) {
 	if (!k.sys.info.headless && !deferred) await k.host.windows.show().catch(() => {});
 	const log = logs.scoped("app");
 	window.addEventListener("error", (e) => log.error("uncaught:", e.message, { file: e.filename, line: e.lineno }));
-	window.addEventListener("unhandledrejection", (e) => log.error("unhandled rejection:", String((e.reason as Error)?.message ?? e.reason)));
+	window.addEventListener("unhandledrejection", (e) => {
+		// a dismissed prompt or a declined confirmation rejects with CANCELLED: the user's choice, not a failure
+		if ((e.reason as { code?: string })?.code === "CANCELLED") return e.preventDefault();
+		log.error("unhandled rejection:", String((e.reason as Error)?.message ?? e.reason));
+	});
 	window.addEventListener("blur", () => void flush(k));
 	// reloads (including dev hot reloads) and closing a browser tab: best effort
 	window.addEventListener("pagehide", () => void flush(k));
