@@ -221,7 +221,8 @@ export class WindowService {
 			closable: spec.closable,
 			stateKey: spec.persist === "none" ? undefined : `${kind}${identity ? ":" + identity : ""}`,
 			visible: false,
-			...({ onBlocked: spec.onBlocked } as object)
+			onBlocked: spec.onBlocked,
+			position: spec.position === "cursor" || spec.position === "tray" ? spec.position : undefined
 		});
 		return this.handle<R>(label, kind, result);
 	}
@@ -306,8 +307,18 @@ export class WindowService {
 			const q = new URLSearchParams({ label: vwin.id, opener: "main" });
 			if (this.k.sys.vault.current) q.set("vault", this.k.sys.vault.current.path);
 			if (Object.keys(props).length) q.set("props", JSON.stringify(props));
-			window.open(`/w/${route}?${q}`, web === "popup" ? vwin.id : "_blank", web === "popup" ? `width=${w},height=${h}` : undefined);
-			return this.virtualHandle<R>(vwin, result);
+			q.set("spec", JSON.stringify({ ...spec, owner: undefined }));
+			const opened = window.open(`/w/${route}?${q}`, web === "popup" ? vwin.id : "_blank", web === "popup" ? `width=${w},height=${h}` : undefined);
+			if (!opened) throw new FanwitError("WINDOW_BLOCKED", { message: "The browser blocked the new window.", hint: "Allow pop-ups for this site, or use the virtual or modal presentation." });
+			// close(value) in the new tab arrives as fw:window-result; closing it without one resolves undefined
+			this.pending.set(vwin.id, resolve);
+			const poll = setInterval(() => {
+				if (!opened.closed) return;
+				clearInterval(poll);
+				this.pending.get(vwin.id)?.(undefined);
+				this.pending.delete(vwin.id);
+			}, 500);
+			return { label: vwin.id, kind: vwin.kind, result, close: async (value?: R) => { this.pending.get(vwin.id)?.(value); this.pending.delete(vwin.id); opened.close(); }, focus: async () => opened.focus() };
 		}
 		this.virtual = [...this.virtual, vwin];
 		if (modal) this.locked = true;
@@ -368,4 +379,45 @@ function slug(s: string) {
 /** Typed helper for declaring kinds in code: defineWindowKind({ kind: "app.export", base: "child" }). */
 export function defineWindowKind(spec: WindowKindSpec): WindowKindSpec {
 	return spec;
+}
+
+export interface OptionNote {
+	ok: boolean;
+	/** Why the option does nothing here (shown next to the greyed control). */
+	why?: string;
+}
+
+/**
+ * Which window options take effect for a kind on this platform (Window Lab, Section 9). The spec
+ * is resolved (base defaults applied).
+ */
+export function windowOptions(s: WindowKindSpec, env: { native: boolean; platform: string; pip?: boolean }) {
+	const no = (why: string): OptionNote => ({ ok: false, why });
+	const yes: OptionNote = { ok: true };
+	const owned = s.base !== "aux" && s.base !== "main";
+	const web = s.web ?? "virtual";
+	if (env.native) {
+		const locks = s.focus === "lock" && owned;
+		return {
+			focus: yes,
+			lock: owned ? yes : no(`${s.base} windows have no owner window to lock.`),
+			onBlocked: locks ? yes : no(owned ? "Only a parent locked by its child (focus = lock) blocks clicks." : `${s.base} windows have no owner window to lock.`),
+			alwaysOnTop: yes,
+			skipTaskbar: env.platform === "macos" ? no("macOS has no per window taskbar entries.") : env.platform === "windows" && owned ? no("Windows never gives owned windows a taskbar button.") : yes,
+			cssShadow: env.platform === "macos" ? no("Needs a transparent window, which macOS builds do not enable.") : yes,
+			web: no("Desktop builds open native windows; this applies to the web build.")
+		};
+	}
+	const modal = web === "modal" || (web === "virtual" && s.focus === "lock");
+	const tab = web === "popup" || web === "tab";
+	const pip = web === "pip" && env.pip;
+	return {
+		focus: web === "virtual" ? yes : no(web === "modal" ? "A modal always locks the page." : "A browser tab or Picture-in-Picture window cannot block the page."),
+		lock: web === "virtual" ? yes : no(web === "modal" ? "A modal always locks the page." : "A browser tab or Picture-in-Picture window cannot block the page."),
+		onBlocked: modal ? yes : no(tab || pip ? "A separate browser window cannot block the page." : "Only a modal (focus = lock) blocks clicks."),
+		alwaysOnTop: no(pip ? "Picture-in-Picture is always on top." : "Browsers keep only Picture-in-Picture windows on top: pick the pip presentation."),
+		skipTaskbar: no("Browser windows have no taskbar entries of their own."),
+		cssShadow: no("Desktop only: browser windows draw their own frame."),
+		web: web === "pip" && !env.pip ? no("This browser has no Document Picture-in-Picture: it opens as a virtual window.") : yes
+	};
 }

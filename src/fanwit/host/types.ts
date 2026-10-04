@@ -116,6 +116,10 @@ export interface NativeWindowOptions {
 	/** Identity used as the window state key; omitted means "do not persist". */
 	stateKey?: string;
 	backgroundColor?: string;
+	/** Effects when the locked parent is clicked (focus = lock). */
+	onBlocked?: string[];
+	/** Placed at the pointer: "cursor" (palette) or beside it, towards the screen centre ("tray"). */
+	position?: "cursor" | "tray";
 }
 
 export interface HostWindows {

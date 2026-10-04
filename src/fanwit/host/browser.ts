@@ -302,7 +302,12 @@ export function createBrowserHost(): Host {
 			return name ? `download://${name}` : null;
 		}
 	};
-	const windows = stubWindows("main");
+	// a tab opened as a window (popup or tab presentation) carries its label; it can close itself
+	const label = new URLSearchParams(location.search).get("label") ?? "main";
+	const windows = stubWindows(label);
+	windows.close = async (l) => {
+		if (!l || l === label) window.close();
+	};
 	windows.setBadge = async (n) => {
 		const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
 		if (n) await nav.setAppBadge?.(n).catch(() => {});

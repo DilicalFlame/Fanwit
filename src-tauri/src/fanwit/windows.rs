@@ -88,6 +88,8 @@ pub struct OpenOpts {
     #[allow(dead_code)]
     background_color: Option<String>,
     on_blocked: Option<Vec<String>>,
+    /// "cursor" (palette) or "tray": placed at the pointer instead of centred.
+    position: Option<String>,
 }
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> Result<()> {
@@ -319,6 +321,9 @@ pub async fn fw_win_open<R: Runtime>(app: AppHandle<R>, opts: OpenOpts) -> Resul
         state.windows.keys.lock().unwrap().insert(opts.label.clone(), key.clone());
         restore(&w, key);
     }
+    if let Some(pos @ ("cursor" | "tray")) = opts.position.as_deref() {
+        place_at_cursor(&app, &w, pos == "tray");
+    }
     if opts.focus.as_deref() == Some("lock") {
         if let Some(p) = &parent {
             #[cfg(windows)]
@@ -337,6 +342,24 @@ pub async fn fw_win_open<R: Runtime>(app: AppHandle<R>, opts: OpenOpts) -> Resul
         }
     }
     Ok(())
+}
+
+/// Palette: centred under the pointer. Tray: beside the pointer, towards the middle of the screen
+/// (the tray icon sits in a corner: bottom right on Windows, top right on macOS). Kept on screen.
+fn place_at_cursor<R: Runtime>(app: &AppHandle<R>, w: &WebviewWindow<R>, tray: bool) {
+    let (Ok(c), Ok(size)) = (app.cursor_position(), w.outer_size()) else { return };
+    let (cw, ch) = (size.width as f64, size.height as f64);
+    let Ok(Some(m)) = app.monitor_from_point(c.x, c.y) else { return };
+    let wa = m.work_area();
+    let (ax, ay, aw, ah) = (wa.position.x as f64, wa.position.y as f64, wa.size.width as f64, wa.size.height as f64);
+    let (x, y) = if tray {
+        (if c.x > ax + aw / 2.0 { c.x - cw } else { c.x }, if c.y > ay + ah / 2.0 { c.y - ch } else { c.y })
+    } else {
+        (c.x - cw / 2.0, c.y - 16.0)
+    };
+    let x = x.clamp(ax, (ax + aw - cw).max(ax));
+    let y = y.clamp(ay, (ay + ah - ch).max(ay));
+    let _ = w.set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32));
 }
 
 fn release_lock<R: Runtime>(app: &AppHandle<R>, child: &str) {
