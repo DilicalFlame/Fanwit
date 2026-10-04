@@ -26,7 +26,7 @@ item = "tab.copyRelativePath"
 
 ## Developer mode
 
-Every element offers **Edit this menu**; Alt+click a row to jump to it in the editor.
+Every menu ends with a developer group: **Edit this menu**, **Inspect element**, **Open component source** (dev builds) and **Copy selector**. Elements without a menu open just that group, and Edit this menu creates a location for them. Alt+click a row to jump to it in the editor.
 
 ```fanwit-run
 menus.edit {"location": "canvas/selection"}

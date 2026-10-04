@@ -392,12 +392,6 @@
 	</div>
 	{#if overflow.top}<div class="pointer-events-none absolute inset-x-1 top-1 h-4 bg-gradient-to-b from-popover to-transparent"></div>{/if}
 	{#if overflow.bottom}<div class="pointer-events-none absolute inset-x-1 bottom-1 h-4 bg-gradient-to-t from-popover to-transparent"></div>{/if}
-	{#if devMode && level === 0 && !inert}
-		<div class="mx-1 my-1 h-px bg-border"></div>
-		<button class="fw-menu-row w-full text-muted-foreground" onclick={() => { onclose(); void k.commands.run("menus.edit", { location }); }}>
-			<Icon name="pencil" size={14} /><span class="flex-1 text-left">Edit this menu</span><span class="text-[10px]">Alt+click an item</span>
-		</button>
-	{/if}
 </div>
 
 {#if sub}
