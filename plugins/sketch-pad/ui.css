@@ -1,0 +1,10 @@
+/* --background, --foreground, --primary... are pushed in from the app theme */
+html, body { margin: 0; height: 100%; background: var(--background); color: var(--foreground); font: 13px var(--font-sans, system-ui); }
+body { display: flex; flex-direction: column; }
+.bar { display: flex; gap: 6px; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.bar button { height: 24px; min-width: 24px; border-radius: 6px; border: 1px solid var(--border); background: var(--background); color: var(--foreground); cursor: pointer; }
+.bar button[data-color] { background: currentColor; }
+.bar button[data-color="#ef4444"] { color: #ef4444; } .bar button[data-color="#3b82f6"] { color: #3b82f6; } .bar button[data-color="#22c55e"] { color: #22c55e; }
+.bar button.on { outline: 2px solid var(--primary); outline-offset: 1px; }
+.grow { flex: 1; }
+canvas { flex: 1; min-height: 0; width: 100%; cursor: crosshair; touch-action: none; }
