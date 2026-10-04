@@ -27,6 +27,17 @@ export function describePermission(p: string): string {
 
 const Setting = v.object({ key: v.string(), type: v.picklist(["string", "number", "boolean", "enum"]), default: v.unknown(), title: v.optional(v.string()), description: v.optional(v.string()), options: v.optional(v.array(v.string())) });
 
+const View = v.object({
+	id: v.string(),
+	title: v.string(),
+	icon: v.optional(v.string()),
+	/** widgets: a JSON tree the app renders; iframe: the plugin's own page, sandboxed */
+	ui: v.picklist(["widgets", "iframe"]),
+	entry: v.optional(v.string()),
+	regions: v.optional(v.array(v.string())),
+	singleton: v.optional(v.boolean(), true)
+});
+
 export const ManifestSchema = v.object({
 	id: v.pipe(v.string(), v.regex(/^[a-z0-9][a-z0-9-]*$/, "ids are lower case letters, digits and dashes")),
 	name: v.string(),
@@ -36,18 +47,26 @@ export const ManifestSchema = v.object({
 	app: v.optional(v.string()),
 	fanwit: v.optional(v.string()),
 	entry: v.optional(v.string()),
+	/** Feature plugins pick where their code runs; none of them run on the main thread except isolation = "none". */
+	runtime: v.optional(v.picklist(["js", "wasm", "sidecar"]), "js"),
 	isolation: v.optional(v.picklist(["none", "worker"]), "worker"),
+	/** Shown as a filter chip in the plugin browser: appearance, editor, productivity, developer... */
+	category: v.optional(v.string()),
+	icon: v.optional(v.string()),
 	activation: v.optional(v.array(v.string()), []),
 	permissions: v.optional(v.array(v.string()), []),
 	contributes: v.optional(
 		v.object({
-			commands: v.optional(v.array(v.object({ id: v.string(), title: v.string(), category: v.optional(v.string()), icon: v.optional(v.string()) }))),
+			commands: v.optional(v.array(v.object({ id: v.string(), title: v.string(), category: v.optional(v.string()), icon: v.optional(v.string()), palette: v.optional(v.boolean()) }))),
 			keybindings: v.optional(v.array(v.object({ key: v.string(), command: v.string(), when: v.optional(v.string()) }))),
 			statusItems: v.optional(v.array(v.object({ id: v.string(), align: v.optional(v.picklist(["left", "right"])), priority: v.optional(v.number()), text: v.optional(v.string()), command: v.optional(v.string()), tooltip: v.optional(v.string()) }))),
 			settings: v.optional(v.array(Setting)),
 			themes: v.optional(v.array(v.string())),
 			menus: v.optional(v.record(v.string(), v.array(v.record(v.string(), v.unknown())))),
-			layoutPresets: v.optional(v.array(v.string()))
+			layoutPresets: v.optional(v.array(v.string())),
+			/** CSS files injected (sanitized) while the plugin is on; data only plugins can use it. */
+			styles: v.optional(v.array(v.string())),
+			views: v.optional(v.array(View))
 		}),
 		{}
 	)
@@ -67,6 +86,8 @@ export function parseManifest(text: string, source = "plugin.toml"): PluginManif
 		const i = r.issues[0];
 		throw new FanwitError("PLUGIN_MANIFEST", { message: `${source}: ${i.path?.map((p) => p.key).join(".") ?? ""} ${i.message}`, hint: "See manual://plugins#manifest" });
 	}
+	const bad = r.output.contributes.views?.find((x) => x.ui === "iframe" && !x.entry);
+	if (bad) throw new FanwitError("PLUGIN_MANIFEST", { message: `${source}: view ${bad.id} has ui = "iframe" but no entry`, hint: 'Add entry = "ui/index.html".' });
 	return r.output;
 }
 
@@ -104,6 +125,7 @@ export function scriptManifest(file: string, src: string): PluginManifest {
 		version: "0.0.0",
 		description: `User script ${file}`,
 		entry: file,
+		runtime: "js",
 		isolation: "worker",
 		activation: [],
 		permissions: pick("permission").map((m) => m[2]),

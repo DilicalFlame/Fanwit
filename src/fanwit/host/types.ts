@@ -203,6 +203,18 @@ export interface AppInfo {
 	pid?: number;
 }
 
+/** What the host offers plugin runtimes beyond Web Workers (Chapter 14). */
+export interface HostPlugins {
+	/** How plugin iframes load: from the fanwit-plugin: scheme (desktop) or as inline srcdoc (web). */
+	frames: "scheme" | "srcdoc";
+	/** Make a plugin's files loadable at url(id, path) (scheme hosts only). */
+	serve?(id: string, files: Record<string, Uint8Array>): Promise<void>;
+	unserve?(id: string): Promise<void>;
+	url?(id: string, path: string): string;
+	/** Start a bundled native sidecar: newline delimited JSON both ways (desktop only). */
+	sidecar?(id: string, onLine: (line: string) => void, onExit: (code: number | null) => void): Promise<{ send(line: string): Promise<void>; kill(): Promise<void> }>;
+}
+
 export interface Host {
 	readonly kind: HostKind;
 	readonly platform: Platform;
@@ -217,6 +229,7 @@ export interface Host {
 	dialog: HostDialog;
 	log: HostLog;
 	invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T>;
+	plugins?: HostPlugins;
 	/** Start at login (desktop); undefined where the platform cannot. */
 	autostart?: { get(): Promise<boolean>; set(on: boolean): Promise<void> };
 	/** Files dropped from the OS onto the window: host paths (desktop) or upload:// keys (web). */
