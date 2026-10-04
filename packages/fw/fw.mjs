@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { parse as parseToml } from "smol-toml";
 
 // FW_ROOT points the CLI at another checkout (fw.test.mjs uses a temp copy)
@@ -226,7 +226,7 @@ const GEN = {
 		write(`${dir}/activate.ts`, `import type { ModuleContext } from "$fanwit";\n\nexport default function activate(ctx: ModuleContext) {\n\tctx.commands.handle("${camel(id)}.hello", () => ctx.notify.toast("Hello from ${id}"));\n}\n`);
 		write(`${dir}/${id}.test.ts`, `import { expect, test } from "vitest";\nimport { createTestKernel } from "$fanwit/testing";\nimport mod from "./module";\n\ntest("${id} registers its commands", async () => {\n\tconst k = await createTestKernel({ modules: [mod] });\n\texpect(k.commands.get("${camel(id)}.hello")).toBeTruthy();\n});\n`);
 		// src/app/modules/index.ts finds every */module.ts by glob: nothing to register
-		write(`docs/guides/${id}.md`, `---\ntitle: ${pascal(id)}\nsection: Guides\n---\n# ${pascal(id)}\n\nDescribe what the ${id} module does.\n`);
+		write(`docs/app/guides/${id}.md`, `---\ntitle: ${pascal(id)}\nsection: Guides\n---\n# ${pascal(id)}\n\nDescribe what the ${id} module does.\n\n<Callout kind="why">\n\nWhy it exists and why it works this way: the problem it solves for your users.\n\n</Callout>\n\n## Using it\n\nStep by step.\n`);
 	},
 	command(idArg) {
 		const [mod, name] = idArg.split(".");
@@ -910,41 +910,114 @@ function upgrade() {
 }
 
 // ---------- docs ----------
-function docs() {
-	const [, sub] = args;
+// Discovery is shared with the Vite plugin (src/fanwit/manual/discover.mjs), so the CLI, the app
+// and the docs site agree on which pages and anchors exist.
+async function docs() {
+	const [, sub, name] = args;
 	if (sub === "check") {
-		const pages = new Set();
-		const walk = (d) => {
-			for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
-				const p = `${d}/${e.name}`;
-				if (e.isDirectory()) walk(p);
-				else if (e.name.endsWith(".md")) pages.add(p.replace(/^docs\//, "").replace(/\.md$/, ""));
-			}
-		};
-		walk("docs");
-		for (const g of ["reference/commands", "reference/settings", "reference/menu-locations", "reference/views", "reference/window-kinds", "reference/context-keys", "reference/keybindings"]) pages.add(g);
+		const d = await import(pathToFileURL(abs("src/fanwit/manual/discover.mjs")).href);
+		const sets = d.docsets(ROOT);
+		const pages = sets.flatMap((s) => d.pagesOf(ROOT, s));
+		const keys = new Set([...pages.map((p) => p.meta.key), ...sets.flatMap((s) => d.generatedIds(ROOT, s).map((id) => `${s.id}/${id}`))]);
+		const anchors = new Map(pages.map((p) => [p.meta.key, new Set(p.meta.headings.map((h) => h.id))]));
 		const problems = [];
-		const scan = (d) => {
-			for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
-				const p = `${d}/${e.name}`;
-				if (e.isDirectory()) scan(p);
+		const check = (file, target, from, what) => {
+			const r = d.resolveLink(target, keys, from);
+			if (!r) problems.push(`${file}: ${what} "${target}" does not resolve`);
+			else if (r.anchor && anchors.has(r.key) && !anchors.get(r.key).has(r.anchor)) problems.push(`${file}: ${what} "${target}": ${r.key} has no heading #${r.anchor}`);
+		};
+		const scan = (dir, from) => {
+			for (const e of fs.readdirSync(abs(dir), { withFileTypes: true })) {
+				const p = `${dir}/${e.name}`;
+				// the manual's own source talks about link syntax in comments
+				if (e.isDirectory()) p !== "src/fanwit/manual" && scan(p, from ?? (dir === "docs" ? e.name : undefined));
 				else if (/\.(ts|svelte|md)$/.test(e.name)) {
-					const t = read(p);
-					for (const m of t.matchAll(/manual:\/\/([\w/-]+)/g)) if (!pages.has(m[1]) && !pages.has(`guides/${m[1]}`)) problems.push(`${p}: broken link manual://${m[1]}`);
-					for (const m of t.matchAll(/help:\s*"([\w/-]+)/g)) if (!pages.has(m[1]) && !pages.has(`guides/${m[1]}`)) problems.push(`${p}: help page "${m[1]}" missing`);
+					// in Markdown, links inside code are examples, not links
+					const text = p.endsWith(".md") ? read(p).replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "") : read(p);
+					for (const m of text.matchAll(/manual:\/\/([\w/-]+(?:#[\w-]+)?)/g)) check(p, m[1], from, "link");
+					for (const m of text.matchAll(/help:\s*"([\w/#-]+)"/g)) check(p, m[1], from, "help page");
 				}
 			}
 		};
 		scan("src");
 		scan("docs");
+		for (const s of sets) for (const p of d.pathsOf(ROOT, s)) for (const key of p.pages) if (!keys.has(key)) problems.push(`${s.dir}/paths.toml: path "${p.id}" lists "${key.slice(s.id.length + 1)}", which is not a page`);
+		// guides explain why before how: a <Callout kind="why"> or a "Why ..." heading
+		for (const p of pages) if (p.meta.section === "Guides" && p.meta.kind === "manual" && !/<Callout kind="why"|^#{2,4}\s+Why\b/m.test(p.body)) problems.push(`${p.meta.file.slice(1)}: a guide needs a <Callout kind="why"> (or a "Why ..." heading) explaining why the feature works this way`);
+		// M10: every public symbol has a doc comment and an @example (Section 21.6.1)
+		for (const s of sets.filter((x) => x.api)) {
+			const { extractApi } = await import(pathToFileURL(abs("src/fanwit/manual/api.mjs")).href);
+			const { symbols, undocumented } = await extractApi(ROOT, s.api);
+			for (const name of undocumented) problems.push(`${s.api}: public symbol ${name} needs a doc comment with an @example`);
+			if (!undocumented.length) console.log(`api ok (${symbols.length} public symbols in ${s.api}, all documented with examples)`);
+		}
 		if (problems.length) {
 			console.error(problems.join("\n"));
 			process.exit(1);
 		}
-		console.log(`docs ok (${pages.size} pages)`);
-	} else if (sub === "build") run("pnpm", ["build"]);
-	else if (sub === "serve") run("pnpm", ["dev", "--", "--open", "/?link=fanwit://run/manual.open"]);
-	else die("fw docs <check|build|serve>", 2);
+		console.log(`docs ok (${sets.length} docsets, ${keys.size} pages)`);
+	} else if (sub === "build") {
+		// the docs site: this app on the web host with only the manual (vite --mode docs).
+		// --version names its version folder (picker, banner); --base is the URL path it is served from
+		process.env.FW_DOCS = "1";
+		if (flag("version")) process.env.FW_DOCS_VERSION = flag("version");
+		if (flag("base")) process.env.FW_DOCS_BASE = flag("base").replace(/\/$/, "");
+		run("pnpm", ["exec", "vite", "build", "--mode", "docs"]);
+		if (!process.exitCode) console.log("docs site written to build-docs (serve it from any static host)");
+	} else if (sub === "publish") {
+		// add build-docs to a multi version site: <site>/v/<version>/, versions.json, and a root
+		// index that redirects to the latest release
+		const site = name;
+		const version = flag("version");
+		if (!site || !version) die("fw docs publish <site dir> --version <x.y.z|next> [--from build-docs]", 2);
+		const from = flag("from") ?? "build-docs";
+		if (!exists(from)) die(`${from} does not exist: run fw docs build --version ${version} first`);
+		const dest = `${site}/v/${version}`;
+		remove(dest);
+		if (!DRY) fs.cpSync(abs(from), abs(dest), { recursive: true });
+		changed.push(`copy ${from} -> ${dest}`);
+		const file = `${site}/versions.json`;
+		const list = exists(file) ? JSON.parse(read(file)).versions ?? [] : [];
+		const versions = sortVersions([...new Set([...list, version])]);
+		const latest = versions.find((v) => v !== "next") ?? "next";
+		write(file, JSON.stringify({ latest, versions }, null, "\t") + "\n");
+		write(`${site}/index.html`, `<!doctype html><meta charset="utf-8"><title>Documentation</title><meta http-equiv="refresh" content="0; url=v/${latest}/"><script>location.replace("v/${latest}/" + location.search + location.hash)</script><a href="v/${latest}/">Documentation</a>\n`);
+		if (exists(`${site}/v/${latest}/llms.txt`)) write(`${site}/llms.txt`, read(`${site}/v/${latest}/llms.txt`).replaceAll("](./", `](./v/${latest}/`));
+		report();
+	} else if (sub === "serve") run("pnpm", ["exec", "vite", "dev", "--mode", "docs", "--port", "3001", "--open"]);
+	else if (sub === "new") {
+		if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) die("fw docs new <id>   (lower case, e.g. user-guide)", 2);
+		if (exists(`docs/${name}/docset.toml`)) die(`docs/${name} already exists`);
+		write(`docs/${name}/docset.toml`, `title = "${pascal(name).replace(/([a-z])([A-Z])/g, "$1 $2")}"
+icon = "book-open"
+version = "app"               # the version in fanwit.app.toml
+ship = "prod"                 # "dev": development builds only
+web = false                   # true: part of the docs site (fw docs build)
+sections = ["Getting started", "Guides", "Reference"]
+reference = []                # generated pages: commands, settings, keybindings, views, ...
+`);
+		write(`docs/${name}/index.md`, `---
+title: Introduction
+section: Getting started
+order: 1
+---
+# Introduction
+
+What this manual covers, who it is for, and where to start.
+`);
+		report();
+	} else die("fw docs <check|build|serve|new <id>|publish <site> --version <v>>", 2);
+}
+
+/** "next" first, then releases newest first (pre-releases after their release). */
+function sortVersions(list) {
+	const parts = (v) => v.split("-")[0].split(".").map((n) => Number(n) || 0);
+	return [...list].sort((a, b) => {
+		if (a === "next" || b === "next") return a === "next" ? -1 : 1;
+		const [x, y] = [parts(a), parts(b)];
+		for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return y[i] - x[i];
+		return (a.includes("-") ? 1 : 0) - (b.includes("-") ? 1 : 0) || b.localeCompare(a);
+	});
 }
 
 // ---------- installer (Chapter 16) ----------
@@ -1528,7 +1601,7 @@ async function installer() {
 		process.exitCode = spawnSync("pnpm", ["tauri", "dev"], { cwd: ROOT, stdio: "inherit", shell: true, env }).status ?? 1;
 		return;
 	}
-	die("fw installer <init|plan|run|add-step|build|explain|test> (see docs/guides/installer.md)", 2);
+	die("fw installer <init|plan|run|add-step|build|explain|test> (see docs/fanwit/guides/installer.md)", 2);
 }
 
 // ---------- create ----------
@@ -1575,7 +1648,8 @@ const HELP = `fw: Fanwit developer CLI
   fw restore <part...> | --all        bring parts back from .trash/ (with what they require)
   fw trash list | empty [--yes]
   fw lock | eject <file> | upgrade --from <dir>
-  fw docs <check|build|serve>
+  fw docs <check|build|serve|new <id>>   the manual: check links, build or serve the docs site, add a docset
+  fw docs build [--version v] [--base /path] | publish <site> --version v   versioned docs site
   fw installer init [--preset p] | plan [--os --scenario a,b --phase --json] | add-step <type> <id>
                build [--artefacts native,setup,scripts,managers] [--no-bundle] [--assets dir] | explain <artefact> | test
                dev [--scenario a,b] [--with uv] [--real]   the Setup app with hot reload (simulated by default)
@@ -1655,7 +1729,7 @@ switch (cmd) {
 		upgrade();
 		break;
 	case "docs":
-		docs();
+		await docs();
 		break;
 	case "installer":
 		await installer();

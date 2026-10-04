@@ -36,3 +36,26 @@ test("strip, undo and restore round trip", () => {
 	assert.ok(has("plugins/p") && fs.readFileSync(path.join(root, "app.config.ts"), "utf8").includes("labs: true"));
 	fs.rmSync(root, { recursive: true, force: true });
 });
+
+test("docs publish builds a versioned site", () => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), "fw-docs-"));
+	const put = (p, text) => (fs.mkdirSync(path.dirname(path.join(root, p)), { recursive: true }), fs.writeFileSync(path.join(root, p), text));
+	const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
+	const fw = (...a) => execFileSync("node", [FW, ...a], { env: { ...process.env, FW_ROOT: root }, encoding: "utf8", stdio: "pipe" });
+	const build = (v) => (fs.rmSync(path.join(root, "build-docs"), { recursive: true, force: true }), put("build-docs/index.html", v), put("build-docs/llms.txt", "- [A](./md/a.md)\n"));
+
+	build("one");
+	fw("docs", "publish", "site", "--version", "1.0.0");
+	build("next");
+	fw("docs", "publish", "site", "--version", "next");
+	build("two");
+	fw("docs", "publish", "site", "--version", "1.10.0");
+	build("pre");
+	fw("docs", "publish", "site", "--version", "1.10.0-beta.1");
+
+	assert.deepEqual(JSON.parse(read("site/versions.json")), { latest: "1.10.0", versions: ["next", "1.10.0", "1.10.0-beta.1", "1.0.0"] });
+	assert.equal(read("site/v/1.0.0/index.html"), "one");
+	assert.match(read("site/index.html"), /v\/1\.10\.0\//);
+	assert.match(read("site/llms.txt"), /\]\(\.\/v\/1\.10\.0\/md\/a\.md\)/);
+	fs.rmSync(root, { recursive: true, force: true });
+});
