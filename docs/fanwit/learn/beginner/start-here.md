@@ -59,7 +59,7 @@ FaNWiT is a large codebase: a Svelte interface, a Rust core and a few hundred fi
 ```
 
 1. **Web basics.** Just enough HTML, CSS, JavaScript and TypeScript to read a Svelte file. If you already write JavaScript, skim it.
-2. **Svelte basics.** Components, state that updates the screen by itself (runes), events, lists and conditions. You type into live editors on the page and see the result at once.
+2. **Svelte basics.** Components, state that updates the screen by itself (runes), events, lists and conditions. You type into live editors on the page and see the result at once. Then **SvelteKit basics**: how folders become windows, and how the project fits together.
 3. **Rust basics.** Variables, ownership, structs and enums, errors as values, modules. Rust examples run on the official Rust Playground from the page.
 4. **Tauri basics.** How a Rust program opens a window that shows a web page, and how the two talk to each other.
 5. **Rebuild FaNWiT.** From a blank window to a host seam, a kernel, commands, shortcuts, a palette, layouts as TOML, settings, themes, a sandboxed file system in Rust, menus, windows, notifications, this manual, plugins, the `fw` CLI, the installer, and tests. Each step ends at a checkpoint you can compare with the real code.
