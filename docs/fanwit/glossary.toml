@@ -1,0 +1,125 @@
+# The FaNWiT glossary (specification, Appendix C.1). Becomes the Glossary page, and powers
+# <Term name="..."> hovers in any page. `aka` lists other spellings that match.
+
+[[term]]
+name = "Activation event"
+text = "Condition that loads a module's or plugin's code (`onCommand`, `onView`, ...)."
+
+[[term]]
+name = "Command"
+aka = ["commands"]
+text = "A named, typed action; the single implementation behind menus, keys, palette, CLI and links."
+
+[[term]]
+name = "Context key"
+aka = ["context keys"]
+text = "Named value describing the current situation, used by `when` clauses."
+
+[[term]]
+name = "Contribution"
+aka = ["contributions", "contributes"]
+text = "Static data a module or plugin declares: commands, menus, views, settings, themes."
+
+[[term]]
+name = "Docset"
+aka = ["docsets"]
+text = "A folder under `docs/` with a `docset.toml`: one manual, such as FaNWiT's or your app's."
+
+[[term]]
+name = "Frame"
+text = "The fixed set of regions of a window (`workbench`, `plain`)."
+
+[[term]]
+name = "Host"
+text = "The platform adapter (Tauri, browser, remote, memory) below the kernel."
+
+[[term]]
+name = "Install step"
+text = "A unit of installation work with check, plan, apply, rollback and uninstall."
+
+[[term]]
+name = "Install phase"
+text = "When a step runs: build, bootstrap, package, firstRun, update, uninstall."
+
+[[term]]
+name = "Kind (menu item)"
+aka = ["menu kind"]
+text = "A registered renderer for a menu entry, such as `color-swatches`."
+
+[[term]]
+name = "Kind (window)"
+aka = ["window kind", "window kinds"]
+text = "A registered window type with behaviour such as `child` or `panel`."
+
+[[term]]
+name = "Location"
+aka = ["menu location"]
+text = "A named place where a menu appears, such as `tab/context`."
+
+[[term]]
+name = "Module"
+aka = ["modules"]
+text = "A compile time feature package in the app."
+
+[[term]]
+name = "Node"
+aka = ["nodes"]
+text = "An element of the layout tree: split, tabs, stack, grid or custom."
+
+[[term]]
+name = "Pane"
+aka = ["panes"]
+text = "An instance of a view placed in the layout."
+
+[[term]]
+name = "Patch"
+text = "A user change applied over contributed data (menus) or a minimal layout diff."
+
+[[term]]
+name = "Plugin"
+aka = ["plugins"]
+text = "A runtime installed feature package with a manifest and permissions."
+
+[[term]]
+name = "Presentation"
+text = "How an intent is realised on a host (native window, virtual window, modal)."
+
+[[term]]
+name = "Preset"
+aka = ["layout preset", "presets"]
+text = "A complete layout document (TOML) that can be applied at any time, such as `vscode` or `manual`."
+
+[[term]]
+name = "Receipt"
+text = "The installer's record of what it changed, used to repair, modify and uninstall."
+
+[[term]]
+name = "Region"
+aka = ["regions"]
+text = "A named slot in a frame, such as `sidebar` or `panel`."
+
+[[term]]
+name = "Scope"
+text = "Where data lives: memory, session, window, global, vault."
+
+[[term]]
+name = "Setup app"
+text = "The optional branded installer that chains the native package (a bootstrapper)."
+
+[[term]]
+name = "Vault"
+aka = ["vaults"]
+text = "A user chosen folder that holds the user's data and an `.appname` folder."
+
+[[term]]
+name = "View"
+aka = ["views"]
+text = "A registered component type that panes instantiate."
+
+[[term]]
+name = "Virtual window"
+text = "An in page window used by the web host."
+
+[[term]]
+name = "Workspace"
+text = "The complete layout state of an app instance, stored in `workspace.toml`."

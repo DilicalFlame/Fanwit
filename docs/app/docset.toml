@@ -1,0 +1,11 @@
+# Your app's manual. Write pages as Markdown below this folder; they appear in the Manual window
+# (F1) next to the FaNWiT docs, and on the docs site when `web = true`. See manual://fanwit/guides/manual.
+title = "My app"              # shown to your users; leave it out to use the name in fanwit.app.toml
+icon = "book-marked"
+version = "app"               # the version in fanwit.app.toml
+ship = "prod"                 # "prod": your users get this manual; "dev": development builds only
+web = false                   # true: include it in the static docs site (fw docs build)
+sections = ["Getting started", "Guides", "Reference"]
+reference = ["commands", "keybindings", "settings"]   # generated from your modules' contributions
+# api = "src/app/api.ts"      # exports become an API reference (for plugin authors)
+# edit = "https://github.com/you/app/edit/main/"   # "Edit this page" links

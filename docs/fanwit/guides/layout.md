@@ -2,14 +2,53 @@
 title: Layout
 section: Guides
 order: 6
+summary: The whole UI is one live document of regions, nodes and panes.
 ---
 # Layout
 
 The whole UI is one document, stored as `workspace.toml` and live in both directions.
 
+<Callout kind="why">
+
+In most apps the arrangement of panels is scattered across components, so "move the outline to the right" or "make it look like Blender" means rewriting code. Here the arrangement is data. Every change, whether you drag a tab, run a command or edit the file, is an action on one document, so it can be undone, saved as a <Term name="workspace" />, shared as a <Term name="preset" />, and reproduced exactly. The same document drives the desktop and the web.
+
+</Callout>
+
+## The model in one picture
+
+A window has fixed <Term name="region">regions</Term> (title bar, sidebar, main, inspector, panel, status bar). Each region holds a <Term name="node" />: a split, a tab set, a stack or a grid. Nodes hold <Term name="pane">panes</Term>, and each pane is an instance of a <Term name="view" /> with its props. This manual is laid out the same way:
+
+<LayoutPreview preset="manual" height={220} showToml />
+
 ## Views
 
 Views are registered component types; panes are instances placed in the layout. A view declares its title, icon, allowed regions, identity (so `openView` focuses an existing pane) and keep alive strategy.
+
+A view is an ordinary Svelte 5 component. It receives `{ paneId, props }` and can reach the app with `getKernel()`. Edit this one and it re-renders beside the code; **Run** (or Ctrl+Enter) compiles it again.
+
+<Playground mode="svelte" title="A view component" height={220}>
+
+```svelte
+<script>
+	let count = $state(0);
+	let doubled = $derived(count * 2);
+</script>
+
+<button onclick={() => count++}>Clicked {count} times</button>
+<p>Twice that is {doubled}.</p>
+
+<style>
+	button { padding: 4px 12px; border: 1px solid currentColor; border-radius: 6px; }
+</style>
+```
+
+</Playground>
+
+<Check question="You open the same file twice with openView. What decides whether you get one tab or two?" options={["The view's identity: the same identity focuses the existing pane", "The order of panes in the tab set", "Whether the view is a singleton region"]} answer={0}>
+
+`identity(props)` names an instance: the notes editor uses the file path, so a second `openView` with the same path focuses the open tab instead of adding another. Singleton views always have one instance.
+
+</Check>
 
 ## Actions
 
@@ -22,6 +61,16 @@ await ctx.layout.openView("notes.preview", { path }, { target: "beside", preview
 ## The TOML document
 
 Flat keyed tables (`[node.x]`, `[pane.y]`), structure only, defaults omitted. Edit and save: the app follows within 100 ms. An invalid edit keeps the last good layout and reports problems with line numbers.
+
+<Callout kind="why">
+
+Why flat tables instead of a nested tree? A nested document would put a pane's settings five levels deep, so moving a tab would mean cutting and pasting a whole block. With flat tables a move changes one list (`panes = [...]`), so diffs stay small and hand edits are safe.
+
+</Callout>
+
+Below is the default `vscode` preset, drawn from its own TOML. Hover a box to see which node or pane it is; click one to find its table. Edit the TOML and the window redraws: try changing `dir = "row"` to `"column"`, or adding a pane to a `panes` list.
+
+<LayoutPreview preset="vscode" editable height={280} />
 
 ```fanwit-run
 layout.openView {"view": "fanwit.layoutLab"}
@@ -99,3 +148,9 @@ pnpm fw layout preset my-app path/to/workspace.toml
 
 Modules ship presets through `contributes.layoutPresets` (see any `src/app/showcase/<part>/module.ts`). Tab sets take
 `strip = "top" | "bottom" | "hidden"`; a split copies its tab set's strip.
+
+## Pitfalls
+
+- **Changing the layout from a component.** Dispatch an action (`ctx.layout.dispatch`) or run a layout command. Direct changes skip undo, persistence and every other window.
+- **Views without an identity.** Without `identity`, every `openView` adds a new tab. Give document views an identity, such as the file path.
+- **Measuring panes as they animate.** Use offset sizes (`offsetWidth`), not `getBoundingClientRect`, on anything that animates in.

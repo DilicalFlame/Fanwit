@@ -7,6 +7,12 @@ order: 18
 
 Labs let you try every system interactively and copy the code.
 
+<Callout kind="why">
+
+Reading about a focus policy or a menu kind is slower than trying it. Each lab is a working bench for one system, with every option exposed and the matching code or TOML to copy. You can find out what an option does before writing anything. Labs are core, but `pnpm fw strip` turns them off (`features.labs` in `app.config.ts`) when your app no longer needs them.
+
+</Callout>
+
 ## layoutLab
 
 Edit `workspace.toml` on the left and watch the layout and the action log.

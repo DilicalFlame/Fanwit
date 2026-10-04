@@ -1,0 +1,24 @@
+# Learning paths: an order to read pages in, for a goal. Each becomes a card on the Learning
+# paths page with your progress; pages in a path show "next in this path" at the bottom.
+# `pages` are page ids in this docset (reference pages too: reference/glossary).
+
+[[path]]
+id = "first-hour"
+title = "The first hour"
+description = "From a fresh clone to your own command, view, menu and plugin, then a clean template (Section 21.1)."
+minutes = 60
+pages = ["getting-started", "concepts", "guides/modules", "guides/commands", "guides/layout", "guides/context-menus", "guides/plugins", "guides/manual"]
+
+[[path]]
+id = "plugin-author"
+title = "Writing plugins"
+description = "What a plugin can contribute, how it stays fast and safe, and how it reaches the app."
+minutes = 35
+pages = ["concepts", "guides/plugins", "guides/commands", "guides/settings", "guides/themes", "guides/context-keys"]
+
+[[path]]
+id = "state-is-data"
+title = "State is data"
+description = "Every TOML file the app keeps live, and how layouts, keys, menus and settings stay in sync."
+minutes = 25
+pages = ["concepts", "guides/toml", "guides/layout", "guides/keyboard", "guides/settings", "guides/data"]

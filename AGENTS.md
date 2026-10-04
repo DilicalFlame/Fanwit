@@ -21,10 +21,11 @@ Guidance for AI coding assistants working in this repository (Section 20.9).
 | Preference | `pnpm fw add setting <module>.<key>` |
 | Right click menu | `pnpm fw add menu-location <loc> --module <id>`, then `use:menu` |
 | Install step | `pnpm fw installer add-step <type> <id>`, then `pnpm fw installer plan --scenario ...` (never hand edit generated installer glue) |
-| Installer page | A Svelte page in `src-setup/pages/` registered in `src-setup/pages/custom.ts`; preview with `pnpm fw installer dev` (docs/guides/installer.md) |
+| Installer page | A Svelte page in `src-setup/pages/` registered in `src-setup/pages/custom.ts`; preview with `pnpm fw installer dev` (docs/fanwit/guides/installer.md) |
 | Data | `ctx.storage`, `ctx.persisted`, `ctx.db.sql({ scope })` with `<module>__` table prefixes |
-| Plugin | `pnpm fw plugin new <id> [--kind appearance] [--runtime js\|wasm\|sidecar] [--ui widgets\|iframe]`; plugin code never runs on the main thread, UI is widgets (`ctx.ui.render`) or a sandboxed iframe (docs/guides/plugins.md) |
+| Plugin | `pnpm fw plugin new <id> [--kind appearance] [--runtime js\|wasm\|sidecar] [--ui widgets\|iframe]`; plugin code never runs on the main thread, UI is widgets (`ctx.ui.render`) or a sandboxed iframe (docs/fanwit/guides/plugins.md) |
 | Restyle something | An appearance plugin or a CSS snippet scoped with `html[data-preset=...]` / `[data-fw-view=...]`, not edits to the view |
+| Documentation | Pages for your users go in `docs/app/` (Markdown, compiled by mdsvex; front matter `title`, `section`, `order`); a new docset with `pnpm fw docs new <id>`. Explain why before how (every guide needs a `<Callout kind="why">`). Link with `manual://<set>/<page>#<heading>`, give views a `help` page. Public API in `src/fanwit/index.ts` needs a doc comment with an `@example`. Run `pnpm fw docs check` (docs/fanwit/guides/manual.md) |
 | Remove or restore demo code | `pnpm fw parts`, `pnpm fw strip <part>`, `pnpm fw restore <part>`, `pnpm fw strip --undo`. A part is a folder with `part.toml`; keep each showcase app self contained in `src/app/showcase/<part>` |
 
 ## Conventions

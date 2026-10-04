@@ -2,17 +2,28 @@
 title: Getting started
 section: Getting started
 order: 1
+summary: From a clone to a running app you own, a tour, and what to remove when you are ready.
 ---
 # Getting started
 
-Fanwit is a template you clone, rename and own. It is also a working app ("Fanwit") that demonstrates every system and doubles as this manual.
+FaNWiT is a template you clone, rename and own. It is also a working app ("Fanwit") that demonstrates every system, and it doubles as this manual.
+
+<Callout kind="why">
+
+Starter kits usually hand you either an empty skeleton (and every decision still ahead) or a framework you can't change. FaNWiT gives you a finished app instead, and the code is yours. Every system is already working, so you can see each one in action before you build on it, and every demo is a separate *part* you can remove in one command when you no longer need it.
+
+</Callout>
 
 ## Clone to running app
 
+<Steps>
+
 1. Copy the template: `pnpm fw create my-app` (or clone and delete `.git`).
-2. Rename: `pnpm fw rename` asks for the display name, slug, developer and bundle identifier, and updates `fanwit.app.toml`, `package.json`, `Cargo.toml`, `tauri.conf.json`, the deep link scheme and the generated identity files.
+2. Rename it: `pnpm fw rename` asks for the display name, slug, developer and bundle identifier, and updates `fanwit.app.toml`, `package.json`, `Cargo.toml`, `tauri.conf.json`, the deep link scheme and the generated identity files.
 3. Install: `pnpm install`.
-4. Run the desktop app: `pnpm tauri dev`. Run the web build: `pnpm dev`.
+4. Run the desktop app with `pnpm tauri dev`, or the web build with `pnpm dev`.
+
+</Steps>
 
 ## Tour
 
@@ -21,7 +32,7 @@ Fanwit is a template you clone, rename and own. It is also a working app ("Fanwi
 - **Main area**: tabs you can split, float, pop out into windows or drag anywhere.
 - **Status bar**: vault, chord hint, problems, layout preset, theme, notifications.
 
-Try the palette now:
+Three keys get you everywhere: the palette (<Keys command="palette.open" />) runs any command, the keyboard overlay (<Keys command="keys.showOverlay" />) shows what every key does here, and this manual is <Keys command="manual.open" />. Try the palette now:
 
 ```fanwit-run
 palette.open
@@ -35,14 +46,17 @@ palette.open
 | `src/app` | Your app: modules (`src/app/modules`), the showcase (`src/app/showcase/<part>`), themes, layouts. |
 | `src-tauri/src/fanwit` | Rust core: sandboxed fs, SQLite, windows, CLI bridge. |
 | `src/lib/components/ui` | shadcn-svelte components you own. |
-| `docs` | This manual. |
+| `docs/fanwit` | This manual (development builds only). |
+| `docs/app` | Your app's manual, which ships to your users. |
 | `plugins` | Built-in plugins: they ship with the app and stay off until turned on. |
 | `packages/fanwit-plugin-rs` | Rust SDK for WebAssembly and native sidecar plugins. |
 | `packages/fw` | The developer CLI. |
 
+Keep your code in `src/app` and leave `src/fanwit` alone. Then `fw upgrade` can bring in new versions of the core without touching your work.
+
 ## Your first feature
 
-Run `pnpm fw add module notes` and `pnpm fw add command notes.archive`. See [Modules](manual://modules) and [Commands](manual://commands).
+Run `pnpm fw add module notes`, then `pnpm fw add command notes.archive`. The first writes the module, its `activate.ts`, a test and a page in `docs/app/guides/`; the second adds the command's declaration and a handler to fill in. Read [Modules](manual://fanwit/guides/modules) and [Commands](manual://fanwit/guides/commands) next; the [learning paths](manual://fanwit/learn) give a reading order.
 
 ## Stripping the template
 

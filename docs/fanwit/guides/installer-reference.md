@@ -1,6 +1,7 @@
 ---
 title: Installer Kit reference
-section: Guides
+section: Installer
+kind: reference
 order: 20
 ---
 # Installer Kit reference

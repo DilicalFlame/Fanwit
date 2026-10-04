@@ -42,7 +42,8 @@ src/fanwit/            the core (kernel, host, systems, workbench)
 src/app/               your modules, themes, layouts
 src/lib/components/ui  shadcn-svelte components you own
 src-tauri/src/fanwit/  Rust core: sandbox, fs, TOML merge, SQLite, windows, CLI bridge
-docs/                  the manual
+docs/fanwit/           the FaNWiT manual (development builds only)
+docs/app/              your app's manual (ships to your users)
 plugins/               sample runtime plugins
 packages/fw/           developer CLI
 ```
@@ -57,7 +58,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 
 ## Documentation
 
-Press **F1** in the app, or read [docs/getting-started.md](docs/getting-started.md). The full specification is in `FANWIT-Specification.pdf`.
+Press **F1** in the app, run `pnpm docs` for the docs site, or read [docs/fanwit/getting-started.md](docs/fanwit/getting-started.md). The full specification is in `FANWIT-Specification.pdf`.
 
 ## Known limitations
 

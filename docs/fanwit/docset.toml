@@ -1,0 +1,11 @@
+# The FaNWiT manual and reference. Ships in development builds only: your users never see it.
+title = "FaNWiT"
+icon = "book-open"
+version = "fanwit"            # the template version in .fanwit/lock.toml
+ship = "dev"                  # "dev": dev builds only; "prod": production builds too
+web = true                    # part of the static docs site (fw docs build)
+sections = ["Getting started", "Concepts", "Guides", "Recipes", "Operations", "Glossary", "API", "Rust", "CLI", "Registries", "TOML files", "Installer"]
+api = "src/fanwit/index.ts"   # exports become the API reference (TypeDoc)
+schemas = "schemas"           # *.schema.json become the TOML reference
+reference = ["commands", "settings", "keybindings", "views", "window-kinds", "menu-locations", "context-keys", "errors", "glossary", "fw-cli", "rust-commands"]
+rust = "src-tauri/src"        # its Tauri commands become the Rust reference

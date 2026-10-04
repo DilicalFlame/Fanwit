@@ -14,6 +14,12 @@ The Installer Kit turns installing, updating and uninstalling into part of the a
 
 Every one of these runs the same engine, `fanwit-install`, so a step behaves the same whichever way the user installs.
 
+<Callout kind="why">
+
+Installers are usually written separately for each format, so the MSI, the deb and the Homebrew formula slowly disagree about what "installed" means, and uninstalling leaves things behind. Here every <Term name="install step" /> is written once and run by one engine. Each step can check, plan, apply, roll back and uninstall, and the engine keeps a <Term name="receipt" /> of what it changed. Repair and a clean uninstall then work from any install format. A plan you can read before anything runs (`fw installer plan`) means a change to the installer can be reviewed like code.
+
+</Callout>
+
 Every key, flag and file is listed in the [Installer Kit reference](manual://guides/installer-reference).
 
 ## The pieces

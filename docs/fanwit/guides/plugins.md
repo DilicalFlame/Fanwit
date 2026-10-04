@@ -7,6 +7,12 @@ order: 13
 
 A plugin is a module that arrives at runtime, with a manifest and permissions. A plugin can do anything a module can: commands, views, settings, menus, themes, layout presets and styles.
 
+<Callout kind="why">
+
+Plugin systems tend to fail in one of two ways: plugins can do anything, so one bad plugin slows or breaks the app, or they can do almost nothing, so nobody writes them. FaNWiT gives a plugin the same contribution points as your own modules. It also runs plugin code off the main thread, starts it only on first use, and holds it to the permissions it declared. The sections below explain each of those guarantees.
+
+</Callout>
+
 Plugins come from three places:
 
 | Source | Where | Notes |

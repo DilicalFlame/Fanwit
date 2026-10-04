@@ -2,10 +2,25 @@
 title: Windows
 section: Guides
 order: 7
+summary: Describe what a window is for; the host decides how it appears on desktop and web.
 ---
 # Windows
 
 The Windows API decides how a window behaves: who owns it, who gets focus, where it opens, and how it remembers its place.
+
+<Callout kind="why">
+
+Desktop apps that hand-build each window repeat the same decisions: should it block its parent, stay on top, have a taskbar button, remember its size? And those decisions differ per OS and don't exist at all in a browser. FaNWiT asks you for **intent** instead: a <Term name="kind (window)">window kind</Term> says "a child that locks focus" or "a palette at the pointer". The <Term name="host" /> turns that into the right behaviour on Windows, macOS, Linux and the web, where the same kind becomes a virtual window or a modal. You write one spec, and every platform gets its native behaviour.
+
+</Callout>
+
+<Steps>
+
+1. Add a kind with `pnpm fw add window <kind> --base child`. It writes the spec, a view, and the desktop capability entry.
+2. Open it from a command: `const win = await ctx.windows.open("app.export", { doc: id })`.
+3. Inside the window's view, `useWindow().close(value)` closes it and hands `value` back to the opener.
+
+</Steps>
 
 ## Kinds
 
@@ -56,3 +71,23 @@ const choice = await win.result; // resolves when the child calls close(value)
 ```fanwit-run
 labs.openExport
 ```
+
+## Windows with their own layout
+
+A kind can name a layout <Term name="preset" /> with `layout = "<preset id>"`. The window then runs a full workbench on its own layout document, saved as `<kind>.layout.toml` and kept separate from the workspace. On the web such a window opens as a browser tab, since it needs its own kernel. The Manual window works this way:
+
+```ts
+windows: [{ kind: "manual", base: "aux", layout: "manual", title: "Manual", size: [1180, 800], instance: "single" }]
+```
+
+<Check question="You need a confirmation dialog that blocks its parent window until answered. Which base and focus?" options={["aux with focus: lock", "child with focus: lock (its defaults already lock)", "panel with alwaysOnTop"]} answer={1}>
+
+`lock` needs an owner, and an aux window has none, so `lock` does nothing for it. A child is owned by its opener and locks by default; on the web it becomes a modal.
+
+</Check>
+
+## Pitfalls
+
+- **Checking the platform.** Don't branch on "am I in Tauri". Set the options you want and let the host apply what it can (`ctx.host.caps` says what is possible).
+- **Many kinds that differ only in options.** If two kinds share a base and differ in size or title, keep one kind and pass props.
+- **Forgetting `close(value)`.** The opener's `result` resolves with `undefined` when the user just closes the window. Handle that case.
