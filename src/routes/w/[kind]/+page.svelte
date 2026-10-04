@@ -14,16 +14,18 @@
 	 * windows). The window renders its kind's root view; close(value) resolves the opener.
 	 */
 	const k = getKernel();
-	const kind = $derived(page.params.kind ?? "");
+	// a window keeps its kind, label and props for life
+	const kind = page.params.kind ?? "";
 	const params = page.url.searchParams;
 	const label = params.get("label") ?? k.host.windows.label;
 	const opener = params.get("opener");
-	let props: Record<string, unknown> = {};
-	try {
-		props = JSON.parse(params.get("props") ?? "{}");
-	} catch {
-		props = {};
-	}
+	const props = (() => {
+		try {
+			return JSON.parse(params.get("props") ?? "{}") as Record<string, unknown>;
+		} catch {
+			return {};
+		}
+	})();
 	/** The registered kind, else the spec its opener sent (kinds registered at runtime). */
 	const sent = (() => {
 		try {

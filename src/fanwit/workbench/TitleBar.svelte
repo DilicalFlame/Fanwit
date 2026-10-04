@@ -30,6 +30,7 @@
 	const narrow = $derived(width < 720);
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions (double click is the Toggle maximize command; right click mirrors the native title bar system menu) -->
 <header
 	class="relative flex shrink-0 items-center gap-1 text-titlebar-foreground select-none {custom ? '' : 'h-9 border-b border-border bg-titlebar'}"
 	class:pl-20={!custom && mac && !web}

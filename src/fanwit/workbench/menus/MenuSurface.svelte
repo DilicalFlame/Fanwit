@@ -43,6 +43,7 @@
 	const k = getKernel();
 	const menus = k.sys.menus;
 	let el = $state<HTMLDivElement>();
+	// svelte-ignore state_referenced_locally (the opening point; layout() clamps it into view after mount)
 	let pos = $state({ left: x, top: y, maxH: 9999 });
 	let active = $state(-1);
 	let sub = $state<{ index: number; rect: DOMRect } | null>(null);
@@ -336,7 +337,7 @@
 	onkeydown={keys}
 	oncontextmenu={(e) => e.preventDefault()}
 >
-	<div bind:this={scroller} class="relative overflow-hidden" style:max-height="{pos.maxH - 10}px" onpointermove={autoscroll} onscroll={updateOverflow} onwheel={(e) => { if (scroller) { scroller.scrollTop += e.deltaY; updateOverflow(); } }}>
+	<div bind:this={scroller} role="presentation" class="relative overflow-hidden" style:max-height="{pos.maxH - 10}px" onpointermove={autoscroll} onscroll={updateOverflow} onwheel={(e) => { if (scroller) { scroller.scrollTop += e.deltaY; updateOverflow(); } }}>
 		{#each rows as row, i (i)}
 			{#if row.sep}
 				<div role="separator" class="mx-1 my-1 h-px bg-border"></div>

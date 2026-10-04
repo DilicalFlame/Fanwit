@@ -18,7 +18,9 @@
 	let { props }: { props: { page?: string } } = $props();
 	const k = getKernel();
 	const s = k.sys.settings;
+	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let page = $state(props.page && !props.page.startsWith("@") ? props.page : "General");
+	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let query = $state(props.page?.startsWith("@") ? props.page : "");
 	let scope = $state<SettingScope>("global");
 	let showToml = $state(false);

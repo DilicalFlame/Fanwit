@@ -44,10 +44,14 @@
 			e.preventDefault();
 			onresize(e.key === fwd ? step : -step);
 			onend?.();
+		} else if (e.key === "Enter" && onequalize) {
+			e.preventDefault();
+			onequalize();
 		}
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions (a focusable separator is the ARIA window splitter widget: arrow keys resize, Enter equalizes) -->
 <div
 	role="separator"
 	aria-orientation={dir === "row" ? "vertical" : "horizontal"}

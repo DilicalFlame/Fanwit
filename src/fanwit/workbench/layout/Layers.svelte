@@ -89,6 +89,7 @@
 			style:opacity={f.opacity ?? 1}
 			aria-label={layout.paneTitle(f.pane)}
 		>
+			<!-- svelte-ignore a11y_no_static_element_interactions (drag to move; keyboard users dock or close with the buttons) -->
 			<header class="flex h-8 shrink-0 cursor-move items-center gap-1 border-b border-border px-2 text-xs font-medium select-none" onpointerdown={(e) => drag(e, id, "move")}>
 				<Icon name="grip-vertical" size={14} class="opacity-50" />
 				<span class="flex-1 truncate">{layout.paneTitle(f.pane)}</span>

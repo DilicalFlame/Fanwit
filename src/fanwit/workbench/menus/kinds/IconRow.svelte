@@ -17,7 +17,7 @@
 	}
 </script>
 
-<div role="group" aria-label={props.label ?? item.label} class="flex items-center justify-between gap-1 px-1.5 py-1" onkeydown={keys} data-menu-composite>
+<div role="toolbar" tabindex="-1" aria-label={props.label ?? item.label} class="flex items-center justify-between gap-1 px-1.5 py-1" onkeydown={keys} data-menu-composite>
 	{#each buttons as b, i (i)}
 		<button class="fw-icon-btn size-8 rounded-md" title={b.label} aria-label={b.label} disabled={!item.enabled} onclick={() => emit({ __command: b.command, ...(b.args ?? {}) })}>
 			<Icon name={b.icon} size={16} />

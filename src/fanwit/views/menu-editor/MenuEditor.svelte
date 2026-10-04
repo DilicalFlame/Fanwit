@@ -13,7 +13,9 @@
 	let { props }: { props: { location?: string; item?: string } } = $props();
 	const k = getKernel();
 	const menus = k.sys.menus;
+	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let location = $state(props.location ?? "tab/context");
+	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let selected = $state<string | null>(props.item ?? null);
 	let search = $state("");
 	let showPatch = $state(false);

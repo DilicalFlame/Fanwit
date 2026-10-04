@@ -66,6 +66,7 @@
 		k.events.on("notes:togglePreview" as never, () => layout.activePane === paneId && (preview = !preview)),
 		k.lifecycle.onWillShutdown((e) => dirty && e.veto(true, `${props.path} has unsaved changes`))
 	];
+	// svelte-ignore state_referenced_locally (a pane keeps its id for life)
 	if (paneId) {
 		viewNavigation.set(paneId, {
 			symbols: (q) =>

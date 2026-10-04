@@ -35,6 +35,7 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions (roving focus: arrow keys on the landmark move between its buttons) -->
 <nav
 	aria-label="{region} views"
 	data-fw-region={region === "sidebar" ? "activity" : "activity2"}

@@ -47,6 +47,7 @@
 </script>
 
 <div class="px-2 pt-1 text-xs text-muted-foreground">{props.label ?? item.label}</div>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions (roving focus: arrow keys on the container move between the focusable cells) -->
 <div role="group" aria-label={props.label ?? item.label} class="grid gap-1 px-2 pb-2 pt-1" style:grid-template-columns="repeat({props.columns ?? 8}, 1.25rem)" onkeydown={keys} data-menu-composite>
 	{#each colors as c, i (c)}
 		<button

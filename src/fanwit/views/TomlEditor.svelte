@@ -19,6 +19,7 @@
 		menus: () => s.menus.file as unknown as TomlFile,
 		commands: () => s.userCommands
 	};
+	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let which = $state(props.file ?? "workspace");
 	const file = $derived(files[which]?.() ?? null);
 	let text = $state("");

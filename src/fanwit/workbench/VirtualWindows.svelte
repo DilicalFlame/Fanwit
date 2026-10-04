@@ -82,6 +82,7 @@
 			style:z-index={v.modal ? 61 + v.z : 40 + v.z}
 			onpointerdown={() => w.raise(v.id)}
 		>
+			<!-- svelte-ignore a11y_no_static_element_interactions (drag to move, double click to maximize; the buttons do the same by keyboard) -->
 			<header class="flex h-8 shrink-0 cursor-move items-center gap-2 border-b border-border bg-titlebar px-2 text-xs select-none" onpointerdown={(e) => drag(e, v, "move")} ondblclick={() => (v.maximized = !v.maximized)}>
 				<span class="flex-1 truncate font-medium">{v.title}</span>
 				{#if !v.modal && v.spec.minimizable !== false}

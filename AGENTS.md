@@ -35,7 +35,7 @@ Guidance for AI coding assistants working in this repository (Section 20.9).
 - Tabs for indentation, double quotes, explicit types at module boundaries.
 - Errors are `FanwitError(code, { message, hint, docs })`.
 - Tests that exercise a part live inside it (`*.test.ts`, `*.e2e.ts` next to the code, helpers from `e2e/helpers.ts`), so stripping the part takes its tests along. Tests of Labs call `needsLabs()`.
-- Every interactive element is keyboard reachable; destructive items go in the `danger` group.
+- Every interactive element is keyboard reachable; destructive items go in the `danger` group. `pnpm check` fails on any Svelte warning, a11y included. Fix it; when a pointer gesture (drag, double click) is only a shortcut, name its keyboard equivalent in the `svelte-ignore` comment (see `Splitter.svelte`, `Layers.svelte`).
 - Motion lives in `src/fanwit/motion/motion.ts`: `use:enter={"pop"}` for entrances, `out:leave` for exits, `haptic()` for touch feedback. Buttons get press feedback automatically (`data-no-press` opts out). Measure layout with offset sizes, not `getBoundingClientRect`, on anything that animates in. Everything must respect reduced motion (the helpers do).
 
 ## Checks before you finish

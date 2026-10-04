@@ -51,7 +51,7 @@
 	</button>
 {/if}
 {#if menus && !nativeMenus && !collapsed}
-	<nav role="menubar" aria-label="Menu bar" class="flex shrink-0 items-center" onkeydown={menubarKeys}>
+	<div role="menubar" tabindex="-1" aria-label="Menu bar" class="flex shrink-0 items-center" onkeydown={menubarKeys}>
 		{#each MENUS as [loc, label] (loc)}
 			<button
 				role="menuitem"
@@ -64,5 +64,5 @@
 				onpointerenter={(e) => openMenu && openMenu !== loc && showMenu(loc, e.currentTarget)}>{label}</button
 			>
 		{/each}
-	</nav>
+	</div>
 {/if}

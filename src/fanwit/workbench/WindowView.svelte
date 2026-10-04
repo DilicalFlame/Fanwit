@@ -8,6 +8,7 @@
 	/** Renders a registered view as the root of a window (native or virtual) with useWindow(). */
 	let { view, props = {}, self }: { view: string; props?: Record<string, unknown>; self: WindowSelf } = $props();
 	const k = getKernel();
+	// svelte-ignore state_referenced_locally (a window's identity never changes)
 	provideWindowSelf(self);
 	const v = $derived((void k.sys.layout.viewsVersion, k.sys.layout.views.get(view)));
 	let comp = $state<Component<any> | null>(null);
