@@ -1,0 +1,5 @@
+id = "plugin-word-count"
+title = "word-count"
+kind = "plugin"
+# reacts to notes:changed from the notes sample
+requires = ["sample-notes"]
