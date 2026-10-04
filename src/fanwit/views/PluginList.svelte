@@ -11,8 +11,9 @@
 	<ul class="min-h-0 flex-1 overflow-auto py-1">
 		{#each svc?.installed ?? [] as p (p.scope + p.manifest.id)}
 			<li class="flex items-center gap-2 px-3 py-1">
-				<Icon name="puzzle" size={14} class="opacity-60" />
+				<Icon name={p.manifest.icon ?? "puzzle"} size={14} class="opacity-60" />
 				<span class="flex-1 truncate" title={p.error ?? p.manifest.description}>{p.manifest.name}</span>
+				{#if p.scope !== "global"}<span class="rounded bg-muted px-1 text-[10px] text-muted-foreground">{p.scope === "builtin" ? "built-in" : p.scope}</span>{/if}
 				<input type="checkbox" aria-label="Enable {p.manifest.name}" checked={p.enabled} onchange={() => svc?.setEnabled(p.manifest.id, p.scope, !p.enabled)} />
 			</li>
 		{:else}
