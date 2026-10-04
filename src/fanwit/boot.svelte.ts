@@ -46,6 +46,8 @@ const config: AppConfig =
 	import.meta.env.MODE === "docs"
 		? {
 				...appConfig,
+				// the docs site documents FaNWiT, not the app: no app or showcase modules
+				modules: [],
 				layout: { default: "manual" },
 				data: { ...appConfig.data, mode: "global", layout: { persist: "none" } },
 				features: { labs: false, devtools: false, manual: true, plugins: false, tray: false, onboarding: false, samples: false }
@@ -449,6 +451,11 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	// modules registered later still activate. Nothing fired it before, so the core module only
 	// activated when one of its commands or views happened to be used (never, in some windows).
 	await k.modules.fire("onStartup", true);
+	// core declares the commands that open these features' windows and views; without the
+	// feature they would open nothing, so they leave the palette, menus and keys
+	const off = [features.plugins === false && /^plugins\./, features.devtools === false && /^dev\.(console|eventMonitor|commandLog)$/].filter((r): r is RegExp => !!r);
+	if (off.length) k.commands.prune((id) => !off.some((r) => r.test(id)));
+	if (import.meta.env.MODE === "docs") (await import("./manual/docs-site")).docsSite(k);
 	log.info(`kernel ready in ${Math.round(performance.now() - t0)} ms (${host.kind}, ${host.platform}, window ${host.windows.label})`);
 	k.lifecycle.mark("kernel");
 	return k;
@@ -468,7 +475,7 @@ function wireSettings(k: Kernel) {
 		setHaptics(settings.get("ui.haptics") !== false);
 		logs.level = settings.get("log.level") ?? logs.level;
 		logs.levels = (settings.get<Record<string, never>>("log.levels") ?? {}) as typeof logs.levels;
-		k.context.set("devMode", !!settings.get("dev.mode"));
+		k.context.set("devMode", import.meta.env.MODE !== "docs" && !!settings.get("dev.mode"));
 		i18n.locale = settings.get<string>("general.language") || "en";
 		root.lang = i18n.locale === "pseudo" ? "en" : i18n.locale;
 		root.dir = i18n.dir;

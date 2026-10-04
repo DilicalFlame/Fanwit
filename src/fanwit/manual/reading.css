@@ -90,6 +90,7 @@ html[data-reading-tone="dark"] .fw-doc-body .shiki span { color: var(--shiki-dar
 .fw-doc-body .fw-copy { border: 1px solid var(--border); background: var(--background); color: var(--muted-foreground); opacity: 0; transition: opacity var(--duration-fast, 120ms); }
 .fw-doc-body .fw-code:is(:hover, :focus-within) .fw-copy, .fw-doc-body .fw-copy[data-done] { opacity: 1; }
 .fw-doc-body .fw-run-btn { background: var(--primary); color: var(--primary-foreground); }
+.fw-doc-body .fw-run-btn:disabled { background: var(--muted); color: var(--muted-foreground); cursor: help; }
 @media (hover: none) { .fw-doc-body .fw-copy { opacity: 1; } }
 
 /* heading permalinks */

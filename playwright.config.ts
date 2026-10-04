@@ -8,5 +8,13 @@ export default defineConfig({
 	testIgnore: ["**/.trash/**", "**/node_modules/**"],
 	timeout: 30_000,
 	use: { baseURL: "http://localhost:4173", viewport: { width: 1280, height: 800 }, screenshot: "only-on-failure", trace: "retain-on-failure" },
-	webServer: { command: "pnpm build && pnpm preview --port 4173 --strictPort", port: 4173, reuseExistingServer: true, timeout: 180_000 }
+	projects: [
+		{ name: "app", testIgnore: ["**/.trash/**", "**/node_modules/**", "**/*.docs.e2e.ts"] },
+		// *.docs.e2e.ts: the docs site (vite --mode docs), the manual on the web without the app
+		{ name: "docs", testMatch: ["src/**/*.docs.e2e.ts"], use: { baseURL: "http://localhost:3001" } }
+	],
+	webServer: [
+		{ command: "pnpm build && pnpm preview --port 4173 --strictPort", port: 4173, reuseExistingServer: true, timeout: 180_000 },
+		{ command: "pnpm exec vite dev --mode docs --port 3001", port: 3001, reuseExistingServer: true, timeout: 180_000 }
+	]
 });

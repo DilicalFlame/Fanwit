@@ -44,8 +44,8 @@ export async function afterFirstPaint(k: Kernel) {
 	window.addEventListener("online", online);
 	window.addEventListener("offline", online);
 	k.context.declare("network.online", "boolean", "The device is online");
-	// files dropped from the OS route to a command (Section 21.1)
-	k.host.onFileDrop((paths) => void dropped(k, paths));
+	// files dropped from the OS route to a command (Section 21.1); the docs site has no vault
+	if (import.meta.env.MODE !== "docs") k.host.onFileDrop((paths) => void dropped(k, paths));
 	k.lifecycle.set("restored");
 	idle(() => {
 		void k.modules.fire("onStartupFinished", true).then(() => {

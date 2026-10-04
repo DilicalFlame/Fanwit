@@ -91,6 +91,8 @@
 
 	<div class="flex gap-2 border-t border-border pt-2">
 		<button class="fw-btn" onclick={reset}>Reset</button>
-		<button class="fw-btn fw-btn-ghost ml-auto" onclick={() => k.commands.run("app.settings", { page: "@manual." })}>All settings</button>
+		{#if k.commands.get("app.settings")}
+			<button class="fw-btn fw-btn-ghost ml-auto" onclick={() => k.commands.run("app.settings", { page: "@manual." })}>All settings</button>
+		{/if}
 	</div>
 </div>

@@ -106,6 +106,13 @@
 			}
 		}
 		headings = list;
+		// a Run button for a command this build does not have (the docs site): say where it runs
+		for (const b of body.querySelectorAll<HTMLButtonElement>("button[data-run]:not([disabled])")) {
+			if (k.commands.get(b.dataset.run!)) continue;
+			b.disabled = true;
+			b.textContent = "Desktop app";
+			b.title = `${b.dataset.run} runs in the FaNWiT app, not on this website`;
+		}
 		if (bionic) applyBionic(body);
 		highlightTerms();
 		observer?.takeRecords();

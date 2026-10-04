@@ -23,6 +23,7 @@
 	/** top (default), bottom (sheet tabs) or hidden (one view filling the area). */
 	const strip = $derived(n.strip ?? "top");
 	const closeButton = $derived(k.sys.settings.get<string>("layout.closeButton"));
+	const inManual = $derived((void k.context.version, !!k.context.get("manual.window")));
 	let stripEl = $state<HTMLDivElement>();
 	let overflowOpen = $state(false);
 	let overflowing = $state(false);
@@ -167,8 +168,12 @@
 	{/if}
 	<div class="relative flex min-h-0 flex-1 flex-col">
 		{#if !panes.length}
-			<div use:menu={{ location: "workbench/empty" }} class="flex flex-1">
-				{#if region === "main"}
+			<div use:menu={{ location: "workbench/empty", disabled: inManual }} class="flex flex-1">
+				{#if region === "main" && inManual}
+					<EmptyState icon="book-open" title="No page open" description="Pick a page from the navigation, or start from the beginning.">
+						<button class="fw-btn" onclick={() => k.commands.run("manual.open")}>Open the home page</button>
+					</EmptyState>
+				{:else if region === "main"}
 					<EmptyState icon="layout-panel-top" title="Nothing open" description="Open something from the explorer or the command palette.">
 						<button class="fw-btn" onclick={() => k.commands.run("palette.quickOpen")}>Quick open <KeyChip keys={k.keys.label("palette.quickOpen")} /></button>
 						<button class="fw-btn" onclick={() => k.commands.run("palette.open")}>All commands <KeyChip keys={k.keys.label("palette.open")} /></button>

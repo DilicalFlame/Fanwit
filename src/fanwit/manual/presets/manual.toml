@@ -27,16 +27,22 @@ statusbar = { visible = false }
 type = "tabs"
 strip = "hidden"
 panes = ["bar"]
+closable = false
+locked = true
 
 [node.nav]
 type = "tabs"
 strip = "hidden"
 panes = ["nav"]
+closable = false
+locked = true
 
 [node.outline]
 type = "tabs"
 strip = "hidden"
 panes = ["outline"]
+closable = false
+locked = true
 
 [node.pages]
 type = "tabs"

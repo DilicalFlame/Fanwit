@@ -138,10 +138,13 @@ export async function search(st: ManualState, raw: string, o: { set?: string; li
 						type: "setting",
 						title: d.title ?? d.key,
 						context: d.key,
-						detail: d.type === "boolean" ? (v ? "On, select to turn off" : "Off, select to turn on") : `${JSON.stringify(v)}`,
+						detail: !k.commands.get("app.settings") ? d.description : d.type === "boolean" ? (v ? "On, select to turn off" : "Off, select to turn on") : `${JSON.stringify(v)}`,
 						positions: fuzzy(q, d.title ?? d.key)?.positions,
 						score: m.score,
-						run: () => (d.type === "boolean" ? s.set(d.key, !v) : k.commands.run("app.settings", { page: `@${d.key}` }).catch((e) => k.sys.notify.error(e)))
+						// the docs site has no Settings window: a setting opens its reference entry
+						...(k.commands.get("app.settings")
+							? { run: () => (d.type === "boolean" ? s.set(d.key, !v) : k.commands.run("app.settings", { page: `@${d.key}` }).catch((e) => k.sys.notify.error(e))) }
+							: { page: "fanwit/reference/settings" })
 					}
 				];
 			})
