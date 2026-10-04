@@ -1,6 +1,574 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Fanwit settings.toml",
-  "description": "Known keys: dev.editor, dev.ipcTimings, dev.mode, dev.reloadOnChange, general.confirmQuit, general.language, general.startup.restoreVault, general.startup.showWelcome, general.update.check, keys.chordTimeout, keys.overlayTrigger, keys.style, layout.closeButton, layout.dockIndicator, layout.previewTabs, layout.rememberPerVault, layout.titlebar, log.level, log.levels, menus.autoScrollSpeed, menus.editableInProduction, menus.menubar, notes.daily.folder, notes.editor.fontSize, notes.editor.wrap, notes.editor.wrapColumn, notify.channels, notify.dnd, notify.quietHours, notify.retentionDays, notify.toastPosition, plugins.allowCode, plugins.allowUnsigned, plugins.autoUpdate, plugins.safeMode, theme.dark, theme.light, theme.mode, ui.density, ui.effects, ui.fontSize, ui.reducedMotion, ui.zoom, update.channel, update.crashReports, vault.backupSchedule, vault.cacheSize, vault.defaultLocation, vault.trash",
-  "type": "object"
+  "title": "settings.toml",
+  "type": "object",
+  "properties": {
+    "dev": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "editor": {
+          "type": "string",
+          "description": "Source editor command. Used by Open component source (code, cursor, idea…).",
+          "default": "code"
+        },
+        "ipcTimings": {
+          "type": "boolean",
+          "description": "Show IPC timings",
+          "default": false
+        },
+        "mode": {
+          "type": "boolean",
+          "description": "Developer mode. Inspect, edit and export any menu, layout, binding or theme.",
+          "default": false
+        },
+        "reloadOnChange": {
+          "type": "boolean",
+          "description": "Reload modules on change",
+          "default": true
+        }
+      }
+    },
+    "general": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autostart": {
+          "type": "boolean",
+          "description": "Start at login. Starts hidden in the tray (desktop only).",
+          "default": false
+        },
+        "confirmQuit": {
+          "type": "boolean",
+          "description": "Confirm before quitting",
+          "default": false
+        },
+        "language": {
+          "enum": [
+            "en",
+            "hi",
+            "de",
+            "ja",
+            "ar",
+            "pseudo"
+          ],
+          "description": "Language. Interface language. `pseudo` expands and accents text to test layouts.",
+          "default": "en"
+        },
+        "startup": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "restoreVault": {
+              "type": "boolean",
+              "description": "Reopen the last vault on start",
+              "default": true
+            },
+            "showWelcome": {
+              "type": "boolean",
+              "description": "Show the welcome tab on start",
+              "default": true
+            }
+          }
+        },
+        "update": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "check": {
+              "type": "boolean",
+              "description": "Check for updates automatically",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    "keys": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "chordTimeout": {
+          "type": "number",
+          "minimum": 500,
+          "maximum": 5000,
+          "description": "Chord timeout. How long a pending chord waits for the next key.",
+          "default": 2000
+        },
+        "overlayTrigger": {
+          "enum": [
+            "ctrl+/",
+            "hold-mod",
+            "off"
+          ],
+          "description": "Keyboard overlay. Shows the bindings available here.",
+          "default": "ctrl+/"
+        },
+        "style": {
+          "enum": [
+            "default",
+            "vscode",
+            "sublime"
+          ],
+          "description": "Keymap preset",
+          "default": "default"
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "closeButton": {
+          "enum": [
+            "right",
+            "left",
+            "hidden"
+          ],
+          "description": "Tab close button",
+          "default": "right"
+        },
+        "dockIndicator": {
+          "enum": [
+            "edges",
+            "compass"
+          ],
+          "description": "Docking indicator. How drop targets are shown while dragging tabs.",
+          "default": "edges"
+        },
+        "previewTabs": {
+          "type": "boolean",
+          "description": "Preview tabs. Single click opens a temporary italic tab that the next preview replaces.",
+          "default": true
+        },
+        "rememberPerVault": {
+          "type": "boolean",
+          "description": "Remember window state per vault",
+          "default": true
+        },
+        "titlebar": {
+          "enum": [
+            "custom",
+            "native"
+          ],
+          "description": "Title bar style",
+          "default": "custom"
+        }
+      }
+    },
+    "log": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ],
+          "description": "Log level",
+          "default": "info"
+        },
+        "levels": {
+          "description": "Log levels per scope. For example { layout = \"trace\" }.",
+          "default": {}
+        }
+      }
+    },
+    "manual": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bionic": {
+          "type": "boolean",
+          "description": "Bionic reading. Bolds the start of each word to guide the eye. Prose only; code is left alone.",
+          "default": false
+        },
+        "codeSize": {
+          "type": "number",
+          "minimum": 11,
+          "maximum": 20,
+          "description": "Code size",
+          "default": 13.5
+        },
+        "codeWrap": {
+          "type": "boolean",
+          "description": "Wrap long code lines",
+          "default": false
+        },
+        "explain": {
+          "enum": [
+            "guided",
+            "expert"
+          ],
+          "description": "Explanations. **Guided** opens the *why* and *under the hood* notes in every page; **Expert** folds them away.",
+          "default": "guided"
+        },
+        "focus": {
+          "type": "boolean",
+          "description": "Focus mode. Dims everything but the paragraph you are reading.",
+          "default": false
+        },
+        "font": {
+          "enum": [
+            "sans",
+            "serif",
+            "mono",
+            "system",
+            "hyperlegible",
+            "dyslexic"
+          ],
+          "description": "Font. Atkinson Hyperlegible is designed for low vision; OpenDyslexic for dyslexia. They download only when chosen.",
+          "default": "sans"
+        },
+        "fontSize": {
+          "type": "number",
+          "minimum": 12,
+          "maximum": 26,
+          "description": "Text size",
+          "default": 16
+        },
+        "hyphenate": {
+          "type": "boolean",
+          "description": "Hyphenate long words",
+          "default": false
+        },
+        "justify": {
+          "type": "boolean",
+          "description": "Justify text",
+          "default": false
+        },
+        "letterSpacing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.15,
+          "description": "Letter spacing",
+          "default": 0
+        },
+        "ligatures": {
+          "type": "boolean",
+          "description": "Code ligatures. Joins character pairs such as => into one glyph. Off by default: it can disguise flags like |--.",
+          "default": false
+        },
+        "lineHeight": {
+          "type": "number",
+          "minimum": 1.2,
+          "maximum": 2.4,
+          "description": "Line height",
+          "default": 1.7
+        },
+        "measure": {
+          "type": "number",
+          "minimum": 40,
+          "maximum": 120,
+          "description": "Line length. Characters per line. 60 to 80 is easiest to read.",
+          "default": 72
+        },
+        "paragraphSpacing": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 2.5,
+          "description": "Paragraph spacing",
+          "default": 1
+        },
+        "ruler": {
+          "type": "boolean",
+          "description": "Reading ruler. A band that follows the pointer, to keep your place.",
+          "default": false
+        },
+        "speechRate": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 2,
+          "description": "Read aloud speed",
+          "default": 1
+        },
+        "theme": {
+          "enum": [
+            "app",
+            "light",
+            "paper",
+            "solarized",
+            "dark",
+            "coal",
+            "navy",
+            "ayu",
+            "contrast"
+          ],
+          "description": "Reading theme. Colours of the Manual window. **App** follows the app theme.",
+          "default": "app"
+        },
+        "wordSpacing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.5,
+          "description": "Word spacing",
+          "default": 0
+        }
+      }
+    },
+    "menus": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoScrollSpeed": {
+          "type": "number",
+          "minimum": 0.05,
+          "maximum": 1,
+          "description": "Auto scroll smoothing. Pointer position auto scroll for long menus.",
+          "default": 0.25
+        },
+        "editableInProduction": {
+          "type": "boolean",
+          "description": "Edit menus in production builds. Requires data-fw-id on elements.",
+          "default": false
+        },
+        "menubar": {
+          "enum": [
+            "custom",
+            "native"
+          ],
+          "description": "Menu bar style. Native menus are always used on macOS.",
+          "default": "custom"
+        }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "daily": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "folder": {
+              "type": "string",
+              "description": "Daily notes folder",
+              "default": "Daily"
+            }
+          }
+        },
+        "editor": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "fontSize": {
+              "type": "number",
+              "minimum": 10,
+              "maximum": 32,
+              "description": "Editor font size",
+              "default": 15
+            },
+            "wrap": {
+              "enum": [
+                "off",
+                "soft",
+                "bounded"
+              ],
+              "description": "Line wrapping",
+              "default": "soft"
+            },
+            "wrapColumn": {
+              "type": "number",
+              "description": "Wrap column",
+              "default": 80
+            }
+          }
+        }
+      }
+    },
+    "notify": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "channels": {
+          "description": "Channels. Per channel overrides: enabled, toast, os, sound, minPriority.",
+          "default": {}
+        },
+        "dnd": {
+          "type": "boolean",
+          "description": "Do not disturb. Only urgent notifications reach the OS; everything else goes to the centre.",
+          "default": false
+        },
+        "quietHours": {
+          "type": "string",
+          "description": "Quiet hours. For example 22:00-07:00.",
+          "default": ""
+        },
+        "retentionDays": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 365,
+          "description": "Keep history for",
+          "default": 30
+        },
+        "toastPosition": {
+          "enum": [
+            "bottom-right",
+            "bottom-left",
+            "top-right",
+            "top-left"
+          ],
+          "description": "Toast position",
+          "default": "bottom-right"
+        }
+      }
+    },
+    "plugins": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowCode": {
+          "type": "boolean",
+          "description": "Allow community code plugins. Plugins with isolation = \"none\" run in the app's own realm. Their permissions are a contract, not a sandbox.",
+          "default": false
+        },
+        "allowUnsigned": {
+          "type": "boolean",
+          "description": "Allow unsigned plugins",
+          "default": false
+        },
+        "autoUpdate": {
+          "type": "boolean",
+          "description": "Update plugins automatically",
+          "default": false
+        },
+        "safeMode": {
+          "type": "boolean",
+          "description": "Safe mode. Disable all code plugins (start with --safe-mode for one session).",
+          "default": false
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dark": {
+          "type": "string",
+          "description": "Dark theme. Theme used in dark mode.",
+          "default": "fanwit-default"
+        },
+        "light": {
+          "type": "string",
+          "description": "Light theme. Theme used in light mode.",
+          "default": "fanwit-default"
+        },
+        "mode": {
+          "enum": [
+            "light",
+            "dark",
+            "system"
+          ],
+          "description": "Mode. Follow the operating system or force a mode.",
+          "default": "system"
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "density": {
+          "enum": [
+            "compact",
+            "comfortable",
+            "spacious"
+          ],
+          "description": "Density. Spacing of controls and lists.",
+          "default": "comfortable"
+        },
+        "effects": {
+          "enum": [
+            "none",
+            "mica",
+            "acrylic",
+            "vibrancy"
+          ],
+          "description": "Window effects. Mica or acrylic background on Windows 11, vibrancy on macOS.",
+          "default": "none"
+        },
+        "fontSize": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 20,
+          "description": "UI font size. Base size for all interface text.",
+          "default": 13
+        },
+        "haptics": {
+          "type": "boolean",
+          "description": "Haptic feedback. Short vibrations on devices that have them (phones and tablets running the web app).",
+          "default": true
+        },
+        "reducedMotion": {
+          "type": "boolean",
+          "description": "Reduce motion. Replace movement with fades. The OS setting is always honoured.",
+          "default": false
+        },
+        "zoom": {
+          "type": "number",
+          "minimum": 50,
+          "maximum": 200,
+          "description": "Zoom. Scale the whole interface.",
+          "default": 100
+        }
+      }
+    },
+    "update": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "enum": [
+            "stable",
+            "beta"
+          ],
+          "description": "Update channel",
+          "default": "stable"
+        },
+        "crashReports": {
+          "type": "boolean",
+          "description": "Share crash reports. Off by default. Reports never leave this computer unless you send them.",
+          "default": false
+        }
+      }
+    },
+    "vault": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backupSchedule": {
+          "enum": [
+            "off",
+            "daily",
+            "weekly"
+          ],
+          "description": "Backups",
+          "default": "off"
+        },
+        "cacheSize": {
+          "type": "number",
+          "minimum": 64,
+          "maximum": 8192,
+          "description": "Cache size limit",
+          "default": 512
+        },
+        "defaultLocation": {
+          "type": "string",
+          "description": "Default vault location",
+          "default": ""
+        },
+        "trash": {
+          "enum": [
+            "os",
+            "vault"
+          ],
+          "description": "Deleted files go to",
+          "default": "os"
+        }
+      }
+    }
+  }
 }

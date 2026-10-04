@@ -13,3 +13,8 @@ path = "./schemas/keys.schema.json"
 include = ["**/menus.toml"]
 [rule.schema]
 path = "./schemas/menus.schema.json"
+
+[[rule]]
+include = ["**/settings.toml"]
+[rule.schema]
+path = "./schemas/settings.schema.json"

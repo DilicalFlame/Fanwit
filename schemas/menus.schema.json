@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Fanwit menus.toml",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "patch": {
       "type": "array",
@@ -12,6 +13,7 @@
           "op",
           "item"
         ],
+        "additionalProperties": false,
         "properties": {
           "location": {
             "type": "string"
@@ -53,12 +55,40 @@
           },
           "props": {
             "type": "object"
+          },
+          "when": {
+            "type": "string",
+            "description": "Context key expression"
           }
         }
       }
     },
     "location": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Fanwit keys.toml",
   "type": "object",
+  "additionalProperties": false,
   "properties": {
     "bind": {
       "type": "array",
@@ -10,33 +11,173 @@
         "required": [
           "command"
         ],
+        "additionalProperties": false,
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "description": "Keys, e.g. \"mod+shift+p\" or a chord \"mod+k mod+s\""
           },
           "command": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^-?[\\w.-]+$",
+            "description": "Command id; \"-id\" removes a lower binding",
+            "examples": [
+              "canvas.arrange",
+              "canvas.back",
+              "canvas.bringToFront",
+              "canvas.delete",
+              "canvas.duplicate",
+              "canvas.fill",
+              "canvas.front",
+              "canvas.lock",
+              "canvas.opacity",
+              "canvas.previewOpacity",
+              "canvas.quick",
+              "canvas.reset",
+              "canvas.sendToBack",
+              "canvas.setFill",
+              "canvas.setOpacity",
+              "canvas.toggleRound",
+              "capture.append",
+              "dev.profiler",
+              "explorer.copyPath",
+              "explorer.delete",
+              "explorer.newFile",
+              "explorer.newFile.root",
+              "explorer.newFolder",
+              "explorer.newFolder.root",
+              "explorer.open",
+              "explorer.openToSide",
+              "explorer.rename",
+              "explorer.reveal",
+              "fanwit.colorPicker",
+              "fanwit.commandLog",
+              "fanwit.console",
+              "fanwit.core",
+              "fanwit.createMenuHere",
+              "fanwit.devtools",
+              "fanwit.events",
+              "fanwit.explorer",
+              "fanwit.focusWindow",
+              "fanwit.inspectAt",
+              "fanwit.labExport",
+              "fanwit.labs",
+              "fanwit.manual",
+              "fanwit.menuDemo",
+              "fanwit.notificationRead",
+              "fanwit.notificationRemove",
+              "fanwit.notificationSnooze",
+              "fanwit.openSource",
+              "fanwit.pluginList",
+              "fanwit.pluginManager",
+              "fanwit.plugins",
+              "fanwit.profiler",
+              "fanwit.runCommand",
+              "fanwit.setDensity",
+              "fanwit.setZoom",
+              "file.recent",
+              "greeter.greet",
+              "hello.greet",
+              "hello.panel",
+              "keys.row.run",
+              "labs.openColorPicker",
+              "labs.openExport",
+              "labs.resetCanvas",
+              "m.x",
+              "manage.dev",
+              "manage.keys",
+              "manage.menus",
+              "manage.palette",
+              "manage.plugins",
+              "manage.settings",
+              "manage.studio",
+              "manage.theme",
+              "manage.vaults",
+              "manual.focusSearch",
+              "manual.readingSettings",
+              "manual.search",
+              "manual.toggleKind",
+              "notes.backlinks",
+              "notes.editor",
+              "notes.links",
+              "notes.newDaily",
+              "notes.openPreview",
+              "notes.preview",
+              "notes.rate",
+              "notes.renameFile",
+              "notes.secret",
+              "notes.showBacklinks",
+              "notes.tabPreview",
+              "notes.togglePreview",
+              "notification.read",
+              "notification.remove",
+              "notification.snooze1h",
+              "notification.snoozeTomorrow",
+              "plugins.reveal",
+              "presets.list",
+              "recent.vaults",
+              "scripts.stats",
+              "shell.reveal",
+              "showcase.blender",
+              "showcase.browser",
+              "showcase.browser.newTab",
+              "showcase.dashboard",
+              "showcase.discord",
+              "showcase.excel",
+              "showcase.excel.newSheet",
+              "showcase.figma",
+              "showcase.notion",
+              "showcase.obsidian",
+              "showcase.photoshop",
+              "showcase.terminal",
+              "showcase.terminal.new",
+              "styles.css",
+              "t.args",
+              "t.inc",
+              "t.needsVault",
+              "tab.close",
+              "tab.copyRelativePath",
+              "user.term",
+              "vault.forget",
+              "vault.item.forget",
+              "vault.item.newWindow",
+              "vault.item.open",
+              "vault.item.pin",
+              "vault.item.reveal",
+              "vault.pin",
+              "view.density",
+              "view.presets",
+              "view.zoom",
+              "window.list",
+              "window.popOut"
+            ]
           },
           "when": {
-            "type": "string"
+            "type": "string",
+            "description": "Context key expression"
           },
           "args": {
             "type": "object"
           },
           "global": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "OS wide shortcut (desktop)"
           },
           "mac": {
-            "type": "string"
+            "type": "string",
+            "description": "Keys, e.g. \"mod+shift+p\" or a chord \"mod+k mod+s\""
           },
           "win": {
-            "type": "string"
+            "type": "string",
+            "description": "Keys, e.g. \"mod+shift+p\" or a chord \"mod+k mod+s\""
           },
           "linux": {
-            "type": "string"
+            "type": "string",
+            "description": "Keys, e.g. \"mod+shift+p\" or a chord \"mod+k mod+s\""
           },
           "web": {
-            "type": "string"
+            "type": "string",
+            "description": "Keys, e.g. \"mod+shift+p\" or a chord \"mod+k mod+s\""
           }
         }
       }

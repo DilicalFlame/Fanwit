@@ -25,7 +25,7 @@ TOML is readable by people (unlike JSON, it has comments and no trailing comma t
 | `windows.toml` | app config | Window state by identity |
 | `plugin.toml` | plugin folder | Plugin manifest |
 
-Each has a generated reference with every key, type and default (see **TOML files** under Reference). `pnpm fw schema` emits JSON schemas, and a `#:schema` line at the top of a file gives editors like VS Code (with Taplo) completion and validation.
+Each has a generated reference with every key, type and default (see **TOML files** under Reference). `pnpm fw schema` emits JSON schemas (and `.taplo.toml`, which maps them to `workspace.toml`, `keys.toml`, `menus.toml` and `settings.toml`), so editors like VS Code with Taplo give completion and validation. The settings schema is built from the registered definitions, so it knows every type, range, enum and default, and flags unknown keys in a namespace the app defines; a test fails when it falls behind. Keys, menus and layout entries reject unknown fields too.
 
 ```fanwit-run
 layout.openToml

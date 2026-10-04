@@ -33,6 +33,7 @@
             "type": "object",
             "additionalProperties": {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "node": {
                   "type": "string"
@@ -57,6 +58,9 @@
                 },
                 "side": {
                   "type": "string"
+                },
+                "maximized": {
+                  "type": "boolean"
                 }
               }
             }
@@ -184,6 +188,7 @@
         "required": [
           "view"
         ],
+        "additionalProperties": false,
         "properties": {
           "view": {
             "type": "string",
@@ -261,6 +266,7 @@
               "fanwit.vaultManager",
               "fanwit.welcome",
               "file.recent",
+              "greeter.greet",
               "hello.greet",
               "hello.panel",
               "labs.openColorPicker",
@@ -276,21 +282,47 @@
               "manage.studio",
               "manage.theme",
               "manage.vaults",
+              "manual.focusSearch",
+              "manual.nav",
+              "manual.outline",
+              "manual.page",
+              "manual.reading",
+              "manual.readingSettings",
+              "manual.search",
+              "manual.titlebar",
+              "manual.toggleKind",
+              "notes.backlinks",
               "notes.editor",
+              "notes.links",
               "notes.newDaily",
               "notes.openPreview",
               "notes.preview",
+              "notes.rate",
               "notes.renameFile",
               "notes.secret",
+              "notes.showBacklinks",
               "notes.tabPreview",
               "notes.togglePreview",
               "notification.read",
               "notification.remove",
               "notification.snooze1h",
               "notification.snoozeTomorrow",
+              "plugins.reveal",
               "presets.list",
               "recent.vaults",
+              "scripts.stats",
               "shell.reveal",
+              "showcase.blender",
+              "showcase.browser",
+              "showcase.dashboard",
+              "showcase.discord",
+              "showcase.excel",
+              "showcase.figma",
+              "showcase.notion",
+              "showcase.obsidian",
+              "showcase.photoshop",
+              "showcase.terminal",
+              "styles.css",
               "t.args",
               "t.inc",
               "t.needsVault",
@@ -326,6 +358,10 @@
           },
           "area": {
             "type": "string"
+          },
+          "group": {
+            "type": "string",
+            "description": "Tab group colour"
           }
         }
       }
@@ -339,6 +375,7 @@
           "pane",
           "rect"
         ],
+        "additionalProperties": false,
         "properties": {
           "window": {
             "type": "string"
@@ -359,6 +396,17 @@
           },
           "snap": {
             "type": "boolean"
+          },
+          "collapsed": {
+            "type": "boolean"
+          },
+          "opacity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "origin": {
+            "type": "string"
           }
         }
       }

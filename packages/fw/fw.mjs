@@ -410,7 +410,7 @@ function doctor() {
 // ---------- schema ----------
 function schema() {
 	const node = { type: "object", required: ["type"], properties: { type: { enum: ["split", "tabs", "stack", "grid"], description: "Node type, or a custom type registered with defineLayoutNode" }, dir: { enum: ["row", "column"] }, children: { type: "array", items: { type: "string" } }, sizes: { type: "array", items: { type: ["number", "string"] } }, panes: { type: "array", items: { type: "string" } }, active: { type: "string" }, strip: { enum: ["top", "bottom", "left", "right", "hidden"] }, title: { type: "string" }, icon: { type: "string" }, locked: { type: "boolean" }, columns: { type: "string" }, rows: { type: "string" }, gap: { type: ["number", "string"] } } };
-	const region = { type: "object", properties: { node: { type: "string" }, containers: { type: "array", items: { type: "string" } }, size: { type: ["string", "number"] }, visible: { type: "boolean" }, collapsible: { type: "boolean" }, side: { type: "string" } } };
+	const region = { type: "object", additionalProperties: false, properties: { node: { type: "string" }, containers: { type: "array", items: { type: "string" } }, size: { type: ["string", "number"] }, visible: { type: "boolean" }, collapsible: { type: "boolean" }, side: { type: "string" }, maximized: { type: "boolean" } } };
 	const views = [];
 	const walk = (d) => {
 		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
@@ -429,32 +429,24 @@ function schema() {
 			preset: { type: "string" },
 			window: { type: "object", additionalProperties: { type: "object", required: ["kind"], properties: { kind: { type: "string" }, frame: { enum: ["workbench", "plain"] }, title: { type: "string" }, regions: { type: "object", additionalProperties: region }, responsive: { type: "object" }, parent: { type: "string" }, focus: { enum: ["none", "takeover", "lock"] }, on_blocked: { type: "array", items: { enum: ["bell", "shake", "flash", "attention"] } }, size: { type: "array" }, root: { type: "string" }, zen: { type: "boolean" } } } },
 			node: { type: "object", additionalProperties: node },
-			pane: { type: "object", additionalProperties: { type: "object", required: ["view"], properties: { view: { type: "string", examples: [...new Set(views)].sort() }, props: { type: "object" }, title: { type: "string" }, icon: { type: "string" }, pinned: { type: "boolean" }, preview: { type: "boolean" }, collapsed: { type: "boolean" }, area: { type: "string" } } } },
-			float: { type: "object", additionalProperties: { type: "object", required: ["window", "pane", "rect"], properties: { window: { type: "string" }, pane: { type: "string" }, rect: { type: "array", items: { type: "number" }, minItems: 4, maxItems: 4 }, anchor: { type: "string" }, snap: { type: "boolean" } } } },
+			pane: { type: "object", additionalProperties: { type: "object", required: ["view"], additionalProperties: false, properties: { view: { type: "string", examples: [...new Set(views)].sort() }, props: { type: "object" }, title: { type: "string" }, icon: { type: "string" }, pinned: { type: "boolean" }, preview: { type: "boolean" }, collapsed: { type: "boolean" }, area: { type: "string" }, group: { type: "string", description: "Tab group colour" } } } },
+			float: { type: "object", additionalProperties: { type: "object", required: ["window", "pane", "rect"], additionalProperties: false, properties: { window: { type: "string" }, pane: { type: "string" }, rect: { type: "array", items: { type: "number" }, minItems: 4, maxItems: 4 }, anchor: { type: "string" }, snap: { type: "boolean" }, collapsed: { type: "boolean" }, opacity: { type: "number", minimum: 0, maximum: 1 }, origin: { type: "string" } } } },
 			drawer: { type: "object" },
 			overlay: { type: "object" }
 		}
 	};
-	const keys = { $schema: "http://json-schema.org/draft-07/schema#", title: "Fanwit keys.toml", type: "object", properties: { bind: { type: "array", items: { type: "object", required: ["command"], properties: { key: { type: "string" }, command: { type: "string" }, when: { type: "string" }, args: { type: "object" }, global: { type: "boolean" }, mac: { type: "string" }, win: { type: "string" }, linux: { type: "string" }, web: { type: "string" } } } } } };
-	const menus = { $schema: "http://json-schema.org/draft-07/schema#", title: "Fanwit menus.toml", type: "object", properties: { patch: { type: "array", items: { type: "object", required: ["location", "op", "item"], properties: { location: { type: "string" }, op: { enum: ["hide", "show", "move", "rename", "icon", "regroup", "insert", "props", "pin", "when"] }, item: { type: ["string", "object"] }, before: { type: "string" }, after: { type: "string" }, group: { type: "string" }, label: { type: "string" }, icon: { type: "string" }, props: { type: "object" } } } }, location: { type: "array" } } };
-	const settingsKeys = {};
-	const walkSettings = (d) => {
-		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
-			const p = `${d}/${e.name}`;
-			if (e.isDirectory()) walkSettings(p);
-			else if (/\.ts$/.test(e.name)) {
-				const t = read(p);
-				for (const block of t.matchAll(/defineSettings\("([\w.]*)",\s*\{([\s\S]*?)\n\t?\}\)/g)) for (const m of block[2].matchAll(/"?([\w.]+)"?:\s*s\.(\w+)\(/g)) settingsKeys[(block[1] ? block[1] + "." : "") + m[1]] = m[2];
-			}
-		}
-	};
-	walkSettings("src");
-	const settings = { $schema: "http://json-schema.org/draft-07/schema#", title: "Fanwit settings.toml", description: `Known keys: ${Object.keys(settingsKeys).sort().join(", ")}`, type: "object" };
+	const keyStr = { type: "string", description: 'Keys, e.g. "mod+shift+p" or a chord "mod+k mod+s"' };
+	const keys = { $schema: "http://json-schema.org/draft-07/schema#", title: "Fanwit keys.toml", type: "object", additionalProperties: false, properties: { bind: { type: "array", items: { type: "object", required: ["command"], additionalProperties: false, properties: { key: keyStr, command: { type: "string", pattern: "^-?[\\w.-]+$", description: 'Command id; "-id" removes a lower binding', examples: commandIds() }, when: { type: "string", description: "Context key expression" }, args: { type: "object" }, global: { type: "boolean", description: "OS wide shortcut (desktop)" }, mac: keyStr, win: keyStr, linux: keyStr, web: keyStr } } } } };
+	// op mirrors PatchOp in src/fanwit/menus/menus.svelte.ts
+	const ops = /type PatchOp = ([^;]+);/.exec(read("src/fanwit/menus/menus.svelte.ts"))[1].match(/"[\w]+"/g).map((x) => JSON.parse(x));
+	const menus = { $schema: "http://json-schema.org/draft-07/schema#", title: "Fanwit menus.toml", type: "object", additionalProperties: false, properties: { patch: { type: "array", items: { type: "object", required: ["location", "op", "item"], additionalProperties: false, properties: { location: { type: "string" }, op: { enum: ops }, item: { type: ["string", "object"] }, before: { type: "string" }, after: { type: "string" }, group: { type: "string" }, label: { type: "string" }, icon: { type: "string" }, props: { type: "object" }, when: { type: "string", description: "Context key expression" } } } }, location: { type: "array", items: { type: "object", required: ["id"], additionalProperties: false, properties: { id: { type: "string" }, description: { type: "string" }, target: { type: "string" }, samples: { type: "array", items: { type: "object" } } } } } } };
 	write("schemas/workspace.schema.json", JSON.stringify(layout, null, 2) + "\n");
 	write("schemas/keys.schema.json", JSON.stringify(keys, null, 2) + "\n");
 	write("schemas/menus.schema.json", JSON.stringify(menus, null, 2) + "\n");
-	write("schemas/settings.schema.json", JSON.stringify(settings, null, 2) + "\n");
-	write(".taplo.toml", `# Schema associations for Even Better TOML (Taplo)\n[[rule]]\ninclude = ["**/workspace.toml", "src/fanwit/layout/presets/*.toml"]\n[rule.schema]\npath = "./schemas/workspace.schema.json"\n\n[[rule]]\ninclude = ["**/keys.toml"]\n[rule.schema]\npath = "./schemas/keys.schema.json"\n\n[[rule]]\ninclude = ["**/menus.toml"]\n[rule.schema]\npath = "./schemas/menus.schema.json"\n`);
+	// settings come from the real definitions (types, ranges, enums), which only the app can load
+	if (!DRY) execSync("pnpm exec vitest run src/fanwit/settings/schema.test.ts", { cwd: ROOT, stdio: "inherit", env: { ...process.env, FW_WRITE_SCHEMAS: "1" } });
+	changed.push("update schemas/settings.schema.json");
+	write(".taplo.toml", `# Schema associations for Even Better TOML (Taplo)\n[[rule]]\ninclude = ["**/workspace.toml", "src/fanwit/layout/presets/*.toml"]\n[rule.schema]\npath = "./schemas/workspace.schema.json"\n\n[[rule]]\ninclude = ["**/keys.toml"]\n[rule.schema]\npath = "./schemas/keys.schema.json"\n\n[[rule]]\ninclude = ["**/menus.toml"]\n[rule.schema]\npath = "./schemas/menus.schema.json"\n\n[[rule]]\ninclude = ["**/settings.toml"]\n[rule.schema]\npath = "./schemas/settings.schema.json"\n`);
 	report();
 }
 
@@ -680,7 +672,8 @@ Add the public key to app.config.ts plugins.trustedKeys.`);
 // ---------- sdk ----------
 /** The widget tree types, copied from the app so the SDK never drifts. */
 const widgetTypes = () => read("src/fanwit/plugins/widgets.ts").split("export const WIDGET_LIMITS")[0].replace(/^\/\*\*[\s\S]*?\*\/\n/, "");
-function sdk() {
+/** Every command-like id ("module.verbObject") declared in src, sorted. */
+function commandIds() {
 	const ids = new Set();
 	const walk = (d) => {
 		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
@@ -690,12 +683,16 @@ function sdk() {
 		}
 	};
 	walk("src");
+	return [...ids].sort();
+}
+function sdk() {
+	const ids = commandIds();
 	const slug = identity().app.slug;
 	write("packages/plugin-sdk/package.json", JSON.stringify({ name: `@${slug}/plugin-sdk`, version: identity().app.version, types: "index.d.ts", main: "index.js", type: "module" }, null, 2) + "\n");
 	write("packages/plugin-sdk/index.js", "export const definePlugin = (fn) => fn;\n");
 	write(
 		"packages/plugin-sdk/index.d.ts",
-		`// GENERATED by \`pnpm fw sdk build\`. Types for plugins of ${identity().app.name}.\nexport type CommandId =\n${[...ids].sort().map((i) => `\t| "${i}"`).join("\n")}\n\t| (string & {});\n\nexport interface PluginContext {\n\tid: string;\n\tcommands: { handle(id: CommandId, fn: (args: any) => unknown): { dispose(): void }; run<R = unknown>(id: CommandId, args?: Record<string, unknown>): Promise<R> };\n\tnotify: { toast(text: string, kind?: "info" | "success" | "warning" | "error"): Promise<void>; send(spec: { title: string; body?: string; kind?: string; route?: string }): Promise<string> };\n\tsettings: { get<T = unknown>(key: string): T; set(key: string, value: unknown): Promise<void> };\n\tstorage: { get<T = unknown>(key: string): Promise<T | undefined>; set(key: string, value: unknown): Promise<void> };\n\tvault: { readText(path: string): Promise<string>; write(path: string, text: string): Promise<void>; list(dir?: string, o?: { recursive?: boolean; glob?: string }): Promise<{ name: string; path: string; dir: boolean }[]>; current(): Promise<{ name: string; readonly: boolean } | null> };\n\tstatusbar: { item(id: string): { text: string; tooltip: string; command: string } };\n\t/** Widget views (ui = \"widgets\"): send a tree, hear what the user did. */\n\tui: { render(view: string, tree: Widget | null): Promise<void>; on(view: string, fn: (action: string, value: unknown) => void): { dispose(): void } };\n\tevents: { on(name: string, fn: (payload: any) => void): { dispose(): void }; emit(name: string, payload?: unknown): Promise<void> };\n\tlog: { info(...a: unknown[]): void; warn(...a: unknown[]): void; error(...a: unknown[]): void };\n}\n\nexport declare function definePlugin(fn: (ctx: PluginContext) => void | Promise<void>): typeof fn;\n\n/** In a plugin iframe page (ui = \"iframe\") after <script src=\"_fw/ui.js\">. */\ndeclare global {\n\tinterface Window {\n\t\tfanwit: PluginContext & { onReady(fn: (ctx: PluginContext) => void): void };\n\t}\n}\n\n${widgetTypes()}`
+		`// GENERATED by \`pnpm fw sdk build\`. Types for plugins of ${identity().app.name}.\nexport type CommandId =\n${ids.map((i) => `\t| "${i}"`).join("\n")}\n\t| (string & {});\n\nexport interface PluginContext {\n\tid: string;\n\tcommands: { handle(id: CommandId, fn: (args: any) => unknown): { dispose(): void }; run<R = unknown>(id: CommandId, args?: Record<string, unknown>): Promise<R> };\n\tnotify: { toast(text: string, kind?: "info" | "success" | "warning" | "error"): Promise<void>; send(spec: { title: string; body?: string; kind?: string; route?: string }): Promise<string> };\n\tsettings: { get<T = unknown>(key: string): T; set(key: string, value: unknown): Promise<void> };\n\tstorage: { get<T = unknown>(key: string): Promise<T | undefined>; set(key: string, value: unknown): Promise<void> };\n\tvault: { readText(path: string): Promise<string>; write(path: string, text: string): Promise<void>; list(dir?: string, o?: { recursive?: boolean; glob?: string }): Promise<{ name: string; path: string; dir: boolean }[]>; current(): Promise<{ name: string; readonly: boolean } | null> };\n\tstatusbar: { item(id: string): { text: string; tooltip: string; command: string } };\n\t/** Widget views (ui = \"widgets\"): send a tree, hear what the user did. */\n\tui: { render(view: string, tree: Widget | null): Promise<void>; on(view: string, fn: (action: string, value: unknown) => void): { dispose(): void } };\n\tevents: { on(name: string, fn: (payload: any) => void): { dispose(): void }; emit(name: string, payload?: unknown): Promise<void> };\n\tlog: { info(...a: unknown[]): void; warn(...a: unknown[]): void; error(...a: unknown[]): void };\n}\n\nexport declare function definePlugin(fn: (ctx: PluginContext) => void | Promise<void>): typeof fn;\n\n/** In a plugin iframe page (ui = \"iframe\") after <script src=\"_fw/ui.js\">. */\ndeclare global {\n\tinterface Window {\n\t\tfanwit: PluginContext & { onReady(fn: (ctx: PluginContext) => void): void };\n\t}\n}\n\n${widgetTypes()}`
 	);
 	report();
 }
