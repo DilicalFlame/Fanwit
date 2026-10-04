@@ -107,3 +107,10 @@ test("every shipped preset parses and validates", async () => {
 		expect(errors, f).toEqual([]);
 	}
 });
+
+test("closable = false keeps every pane of a tab set open", () => {
+	const d = base();
+	d.node.side = { type: "tabs", panes: ["explorer"], closable: false } as TabsNode;
+	expect(reduce(d, { type: "closePane", pane: "explorer" }, ctx).doc.pane.explorer).toBeDefined();
+	expect(reduce(d, { type: "closeOthers", pane: "explorer" }, ctx).doc.node.side).toEqual(d.node.side);
+});

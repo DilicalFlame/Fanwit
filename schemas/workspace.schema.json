@@ -166,6 +166,10 @@
           "locked": {
             "type": "boolean"
           },
+          "closable": {
+            "type": "boolean",
+            "description": "false: its tabs cannot be closed"
+          },
           "columns": {
             "type": "string"
           },

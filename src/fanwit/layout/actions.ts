@@ -279,6 +279,9 @@ export function reduce(input: LayoutDoc, a: LayoutAction, ctx: ReduceContext): R
 		}
 		case "closePane": {
 			if (!doc.pane[a.pane]) throw fail(`No pane "${a.pane}".`);
+			// closable = false holds for every way of closing (X, middle click, Delete, Alt+W, menus)
+			const holder = parentOf(doc, a.pane)?.parent;
+			if (holder && (doc.node[holder] as TabsNode).closable === false) break;
 			const from = detach(doc, a.pane);
 			delete doc.pane[a.pane];
 			if (from) {
@@ -292,6 +295,7 @@ export function reduce(input: LayoutDoc, a: LayoutAction, ctx: ReduceContext): R
 			const p = parentOf(doc, a.pane);
 			if (!p) break;
 			const t = doc.node[p.parent] as TabsNode;
+			if (t.closable === false) break;
 			for (const other of t.panes.filter((x) => x !== a.pane && !doc.pane[x]?.pinned)) {
 				delete doc.pane[other];
 			}
