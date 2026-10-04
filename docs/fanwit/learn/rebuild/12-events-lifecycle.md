@@ -30,7 +30,7 @@ declare module "$fanwit" {
 
 From then on `ctx.events.emit("notes:saved", { path })` is checked: a misspelled name or a payload of the wrong shape fails to compile, in every module that uses it.
 
-<Callout kind="new" title="New here: declaration merging, conditional types and string & {}">
+<Callout kind="new" title="New here: declaration merging, conditional types and string & &#123;&#125;">
 
 - **Declaration merging**: TypeScript merges every `interface Events` declared for the same module into one. That is what lets each module add entries without editing the core.
 - `EventPayload<K> = K extends keyof Events ? Events[K] : unknown` is a **conditional type**: if the name is a known event, the payload has its declared type; otherwise `unknown`.
