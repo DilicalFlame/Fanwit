@@ -1192,6 +1192,7 @@ dependencies = [
  "colored",
  "dunce",
  "fanwit-install",
+ "fanwit-toml-merge",
  "interprocess",
  "keyring",
  "log",
@@ -1257,6 +1258,14 @@ dependencies = [
  "tauri-plugin-dialog",
  "toml 0.8.2",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "fanwit-toml-merge"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]

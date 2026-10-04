@@ -56,7 +56,7 @@ export interface HostFs {
 	pickFolder(o?: { title?: string }): Promise<string | null>;
 	/**
 	 * Write `value` as TOML into `path`, editing the existing document in place so comments and
-	 * formatting survive where the host can (desktop: toml_edit in Rust). Returns the written text.
+	 * formatting survive (toml_edit: native on desktop, WebAssembly elsewhere). Returns the written text.
 	 */
 	writeToml(path: string, value: Record<string, unknown>): Promise<string>;
 	/** Allow access below a root (vault folders). Desktop enforces this sandbox in Rust. */

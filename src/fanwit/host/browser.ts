@@ -2,7 +2,7 @@
  * BrowserHost: the static web build. Storage is OPFS; vaults are either OPFS folders
  * (`/vaults/<name>`) or real folders picked with the File System Access API (`fsa://<id>`).
  */
-import { stringify } from "smol-toml";
+import { mergeToml } from "./toml-merge";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import { consoleLog, stubWindows } from "./memory";
 import type { FsEntry, FsEvent, FsStat, Host, HostDialog, HostEvents, HostFs, Platform } from "./types";
@@ -190,9 +190,9 @@ class BrowserFs implements HostFs {
 		return `fsa://${id}`;
 	}
 	async writeToml(path: string, value: Record<string, unknown>) {
-		// ponytail: the web host rewrites the file; desktop preserves comments with toml_edit
-		const text = stringify(value) + "\n";
-		await this.writeText(path, text);
+		const existing = await this.readText(path).catch(() => "");
+		const text = await mergeToml(existing, value);
+		if (text !== existing) await this.writeText(path, text);
 		return text;
 	}
 	async allowRoot() {}

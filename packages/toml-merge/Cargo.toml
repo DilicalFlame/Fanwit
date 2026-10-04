@@ -1,0 +1,18 @@
+[package]
+name = "fanwit-toml-merge"
+version = "0.1.0"
+edition = "2021"
+publish = false
+workspace = "../../src-tauri"
+
+# The desktop links this as a library (src-tauri/src/fanwit/toml.rs); the web host loads it as
+# WebAssembly (src/fanwit/host/toml-merge.wasm, committed). After changing it, rebuild with:
+#   cargo build --manifest-path packages/toml-merge/Cargo.toml --release --target wasm32-unknown-unknown
+#   cp src-tauri/target/wasm32-unknown-unknown/release/fanwit_toml_merge.wasm src/fanwit/host/toml-merge.wasm
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde_json = "1.0"
+toml_edit = "0.22"

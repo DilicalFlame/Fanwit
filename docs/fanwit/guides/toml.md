@@ -33,7 +33,7 @@ layout.openToml
 
 <Callout kind="under-the-hood">
 
-Each file is a `TomlFile`: it validates on load, debounces writes (about 150 ms), and watches the disk. An invalid edit keeps the last good value and reports the problem with a line number, so a typo never takes the app down. On the desktop, writes go through `toml_edit`, which preserves comments and formatting; the web host rewrites the file.
+Each file is a `TomlFile`: it validates on load, debounces writes (about 150 ms), and watches the disk. An invalid edit keeps the last good value and reports the problem with a line number, so a typo never takes the app down. Writes go through `toml_edit`, which preserves comments and formatting: linked into the desktop app, and compiled to WebAssembly (`packages/toml-merge`) for the web host, so both behave the same.
 
 </Callout>
 

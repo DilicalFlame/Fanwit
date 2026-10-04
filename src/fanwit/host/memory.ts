@@ -2,7 +2,7 @@
  * MemoryHost: the whole kernel in Node or a test, with an in-memory file system.
  * Also the base the other hosts borrow small pieces from.
  */
-import { stringify } from "smol-toml";
+import { mergeToml } from "./toml-merge";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
 import type { FsEntry, FsEvent, Host, HostEvents, HostFs, HostWindows, LogLevel } from "./types";
 import { dirname, joinPath } from "./types";
@@ -112,8 +112,9 @@ export class MemoryFs implements HostFs {
 		return null;
 	}
 	async writeToml(p: string, value: Record<string, unknown>) {
-		const text = stringify(value) + "\n";
-		await this.writeText(p, text);
+		const existing = await this.readText(p).catch(() => "");
+		const text = await mergeToml(existing, value);
+		if (text !== existing) await this.writeText(p, text);
 		return text;
 	}
 	async allowRoot() {}

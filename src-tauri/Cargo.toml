@@ -11,7 +11,7 @@ default-run = "fanwit"
 
 [workspace]
 # the Rust plugin SDK and bundled native plugins (plugins/<id>/native); a glob that matches nothing is fine
-members = [".", "install", "setup", "../packages/fanwit-plugin-rs", "../plugins/*/native"]
+members = [".", "install", "setup", "../packages/fanwit-plugin-rs", "../packages/toml-merge", "../plugins/*/native"]
 default-members = [".", "install"]
 
 [lib]
@@ -42,6 +42,7 @@ tauri-plugin-dialog = "2"
 notify = "8"
 notify-debouncer-full = "0.5"
 toml_edit = "0.22"
+fanwit-toml-merge = { path = "../packages/toml-merge" }
 dunce = "1.0.5"
 trash = "5.2.3"
 interprocess = "2"

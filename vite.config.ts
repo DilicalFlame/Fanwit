@@ -11,6 +11,7 @@ export default defineConfig({
 	server: { strictPort: true, fs: { allow: ['app.config.ts', 'docs', 'plugins'] } },
 	test: {
 		include: ['src/**/*.test.ts'],
-		environment: 'node'
+		environment: 'node',
+		setupFiles: ['vitest.setup.ts']
 	}
 });

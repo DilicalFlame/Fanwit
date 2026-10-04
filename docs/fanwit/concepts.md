@@ -24,7 +24,7 @@ FaNWiT is opinionated in five places. Each opinion solves a problem that desktop
 
 <Callout kind="under-the-hood">
 
-Writes are debounced (about 150 ms) and preserve comments and formatting: the desktop host edits the file in place with `toml_edit` instead of rewriting it. When a file changes on disk, the app reloads it; an invalid edit keeps the last good state and reports the problem instead of crashing.
+Writes are debounced (about 150 ms) and preserve comments and formatting: every host edits the file in place with `toml_edit` instead of rewriting it (the web host runs the same Rust code as WebAssembly). When a file changes on disk, the app reloads it; an invalid edit keeps the last good state and reports the problem instead of crashing.
 
 </Callout>
 
