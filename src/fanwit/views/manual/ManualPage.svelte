@@ -10,6 +10,7 @@
 	import LearningPaths from "./LearningPaths.svelte";
 	import { siteVersion } from "virtual:fw-docs";
 	import ApiSymbolView from "./ApiSymbol.svelte";
+	import { animateFigure, animated, type FigureAnimation } from "../../manual/figure-anim";
 
 	/**
 	 * One manual page in a tab (Figure 17.15): a written page (Markdown compiled to a component),
@@ -85,8 +86,39 @@
 	let observer: MutationObserver | null = null;
 	let scheduled = 0;
 	const schedule = () => (scheduled ||= requestAnimationFrame(() => ((scheduled = 0), enhance())));
+	// diagrams play when they come into view and pause off screen; a click opens one large
+	const figures = new Map<HTMLElement, FigureAnimation | null>();
+	const watched = new WeakSet<HTMLElement>();
+	const inView =
+		typeof IntersectionObserver === "undefined"
+			? null
+			: new IntersectionObserver(
+					(entries) => {
+						for (const e of entries) {
+							const fig = e.target as HTMLElement;
+							if (figures.has(fig)) figures.get(fig)?.pause(!e.isIntersecting);
+							else if (e.isIntersecting) figures.set(fig, animateFigure(fig.querySelector("svg")!));
+						}
+					},
+					{ threshold: 0.35 }
+				);
+	function wireFigures(root: HTMLElement) {
+		for (const [fig, a] of figures) if (!fig.isConnected) (a?.kill(), figures.delete(fig));
+		for (const fig of root.querySelectorAll<HTMLElement>(".fw-tikz[data-figure]")) {
+			if (watched.has(fig)) continue;
+			watched.add(fig);
+			inView?.observe(fig);
+			if (animated(fig)) fig.insertAdjacentHTML("beforeend", '<button type="button" class="fw-figure-replay" aria-label="Play the animation again">Play again</button>');
+		}
+	}
+	$effect(() => () => {
+		inView?.disconnect();
+		for (const a of figures.values()) a?.kill();
+	});
+
 	function enhance() {
 		if (!body) return;
+		wireFigures(body);
 		const seen = new Map<string, number>();
 		const list: typeof headings = [];
 		for (const h of body.querySelectorAll<HTMLElement>("h1, h2, h3, h4")) {
@@ -299,6 +331,13 @@
 	// ----- clicks: run buttons, copy, permalinks, links -----
 	async function click(e: MouseEvent) {
 		const t = e.target as HTMLElement;
+		const replay = t.closest<HTMLElement>(".fw-figure-replay");
+		if (replay) return void figures.get(replay.closest<HTMLElement>(".fw-tikz")!)?.replay();
+		const zoom = t.closest<HTMLElement>(".fw-figure-zoom");
+		if (zoom) {
+			const figure = zoom.closest<HTMLElement>("[data-figure]")?.dataset.figure;
+			return void k.sys.layout.dispatch({ type: "openOverlay", view: "manual.figure", variant: "lightbox", backdrop: "blur", props: { figure } }, { undoable: false });
+		}
 		const run = t.closest<HTMLElement>("[data-run]");
 		if (run) {
 			let args = {};

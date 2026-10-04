@@ -6,7 +6,12 @@ import { fanwitDocs } from './src/fanwit/manual/vite-plugin';
 export default defineConfig({
 	plugins: [fanwitDocs(), tailwindcss(), sveltekit()],
 	clearScreen: false,
-	optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
+	optimizeDeps: {
+		exclude: ['@sqlite.org/sqlite-wasm'],
+		// imported lazily (playgrounds, diagram animations): bundled up front, so the first page that
+		// needs them does not make the dev server re-bundle and reload it
+		include: ['codemirror', '@codemirror/commands', '@codemirror/lang-html', '@codemirror/lang-javascript', '@codemirror/lang-rust', '@codemirror/language', '@codemirror/view', '@lezer/highlight', 'gsap', 'gsap/DrawSVGPlugin', 'gsap/MotionPathPlugin', 'svelte/compiler']
+	},
 	worker: { format: 'es' },
 	server: {
 		strictPort: true,

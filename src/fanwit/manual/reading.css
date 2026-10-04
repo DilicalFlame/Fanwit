@@ -62,7 +62,13 @@ html[data-reading-tone="dark"] { color-scheme: dark; }
 .fw-doc-body .fw-diagram { margin: 0 0 var(--doc-para, 1em); }
 .fw-doc-body .fw-tikz { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.5em; }
 .fw-doc-body .fw-tikz svg { height: auto; }
-html[data-reading-tone="dark"] .fw-doc-body .fw-tikz svg { filter: invert(0.92) hue-rotate(180deg); }
+html[data-reading-tone="dark"] :is(.fw-doc-body .fw-tikz, .fw-figure-view) svg { filter: invert(0.92) hue-rotate(180deg); }
+.fw-doc-body .fw-tikz { position: relative; }
+.fw-doc-body .fw-figure-zoom { display: flex; justify-content: center; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 6px; }
+.fw-doc-body .fw-figure-zoom:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+.fw-doc-body .fw-figure-replay { position: absolute; top: 0; right: 0; padding: 2px 9px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); font: 500 12px var(--font-sans); color: var(--muted-foreground); opacity: 0; transition: opacity var(--duration-fast, 120ms); }
+.fw-doc-body .fw-tikz:is(:hover, :focus-within) .fw-figure-replay { opacity: 1; }
+@media (hover: none) { .fw-doc-body .fw-figure-replay { opacity: 1; } }
 .fw-doc-body .fw-figure figcaption { font-size: 0.85em; color: var(--muted-foreground); text-align: center; }
 .fw-doc-body .fw-tikz-missing { border: 1px dashed var(--destructive); border-radius: 8px; padding: 0.5em 1em; }
 .fw-doc-body blockquote { border-left: 3px solid var(--primary); background: color-mix(in oklab, var(--primary) 7%, transparent); padding: 0.6em 1em; border-radius: 0 6px 6px 0; }

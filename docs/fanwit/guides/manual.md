@@ -108,6 +108,21 @@ A fence named `tikz` draws a figure with LaTeX. Options after the name give it a
 
 The body above is just TikZ commands, so it is wrapped in a `tikzpicture`; a body that starts its own environment (`\begin{tikzpicture}[...]`, `\begin{wf}`, `\begin{forest}`) is used as it is. Every diagram can use the specification's styles (`fwnode`, `fwcore`, `fwhost`, `fwwarm`, `fwuser`, `fwgrey`, `fwarrow`, `fwdash`, `fwlabel`, `layer`), colours (`fwInk`, `fwBrand`, `fwAccent`, ...), macros (`\key`, `\pill`, `\cd`) and its wireframe kit, all in `docs/_tex/fanwit-diagrams.sty`.
 
+Clicking a diagram opens it large in a lightbox (the `manual.figure` view, opened as a layout overlay): wheel or pinch to zoom where the pointer is, drag to move, double click to zoom in, and **+**, **-**, **0** (fit), **1** (actual size) and the arrow keys from the keyboard.
+
+#### Animation
+
+A diagram comes alive when it scrolls into view, if parts of it are marked with scopes. The picture looks the same without them; [GSAP](https://gsap.com) plays them in the page.
+
+| Scope | What it does |
+|---|---|
+| `\begin{scope}[reveal=2]` | appears at step 2: fades and rises in, and its lines draw themselves. Steps play in order; equal numbers arrive together |
+| `\begin{scope}[flow]` | particles stream along its lines, the way data moves through them |
+| `\begin{scope}[packet]` | a glowing dot travels along its first line, again and again |
+| `\begin{scope}[pulse]` | breathes gently, to point at it |
+
+Combine them by nesting (`\begin{scope}[reveal=3]\begin{scope}[pulse]`). Endless parts start once every step has arrived, pause while the diagram is off screen, and nothing moves for readers who asked for reduced motion. **Play again** (on hover) replays a diagram. Two things to know: a line drawn with `draw=none` produces nothing to follow, so put `packet` on a visible line; and `drop shadow` does not survive the conversion to SVG, so draw a shadow as an offset shape instead.
+
 <Callout kind="under-the-hood">
 
 A diagram compiles once (`latex` then `dvisvgm`, about a second) into `docs/_diagrams/<hash>.svg`, keyed by its source and the style package. Commit those files: readers, CI and contributors without TeX get the picture from the cache, and only an edited diagram compiles again. `pnpm fw docs check` renders missing diagrams, fails on one that does not compile, and deletes SVGs no page uses any more. Dark reading themes invert the colours and turn the hues back.

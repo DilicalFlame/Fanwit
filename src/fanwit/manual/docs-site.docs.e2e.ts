@@ -51,3 +51,18 @@ test("levels filter the contents, and opening a page shows its level", async ({ 
 	await expect(page.getByRole("radio", { name: "Expert" })).toHaveAttribute("aria-checked", "true");
 	await expect(nav.getByRole("button", { name: "Kernel", exact: true })).toBeVisible();
 });
+
+test("a diagram opens large, zooms, and closes with Escape", async ({ page }) => {
+	await open(page, "?page=fanwit/concepts");
+	const figure = page.locator(".fw-tikz:visible").first();
+	await figure.scrollIntoViewIfNeeded();
+	await figure.getByRole("button", { name: /Enlarge diagram/ }).click();
+	const view = page.locator(".fw-figure-view");
+	await expect(view).toBeVisible();
+	const size = view.getByRole("button", { name: "Actual size" });
+	const before = await size.innerText();
+	await view.getByRole("button", { name: "Zoom in" }).click();
+	await expect(size).not.toHaveText(before);
+	await page.keyboard.press("Escape");
+	await expect(view).toHaveCount(0);
+});

@@ -66,6 +66,8 @@ export const manualModule = defineModule({
 			v("manual.nav", "Manual contents", "list-tree", () => import("../views/manual/ManualNav.svelte"), { regions: ["sidebar"] }),
 			v("manual.outline", "On this page", "list", () => import("../views/manual/ManualOutline.svelte"), { regions: ["inspector"] }),
 			v("manual.reading", "Reading settings", "a-large-small", () => import("../views/manual/ReadingPanel.svelte")),
+			// a page's diagram, large and zoomable, in a lightbox overlay
+			v("manual.figure", "Diagram", "image", () => import("../views/manual/FigureView.svelte")),
 			// the main window's sidebar list; pages open in the Manual window
 			v("fanwit.manualToc", "Manual", "book-open", () => import("../views/ManualToc.svelte"), { regions: ["sidebar"] })
 		],

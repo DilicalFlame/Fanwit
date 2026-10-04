@@ -140,7 +140,8 @@ export const tikzPreprocessor = (escapeSvelte) => ({
 			const label = esc(b.opts.alt ?? b.opts.caption ?? "Diagram");
 			const html =
 				"svg" in r
-					? `<figure class="fw-figure fw-tikz" role="img" aria-label="${label}">${r.svg}${caption}</figure>`
+					? // a button: clicking opens it large, to zoom in (ManualPage, FigureView)
+					  `<figure class="fw-figure fw-tikz fw-widget" data-figure="${r.key}"><button type="button" class="fw-figure-zoom" aria-label="Enlarge diagram: ${label}" title="Enlarge">${r.svg}</button>${caption}</figure>`
 					: `<figure class="fw-figure fw-tikz-missing"><pre><code>${esc(b.source)}</code></pre><figcaption>Diagram not rendered: ${esc(r.error)}</figcaption></figure>`;
 			if ("error" in r) console.warn(`[fanwit-tikz] ${filename}: ${r.error}`);
 			// its own HTML block (blank lines around a div), so Markdown leaves it alone

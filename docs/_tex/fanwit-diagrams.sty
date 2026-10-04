@@ -278,3 +278,18 @@
   \wfic{#1+3.5}{#2+32}{book}
   \wfic{#1+3.5}{#2+#3-11}{user-circle}
   \wfic{#1+3.5}{#2+#3-4}{cog}}
+
+% ---------------------------------------------------------------- animation hooks
+% Scopes the manual animates with GSAP (src/fanwit/manual/figure-anim.ts). Each only wraps its
+% contents in <g data-...> in the SVG, so the still picture looks the same.
+%   \begin{scope}[reveal=2] ... \end{scope}   appears at step 2, its lines drawn in
+%   \begin{scope}[flow] ... \end{scope}       particles stream along its lines, forever
+%   \begin{scope}[packet] ... \end{scope}     a glowing dot travels along its first line
+%   \begin{scope}[pulse] ... \end{scope}      breathes gently, to point at it
+\newcommand{\fwraw}[1]{\special{dvisvgm:raw #1}}
+\tikzset{
+  reveal/.style={execute at begin scope={\fwraw{<g data-reveal="#1">}},execute at end scope={\fwraw{</g>}}},
+  flow/.style={execute at begin scope={\fwraw{<g data-flow="">}},execute at end scope={\fwraw{</g>}}},
+  packet/.style={execute at begin scope={\fwraw{<g data-packet="">}},execute at end scope={\fwraw{</g>}}},
+  pulse/.style={execute at begin scope={\fwraw{<g data-pulse="">}},execute at end scope={\fwraw{</g>}}},
+}
