@@ -162,6 +162,7 @@ export class LayoutService {
 		if (persist) this.file?.set(clean(d) as LayoutDoc & Record<string, unknown>);
 		this.k.context.set("layout.maximized", !!d.window[this.windowId]?.maximized);
 		this.k.context.set("layout.zen", !!d.window[this.windowId]?.zen);
+		this.announceActive();
 		this.onDidChange.fire(d);
 	}
 
@@ -221,6 +222,20 @@ export class LayoutService {
 		return this.dispatch({ type: "openView", view, props, ...o });
 	}
 
+	private announced = "";
+	/** layout:activePane {view, path}: what the user is looking at, for modules and plugins. */
+	private announceActive() {
+		// the pane showing in the active tab set (a tab click selects without focusing)
+		const set = this.activeTabset ? (this.doc.node[this.activeTabset] as { active?: string } | undefined) : undefined;
+		const id = set?.active && this.doc.pane[set.active] ? set.active : this.activePane;
+		const p = id ? this.doc.pane[id] : undefined;
+		const path = typeof p?.props?.path === "string" ? p.props.path : undefined;
+		const key = `${id}|${p?.view}|${path}`;
+		if (key === this.announced) return;
+		this.announced = key;
+		this.k.events.emit("layout:activePane" as never, { pane: id ?? null, view: p?.view ?? null, path: path ?? null } as never);
+	}
+
 	focusPane(pane: string) {
 		const p = parentOf(this.doc, pane);
 		const region = p ? locateNode(this.doc, p.parent)?.region : undefined;
@@ -233,6 +248,7 @@ export class LayoutService {
 		this.k.context.set("focusedView", this.doc.pane[pane]?.view);
 		const props = this.doc.pane[pane]?.props ?? {};
 		const path = typeof props.path === "string" ? props.path : undefined;
+		this.announceActive();
 		this.k.context.set("resource.path", path);
 		this.k.context.set("resource.ext", path?.split(".").pop()?.toLowerCase());
 		this.k.context.set("activeRegion", region);

@@ -18,7 +18,7 @@ import { TomlFile } from "./data/toml-file.svelte";
 import { SettingsService } from "./settings/settings.svelte";
 import type { SettingsContribution } from "./settings/define";
 import { setHaptics } from "./motion/motion";
-import { ThemeService, parseTheme, type ThemeDef, type ModeSetting } from "./themes/themes.svelte";
+import { ThemeService, injectCss, parseTheme, type ThemeDef, type ModeSetting } from "./themes/themes.svelte";
 import { NotifyService, type ChannelDef, type NotificationItem, type NotificationSpec } from "./notify/notify.svelte";
 import { LayoutService, type CustomNodeType, type Preset } from "./layout/layout.svelte";
 import type { ViewContribution } from "./layout/views";
@@ -253,6 +253,7 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 		return s;
 	});
 	point("themes", each<ThemeDef | string>((owner, t) => themes.add(typeof t === "string" ? parseTheme(t) : t, owner)));
+	point("styles", each<{ id: string; css: string }>((owner, st) => injectCss(`${owner}/${st.id}`, st.css)));
 	point("menuLocations", each<MenuLocation>((owner, l) => menus.addLocation(l, owner)));
 	point("menus", (owner, value: Record<string, MenuItem[]>) => {
 		const s = new DisposableStore();

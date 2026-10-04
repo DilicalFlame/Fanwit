@@ -22,6 +22,10 @@
 	$effect(() => {
 		void k.host.windows.setTitle(title);
 	});
+	// appearance plugins and CSS snippets scope rules with html[data-preset="blender"]
+	$effect(() => {
+		document.documentElement.dataset.preset = k.sys.layout.doc.preset ?? k.sys.config.layout?.default ?? "";
+	});
 </script>
 
 <div class="flex h-dvh w-full flex-col" inert={locked} use:ctxkeys={{ "window.id": windowId }}>

@@ -15,6 +15,7 @@
 	tabindex="-1"
 	aria-label={layout.paneTitle(pane)}
 	data-fw-pane={pane}
+	data-fw-view={layout.doc.pane[pane]?.view}
 	onfocusin={() => layout.activePane !== pane && layout.focusPane(pane)}
 	onpointerdown={() => layout.activePane !== pane && layout.focusPane(pane)}
 	use:adoptPane={{ pool: layout.pool, pane }}

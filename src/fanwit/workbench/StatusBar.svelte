@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getKernel, menu } from "../ui.svelte";
+	import { ctxkeys } from "../kernel/context.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import type { StatusItem } from "./status.svelte";
 
@@ -11,7 +12,7 @@
 	const { status, vault, notify, layout, themes } = k.sys;
 	const problems = $derived(layout.diagnostics.length + (k.sys.settings.global.diagnostics.length ?? 0));
 	const chord = $derived(k.keys.chord);
-	const visible = (i: StatusItem) => k.context.evaluate(i.when) && (void k.context.version, true);
+	const visible = (i: StatusItem) => (!!i.text || !!i.icon) && k.context.evaluate(i.when) && (void k.context.version, true);
 
 	function run(i: StatusItem) {
 		if (i.command) void k.commands.run(i.command, i.args ?? {}, { source: "toolbar" }).catch((e) => notify.error(e));
@@ -20,7 +21,8 @@
 
 {#snippet item(i: StatusItem)}
 	{#if visible(i)}
-		<button class="flex h-full items-center gap-1 px-2 hover:bg-white/10 disabled:hover:bg-transparent" title={i.tooltip} aria-label={i.label ?? i.tooltip ?? i.text} disabled={!i.command} onclick={() => run(i)}>
+		<!-- right click: statusbar/item with statusItem set, so modules and plugins can add items for theirs -->
+		<button class="flex h-full items-center gap-1 px-2 hover:bg-white/10 disabled:hover:bg-transparent" title={i.tooltip} aria-label={i.label ?? i.tooltip ?? i.text} disabled={!i.command} onclick={() => run(i)} use:ctxkeys={{ statusItem: i.id }} use:menu={{ location: "statusbar/item" }}>
 			{#if i.icon}<Icon name={i.icon} size={13} />{/if}
 			{#if i.text}<span class="truncate">{i.text}</span>{/if}
 		</button>

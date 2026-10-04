@@ -49,6 +49,19 @@ export function sanitizeCss(css: string): string {
 		.replace(/javascript:/gi, "");
 }
 
+/**
+ * Add sanitized CSS to the page until disposed: plugin styles, appearance plugins and CSS snippets.
+ * Each gets its own <style> after the theme, so turning one off is one node removal.
+ */
+export function injectCss(id: string, css: string): Disposable {
+	if (typeof document === "undefined") return toDisposable(() => {});
+	const el = document.createElement("style");
+	el.dataset.fwCss = id;
+	el.textContent = sanitizeCss(css);
+	document.head.appendChild(el);
+	return toDisposable(() => el.remove());
+}
+
 const DENSITY = new Set(["compact", "comfortable", "spacious"]);
 
 export class ThemeService {
