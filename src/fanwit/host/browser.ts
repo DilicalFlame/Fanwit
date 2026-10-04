@@ -10,6 +10,10 @@ import { basename } from "./types";
 import { identity } from "../gen/identity";
 
 type DirHandle = FileSystemDirectoryHandle;
+type FsObserverCtor = new (cb: (records: { type: "appeared" | "disappeared" | "modified" | "moved" | "unknown" | "errored"; relativePathComponents: string[]; relativePathMovedFrom?: string[] }[]) => void) => {
+	observe(h: FileSystemHandle, o: { recursive: boolean }): Promise<void>;
+	disconnect(): void;
+};
 type FileHandle = FileSystemFileHandle;
 
 const IDB = "fanwit-handles";
@@ -32,6 +36,10 @@ class BrowserFs implements HostFs {
 	private uploads = new Map<string, File>();
 	private enc = new TextEncoder();
 	private dec = new TextDecoder();
+
+	constructor() {
+		this.channel?.addEventListener("message", (m) => this.deliver(m.data as FsEvent[]));
+	}
 
 	/** Resolve a host path to its root handle and the remaining segments. */
 	private async root(path: string): Promise<{ dir: DirHandle; parts: string[] }> {
@@ -80,6 +88,7 @@ class BrowserFs implements HostFs {
 		const w = await h.createWritable();
 		await w.write(data as unknown as ArrayBuffer);
 		await w.close();
+		this.announce([{ kind: "modified", path }]);
 	}
 	async writeText(path: string, data: string) {
 		await this.write(path, this.enc.encode(data));
@@ -133,6 +142,7 @@ class BrowserFs implements HostFs {
 		let d = dir;
 		for (const p of parts) d = await d.getDirectoryHandle(p);
 		await d.removeEntry(name, { recursive: o?.recursive ?? true });
+		this.announce([{ kind: "deleted", path }]);
 	}
 	async rename(from: string, to: string) {
 		// ponytail: copy + delete; FileSystemHandle.move() is not available everywhere yet
@@ -146,26 +156,58 @@ class BrowserFs implements HostFs {
 			}
 		} else await this.write(to, await this.read(from));
 		await this.remove(from, { recursive: true });
+		this.announce([{ kind: "renamed", path: to, from }]);
 	}
 	async trash(path: string) {
 		await this.remove(path, { recursive: true });
 	}
+	/**
+	 * Only this origin writes OPFS, so its changes are announced, not polled: every write, remove
+	 * and rename here tells local watchers and other tabs (BroadcastChannel). Picked folders
+	 * (fsa://) can change behind our back: FileSystemObserver where the browser has it, else a
+	 * poll that backs off from 1 s to 10 s while nothing changes and pauses while hidden.
+	 */
 	async watch(path: string, cb: (e: FsEvent[]) => void, o?: { recursive?: boolean }): Promise<Disposable> {
-		// ponytail: polls once per second while visible; switch to FileSystemObserver when it ships widely
+		const recursive = o?.recursive ?? true;
+		const w = { path: path.replace(/\/+$/, ""), recursive, cb };
+		this.watchers.add(w);
+		const stop = path.startsWith("fsa://") ? await this.watchExternal(w.path, cb, recursive) : () => {};
+		return toDisposable(() => {
+			this.watchers.delete(w);
+			stop();
+		});
+	}
+
+	private watchers = new Set<{ path: string; recursive: boolean; cb: (e: FsEvent[]) => void }>();
+	private channel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("fanwit-fs");
+
+	/** Tell watchers in this tab and the others about a change made here. */
+	private announce(events: FsEvent[]) {
+		this.deliver(events);
+		this.channel?.postMessage(events);
+	}
+
+	private deliver(events: FsEvent[]) {
+		for (const w of this.watchers) {
+			const mine = events.filter((e) => [e.path, e.from].some((p) => p !== undefined && (p === w.path || (p.startsWith(w.path + "/") && (w.recursive || !p.slice(w.path.length + 1).includes("/"))))));
+			if (mine.length) w.cb(mine);
+		}
+	}
+
+	private async watchExternal(path: string, cb: (e: FsEvent[]) => void, recursive: boolean): Promise<() => void> {
 		const snapshot = async () => {
 			const m = new Map<string, number>();
 			try {
 				const st = await this.stat(path);
 				if (!st.dir) m.set(path, st.mtime);
-				else for (const e of await this.list(path, { recursive: o?.recursive ?? true })) if (!e.dir) m.set(e.path, e.mtime ?? 0);
+				else for (const e of await this.list(path, { recursive })) if (!e.dir) m.set(e.path, e.mtime ?? 0);
 			} catch {
 				/* missing: empty snapshot */
 			}
 			return m;
 		};
 		let prev = await snapshot();
-		const timer = setInterval(async () => {
-			if (document.visibilityState !== "visible") return;
+		const diff = async () => {
 			const next = await snapshot();
 			const events: FsEvent[] = [];
 			for (const [p, t] of next) {
@@ -176,8 +218,44 @@ class BrowserFs implements HostFs {
 			for (const p of prev.keys()) if (!next.has(p)) events.push({ kind: "deleted", path: p });
 			prev = next;
 			if (events.length) cb(events);
-		}, 1000);
-		return toDisposable(() => clearInterval(timer));
+			return events.length > 0;
+		};
+
+		const Observer = (globalThis as unknown as { FileSystemObserver?: FsObserverCtor }).FileSystemObserver;
+		if (Observer) {
+			try {
+				// the browser reports what changed; a full diff only when it says it lost track
+				const obs = new Observer((records) => {
+					if (records.some((r) => r.type === "unknown" || r.type === "errored")) return void diff();
+					const events: FsEvent[] = [];
+					for (const r of records) {
+						const at = (parts: string[]) => [path, ...parts].join("/");
+						if (r.relativePathComponents.at(-1)?.endsWith(".crswap")) continue;
+						if (r.type === "moved") events.push({ kind: "renamed", path: at(r.relativePathComponents), from: at(r.relativePathMovedFrom ?? []) });
+						else events.push({ kind: r.type === "appeared" ? "created" : r.type === "disappeared" ? "deleted" : "modified", path: at(r.relativePathComponents) });
+					}
+					if (events.length) cb(events);
+				});
+				const st = await this.stat(path);
+				await obs.observe(st.dir ? await this.dirAt(path) : await this.fileAt(path), { recursive });
+				return () => obs.disconnect();
+			} catch {
+				/* not observable (old build, permission): poll */
+			}
+		}
+		let delay = 1000;
+		let timer: ReturnType<typeof setTimeout>;
+		let stopped = false;
+		// a chain of timeouts, so a slow scan of a big folder never overlaps the next one
+		const tick = async () => {
+			if (document.visibilityState === "visible") delay = (await diff().catch(() => false)) ? 1000 : Math.min(delay * 2, 10_000);
+			if (!stopped) timer = setTimeout(tick, delay);
+		};
+		timer = setTimeout(tick, delay);
+		return () => {
+			stopped = true;
+			clearTimeout(timer);
+		};
 	}
 	async pickFolder() {
 		const picker = (window as unknown as { showDirectoryPicker?: (o: object) => Promise<DirHandle> }).showDirectoryPicker;
