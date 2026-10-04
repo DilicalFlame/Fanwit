@@ -972,6 +972,19 @@ async function docs() {
 			}
 			for (const m of p.body.matchAll(/pnpm fw ([a-z][\w-]*)/g)) if (!cliCommands.has(m[1])) problems.push(`${file}: \`pnpm fw ${m[1]}\` is not a fw command`);
 		}
+		// TikZ diagrams: rendered once and committed (docs/_diagrams), so CI needs no TeX. Render the
+		// missing ones here; an edited diagram leaves its old SVG behind, which is removed
+		const tikz = await import(pathToFileURL(abs("src/fanwit/manual/tikz.mjs")).href);
+		const used = new Set();
+		for (const p of pages)
+			for (const b of tikz.tikzBlocks(p.body)) {
+				const r = await tikz.renderTikz(b.source, ROOT);
+				used.add(`${r.key}.svg`);
+				if ("error" in r) problems.push(`${p.meta.file.slice(1)}: tikz diagram ${b.opts.caption ? `"${b.opts.caption}" ` : ""}does not render: ${r.error}`);
+			}
+		const stale = exists(tikz.DIAGRAMS) ? fs.readdirSync(abs(tikz.DIAGRAMS)).filter((f) => !used.has(f)) : [];
+		for (const f of stale) remove(`${tikz.DIAGRAMS}/${f}`);
+		if (stale.length) console.log(`removed ${stale.length} unused diagram${stale.length > 1 ? "s" : ""}`);
 		// M10: every public symbol has a doc comment and an @example (Section 21.6.1)
 		for (const s of sets.filter((x) => x.api)) {
 			const { extractApi } = await import(pathToFileURL(abs("src/fanwit/manual/api.mjs")).href);

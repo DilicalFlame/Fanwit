@@ -1,0 +1,280 @@
+% FaNWiT diagrams: the manual's tikz blocks compile against this package
+% (src/fanwit/manual/tikz.mjs). Colours, styles, the logo and the wireframe kit are the
+% specification's (FANWIT-Specification.pdf), so its figures paste in unchanged.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fanwit-diagrams}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[sfdefault]{FiraSans}
+\RequirePackage[varqu,varl]{inconsolata}
+\RequirePackage{fontawesome5}
+\RequirePackage[dvipsnames,svgnames]{xcolor}
+\RequirePackage{amsmath,amssymb}
+\RequirePackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,shapes.misc,shapes.multipart,
+  fit,backgrounds,calc,shadows,decorations.pathreplacing,decorations.pathmorphing,matrix,chains,patterns}
+\RequirePackage{forest}
+\useforestlibrary{edges}
+
+% ---------------------------------------------------------------- colours
+\definecolor{fwInk}{HTML}{1E1B4B}
+\definecolor{fwBrand}{HTML}{4F46E5}
+\definecolor{fwBrandSoft}{HTML}{E0E7FF}
+\definecolor{fwAccent}{HTML}{0D9488}
+\definecolor{fwAccentSoft}{HTML}{CCFBF1}
+\definecolor{fwWarm}{HTML}{D97706}
+\definecolor{fwWarmSoft}{HTML}{FEF3C7}
+\definecolor{fwRed}{HTML}{DC2626}
+\definecolor{fwRedSoft}{HTML}{FEE2E2}
+\definecolor{fwGreen}{HTML}{16A34A}
+\definecolor{fwGreenSoft}{HTML}{DCFCE7}
+\definecolor{fwSlate}{HTML}{475569}
+\definecolor{fwGrid}{HTML}{E2E8F0}
+\definecolor{fwPaper}{HTML}{F8FAFC}
+\definecolor{fwCode}{HTML}{F5F5F7}
+% wireframe greys
+\definecolor{wfLine}{HTML}{64748B}
+\definecolor{wfFill}{HTML}{F1F5F9}
+\definecolor{wfFillDark}{HTML}{E2E8F0}
+\definecolor{wfText}{HTML}{334155}
+\definecolor{wfMuted}{HTML}{94A3B8}
+
+% ---------------------------------------------------------------- inline helpers
+\newcommand{\fw}{\textsc{Fanwit}}
+\newcommand{\cd}[1]{\texttt{\color{fwInk}#1}}
+\newcommand{\flag}[1]{\texttt{\color{fwInk}-{}-#1}}
+\DeclareRobustCommand{\key}[1]{\tikz[baseline=(k.base)]\node[draw=fwSlate,fill=fwPaper,rounded corners=1.5pt,
+  inner sep=1.6pt,font=\ttfamily\scriptsize](k){#1};}
+\DeclareRobustCommand{\pill}[2][fwBrand]{\tikz[baseline=(p.base)]\node[fill=#1!15,text=#1!70!black,rounded corners=4pt,
+  inner xsep=4pt,inner ysep=1.5pt,font=\scriptsize\bfseries](p){#2};}
+\newcommand{\status}[1]{%
+  \ifnum#1=0 \pill[fwGreen]{BUILT}\fi
+  \ifnum#1=1 \pill[fwWarm]{PARTIAL}\fi
+  \ifnum#1=2 \pill[fwRed]{TO BUILD}\fi
+  \ifnum#1=3 \pill[fwBrand]{NEW IDEA}\fi}
+\newcommand{\desk}{\pill[fwBrand]{DESKTOP}}
+\newcommand{\web}{\pill[fwAccent]{WEB}}
+\newcommand{\both}{\pill[fwSlate]{BOTH}}
+
+
+% ---------------------------------------------------------------- tikz styles
+\tikzset{
+  fwnode/.style={draw=fwInk!70,fill=white,rounded corners=2pt,font=\small,align=center,
+    inner sep=4pt,minimum height=7mm,execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  fwcore/.style={fwnode,fill=fwBrandSoft,draw=fwBrand},
+  fwhost/.style={fwnode,fill=fwAccentSoft,draw=fwAccent},
+  fwwarm/.style={fwnode,fill=fwWarmSoft,draw=fwWarm},
+  fwuser/.style={fwnode,fill=fwGreenSoft,draw=fwGreen},
+  fwgrey/.style={fwnode,fill=fwPaper,draw=fwSlate},
+  fwarrow/.style={-{Stealth[length=2.2mm]},draw=fwInk!70,thick},
+  fwdash/.style={-{Stealth[length=2mm]},draw=fwSlate,dashed},
+  fwlabel/.style={font=\scriptsize\color{fwSlate},align=center},
+  layer/.style={draw=fwGrid,fill=fwPaper,rounded corners=4pt,inner sep=6pt},
+}
+
+% ==========================================================================
+%  FANWIT mock logo (pure TikZ)
+%  The mark is a window whose panes are split so that they spell an "F":
+%  a docked sidebar (stem), a tab strip (top arm), a split pane (middle arm)
+%  and one small floating card. It literally shows what the Layout API does.
+% ==========================================================================
+\newcommand{\fanwitmarkbody}[1]{%
+  % window body
+  \fill[fwInk] (0,0) rectangle (10,10);
+  % title bar dots
+  \fill[fwRed!80!white]   (1.15,8.85) circle (0.42);
+  \fill[fwWarm!90!white]  (2.35,8.85) circle (0.42);
+  \fill[fwAccent!80!white](3.55,8.85) circle (0.42);
+  % F: stem (docked sidebar)
+  \fill[fwBrandSoft, rounded corners={0.6*#1 mm}] (1.0,1.0) rectangle (3.4,7.6);
+  % F: top arm (tab strip)
+  \fill[fwAccent, rounded corners={0.6*#1 mm}] (3.9,5.9) rectangle (9.0,7.6);
+  % F: middle arm (split pane)
+  \fill[fwBrand!70!white, rounded corners={0.6*#1 mm}] (3.9,3.6) rectangle (7.4,5.4);
+  % floating card
+  \fill[fwWarm, rounded corners={0.5*#1 mm}] (7.0,1.0) rectangle (9.0,2.8);
+}
+% \fanwitmark{scale}: scale 1 = 1cm wide
+\newcommand{\fanwitmark}[1]{%
+  \tikz[baseline={(0,0.18*#1 cm)},x=#1 mm,y=#1 mm]{%
+    \begin{scope}
+      \clip[rounded corners=2.2*#1 mm] (0,0) rectangle (10,10);
+      \fanwitmarkbody{#1}
+    \end{scope}}}
+% big version with soft shadow, for the title page
+\newcommand{\fanwitmarkbig}[1]{%
+  \tikz[x=#1 mm,y=#1 mm]{%
+    \fill[fwInk!25,rounded corners=2.2*#1 mm] (0.35,-0.45) rectangle (10.35,9.55);
+    \begin{scope}
+      \clip[rounded corners=2.2*#1 mm] (0,0) rectangle (10,10);
+      \fanwitmarkbody{#1}
+    \end{scope}}}
+% \fanwitwordmark{mark scale}{font size in pt}
+\newcommand{\fanwitwordmark}[2]{%
+  \fanwitmark{#1}\hspace{0.3em}%
+  {\fontsize{#2}{#2}\selectfont\bfseries\color{fwInk}fan\color{fwBrand}wit}}
+
+% ==========================================================================
+%  Wireframe kit (TikZ). Origin is top left, units are millimetres,
+%  y grows downward like screen coordinates. Every macro takes
+%  x, y (top left) and usually w, h.
+% ==========================================================================
+\newenvironment{wf}[1][1]{%
+  \begin{tikzpicture}[x=#1 mm,y=-#1 mm,font=\sffamily\tiny,
+    every node/.style={text=wfText,inner sep=0.6pt},line cap=round,line join=round]}%
+  {\end{tikzpicture}}
+
+% desktop window frame with title bar
+\newcommand{\wfwin}[5]{%
+  \fill[black!12,rounded corners=1.6] (#1+0.8,#2+1) rectangle ++(#3,#4);
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.6,line width=0.5pt] (#1,#2) rectangle ++(#3,#4);
+  \fill[wfFillDark,rounded corners=1.6] (#1,#2) rectangle ++(#3,6);
+  \fill[wfFillDark] (#1,#2+3) rectangle ++(#3,3);
+  \draw[wfLine,line width=0.3pt] (#1,#2+6) -- ++(#3,0);
+  \draw[wfLine,line width=0.5pt,rounded corners=1.6] (#1,#2) rectangle ++(#3,#4);
+  \node[anchor=center,font=\sffamily\tiny\bfseries] at (#1+#3/2,#2+3) {#5};
+  \node[anchor=center,font=\tiny] at (#1+#3-13,#2+3) {\faIcon{window-minimize}};
+  \node[anchor=center,font=\tiny] at (#1+#3-8,#2+3) {\faIcon[regular]{square}};
+  \node[anchor=center,font=\tiny] at (#1+#3-3,#2+3) {\faIcon{times}};
+}
+% desktop window frame without OS controls (custom title bar drawn by app)
+\newcommand{\wfframe}[4]{%
+  \fill[black!12,rounded corners=1.6] (#1+0.8,#2+1) rectangle ++(#3,#4);
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.6,line width=0.5pt] (#1,#2) rectangle ++(#3,#4);
+}
+% browser frame for web target
+\newcommand{\wfweb}[5]{%
+  \fill[black!12,rounded corners=1.6] (#1+0.8,#2+1) rectangle ++(#3,#4);
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.6,line width=0.5pt] (#1,#2) rectangle ++(#3,#4);
+  \fill[wfFillDark,rounded corners=1.6] (#1,#2) rectangle ++(#3,8);
+  \fill[wfFillDark] (#1,#2+4) rectangle ++(#3,4);
+  \draw[wfLine,line width=0.3pt] (#1,#2+8) -- ++(#3,0);
+  \fill[red!50] (#1+3,#2+4) circle (0.9); \fill[orange!60] (#1+6,#2+4) circle (0.9);
+  \fill[green!50!black!50] (#1+9,#2+4) circle (0.9);
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.5,line width=0.3pt] (#1+14,#2+1.8) rectangle ++(#3-20,4.4);
+  \node[anchor=west,text=wfMuted] at (#1+16,#2+4) {\faIcon{lock}\ #5};
+  \draw[wfLine,line width=0.5pt,rounded corners=1.6] (#1,#2) rectangle ++(#3,#4);
+}
+\newcommand{\wfrect}[4]{\filldraw[draw=wfLine!60,fill=wfFill,line width=0.3pt] (#1,#2) rectangle ++(#3,#4);}
+\newcommand{\wfdark}[4]{\filldraw[draw=wfLine!60,fill=wfFillDark,line width=0.3pt] (#1,#2) rectangle ++(#3,#4);}
+\newcommand{\wfwhite}[4]{\filldraw[draw=wfLine!60,fill=white,line width=0.3pt] (#1,#2) rectangle ++(#3,#4);}
+\newcommand{\wfcard}[4]{\fill[black!10,rounded corners=1.2] (#1+0.6,#2+0.8) rectangle ++(#3,#4);
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.2,line width=0.4pt] (#1,#2) rectangle ++(#3,#4);}
+\newcommand{\wfarea}[5]{%
+  \draw[wfMuted,dashed,line width=0.3pt] (#1,#2) rectangle ++(#3,#4);
+  \node[text=wfMuted,align=center,font=\sffamily\tiny] at (#1+#3/2,#2+#4/2) {#5};}
+\newcommand{\wfimg}[4]{%
+  \filldraw[draw=wfMuted,fill=wfFill,line width=0.3pt] (#1,#2) rectangle ++(#3,#4);
+  \draw[wfMuted,line width=0.2pt] (#1,#2) -- ++(#3,#4) (#1+#3,#2) -- ++(-#3,#4);}
+\newcommand{\wfbackdrop}[4]{\fill[black,opacity=0.18] (#1,#2) rectangle ++(#3,#4);}
+% text
+\newcommand{\wft}[3]{\node[anchor=west] at (#1,#2) {#3};}
+\newcommand{\wftb}[3]{\node[anchor=west,font=\sffamily\tiny\bfseries] at (#1,#2) {#3};}
+\newcommand{\wfth}[3]{\node[anchor=west,font=\sffamily\scriptsize\bfseries] at (#1,#2) {#3};}
+\newcommand{\wftm}[3]{\node[anchor=west,text=wfMuted] at (#1,#2) {#3};}
+\newcommand{\wftr}[3]{\node[anchor=east,text=wfMuted] at (#1,#2) {#3};}
+\newcommand{\wftc}[3]{\node[anchor=center] at (#1,#2) {#3};}
+\newcommand{\wfic}[3]{\node[anchor=center,text=wfText] at (#1,#2) {\faIcon{#3}};}
+\newcommand{\wficm}[3]{\node[anchor=center,text=wfMuted] at (#1,#2) {\faIcon{#3}};}
+\newcommand{\wficb}[3]{\node[anchor=center,text=fwBrand] at (#1,#2) {\faIcon{#3}};}
+% controls
+\newcommand{\wfbtn}[4]{%
+  \filldraw[draw=wfLine,fill=white,rounded corners=1,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node at (#1+#3/2,#2+2.5) {#4};}
+\newcommand{\wfbtnp}[4]{%
+  \filldraw[draw=fwBrand,fill=fwBrand,rounded corners=1,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node[text=white,font=\sffamily\tiny\bfseries] at (#1+#3/2,#2+2.5) {#4};}
+\newcommand{\wfbtnd}[4]{%
+  \filldraw[draw=fwRed,fill=fwRed,rounded corners=1,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node[text=white,font=\sffamily\tiny\bfseries] at (#1+#3/2,#2+2.5) {#4};}
+\newcommand{\wfin}[4]{%
+  \filldraw[draw=wfLine,fill=white,rounded corners=0.8,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node[anchor=west,text=wfMuted] at (#1+1.2,#2+2.5) {#4};}
+\newcommand{\wfsearch}[4]{%
+  \filldraw[draw=wfLine,fill=white,rounded corners=2.5,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node[anchor=west,text=wfMuted] at (#1+1.5,#2+2.5) {\faIcon{search}\ #4};}
+\newcommand{\wfselect}[4]{%
+  \filldraw[draw=wfLine,fill=white,rounded corners=0.8,line width=0.35pt] (#1,#2) rectangle ++(#3,5);
+  \node[anchor=west] at (#1+1.2,#2+2.5) {#4};
+  \node[anchor=east] at (#1+#3-1,#2+2.5) {\faIcon{chevron-down}};}
+\newcommand{\wfchk}[4]{%
+  \ifnum#3=1 \filldraw[draw=fwBrand,fill=fwBrand,rounded corners=0.4] (#1,#2-1.2) rectangle ++(2.4,2.4);
+    \node[text=white,font=\fontsize{3.5}{3.5}\selectfont] at (#1+1.2,#2) {\faIcon{check}};
+  \else \draw[wfLine,rounded corners=0.4,line width=0.35pt] (#1,#2-1.2) rectangle ++(2.4,2.4); \fi
+  \node[anchor=west] at (#1+3.4,#2) {#4};}
+\newcommand{\wftog}[3]{%
+  \ifnum#3=1 \filldraw[fill=fwBrand,draw=fwBrand,rounded corners=1.3] (#1,#2-1.3) rectangle ++(5,2.6);
+    \fill[white] (#1+3.7,#2) circle (1);
+  \else \filldraw[fill=wfFillDark,draw=wfLine,rounded corners=1.3,line width=0.3pt] (#1,#2-1.3) rectangle ++(5,2.6);
+    \fill[white] (#1+1.3,#2) circle (1); \draw[wfLine,line width=0.2pt] (#1+1.3,#2) circle (1);\fi}
+\newcommand{\wfslider}[4]{%
+  \draw[wfFillDark,line width=1pt] (#1,#2) -- ++(#3,0);
+  \draw[fwBrand,line width=1pt] (#1,#2) -- ++(#4,0);
+  \filldraw[fill=white,draw=fwBrand,line width=0.4pt] (#1+#4,#2) circle (1.2);}
+\newcommand{\wfkey}[3]{\node[draw=wfLine,fill=white,rounded corners=0.6,inner sep=0.8pt,
+  font=\ttfamily\fontsize{4.6}{5}\selectfont,anchor=west] at (#1,#2) {#3};}
+\newcommand{\wfkeyr}[3]{\node[draw=wfLine,fill=white,rounded corners=0.6,inner sep=0.8pt,
+  font=\ttfamily\fontsize{4.6}{5}\selectfont,anchor=east] at (#1,#2) {#3};}
+\newcommand{\wftab}[5]{%
+  \ifnum#5=1
+    \filldraw[draw=wfLine!70,fill=white,line width=0.3pt] (#1,#2+5.5) -- (#1,#2) -- ++(#3,0) -- ++(0,5.5);
+    \draw[fwBrand,line width=0.9pt] (#1,#2) -- ++(#3,0);
+    \node[anchor=west,font=\sffamily\tiny\bfseries] at (#1+1.5,#2+2.75) {#4};
+  \else
+    \draw[wfLine!50,line width=0.3pt] (#1+#3,#2+1) -- ++(0,3.5);
+    \node[anchor=west,text=wfMuted] at (#1+1.5,#2+2.75) {#4};
+  \fi
+  \node[anchor=east,text=wfMuted,font=\fontsize{3.5}{3.5}\selectfont] at (#1+#3-1.2,#2+2.75) {\faIcon{times}};}
+\newcommand{\wflines}[4]{%
+  \foreach \i in {1,...,#4}{\draw[wfFillDark,line width=1.1pt] (#1,#2+\i*2.8-2.8) -- ++({#3*(0.55+0.45*mod(\i*37,10)/10)},0);}}
+\newcommand{\wfsep}[3]{\draw[wfLine!40,line width=0.3pt] (#1,#2) -- ++(#3,0);}
+\newcommand{\wfvsep}[3]{\draw[wfLine!40,line width=0.3pt] (#1,#2) -- ++(0,#3);}
+\newcommand{\wfavatar}[3]{\filldraw[fill=wfFillDark,draw=wfLine,line width=0.3pt] (#1,#2) circle (#3);}
+\newcommand{\wfsel}[4]{\fill[fwBrand!12] (#1,#2) rectangle ++(#3,#4);
+  \fill[fwBrand] (#1,#2) rectangle ++(0.6,#4);}
+\newcommand{\wfprogress}[4]{%
+  \fill[wfFillDark,rounded corners=0.5] (#1,#2) rectangle ++(#3,1.2);
+  \fill[fwBrand,rounded corners=0.5] (#1,#2) rectangle ++(#4,1.2);}
+\newcommand{\wfswatch}[4]{\filldraw[fill=#3,draw=wfLine!60,line width=0.25pt] (#1,#2) circle (#4);}
+\newcommand{\wfcursor}[2]{\fill[black] (#1,#2) -- ++(0,3.4) -- ++(0.9,-0.9) -- ++(0.9,1.6) -- ++(0.5,-0.3)
+  -- ++(-0.9,-1.5) -- ++(1.3,0) -- cycle; \draw[white,line width=0.15pt] (#1,#2) -- ++(0,3.4) -- ++(0.9,-0.9)
+  -- ++(0.9,1.6) -- ++(0.5,-0.3) -- ++(-0.9,-1.5) -- ++(1.3,0) -- cycle;}
+% numbered callout for the element legend under a wireframe
+\newcommand{\wfnum}[3]{\node[circle,fill=fwWarm,text=white,font=\sffamily\fontsize{4.2}{4.2}\selectfont\bfseries,
+  inner sep=0pt,minimum size=3.3mm] at (#1,#2) {#3};}
+% numbered legend list
+\newenvironment{wflegend}{%
+  \begin{enumerate}[label={\protect\tikz[baseline=-0.6ex]\protect\node[circle,fill=fwWarm,text=white,
+    font=\sffamily\scriptsize\bfseries,inner sep=0pt,minimum size=4mm]{\arabic*};},
+    leftmargin=9mm,itemsep=1pt,font=\small]\small}{\end{enumerate}}
+
+% standard app chrome pieces ---------------------------------------------
+% custom title bar of the workbench (x,y,w)
+\newcommand{\wftitlebar}[3]{%
+  \wfdark{#1}{#2}{#3}{7}
+  \begin{scope}[shift={(#1+1.5,#2+1.5)},x=0.4mm,y=-0.4mm]\fill[fwInk] (0,0) rectangle (10,10);
+    \fill[fwBrandSoft] (1,1) rectangle (3.4,7.6);\fill[fwAccent] (3.9,1) rectangle (9,2.6);\end{scope}
+  \wft{#1+7}{#2+3.5}{File\ \ Edit\ \ View\ \ Go\ \ Window\ \ Help}
+  \filldraw[draw=wfLine,fill=white,rounded corners=1.5,line width=0.3pt] (#1+#3/2-22,#2+1.2) rectangle ++(44,4.6);
+  \node[text=wfMuted] at (#1+#3/2,#2+3.5) {\faIcon{search}\ \ Search or run a command\ \ \ \ \ Ctrl+K};
+  \node[anchor=center] at (#1+#3-13,#2+3.5) {\faIcon{window-minimize}};
+  \node[anchor=center] at (#1+#3-8,#2+3.5) {\faIcon[regular]{square}};
+  \node[anchor=center] at (#1+#3-3,#2+3.5) {\faIcon{times}};}
+% status bar (x,y,w)
+\newcommand{\wfstatusbar}[3]{%
+  \fill[fwBrand] (#1,#2) rectangle ++(#3,4);
+  \node[anchor=west,text=white,font=\fontsize{4.3}{4.5}\selectfont] at (#1+1.5,#2+2)
+    {\faIcon{database}\ my-vault\quad\faIcon{code-branch}\ main\quad\faIcon{sync}\ Saved};
+  \node[anchor=east,text=white,font=\fontsize{4.3}{4.5}\selectfont] at (#1+#3-1.5,#2+2)
+    {Ln 12, Col 4\quad UTF-8\quad\faIcon{bell}\ 2};}
+% activity bar (x,y,h) with icons
+\newcommand{\wfactivity}[3]{%
+  \wfdark{#1}{#2}{7}{#3}
+  \wfsel{#1}{#2+1}{7}{6}
+  \wficb{#1+3.5}{#2+4}{copy}
+  \wfic{#1+3.5}{#2+11}{search}
+  \wfic{#1+3.5}{#2+18}{terminal}
+  \wfic{#1+3.5}{#2+25}{puzzle-piece}
+  \wfic{#1+3.5}{#2+32}{book}
+  \wfic{#1+3.5}{#2+#3-11}{user-circle}
+  \wfic{#1+3.5}{#2+#3-4}{cog}}

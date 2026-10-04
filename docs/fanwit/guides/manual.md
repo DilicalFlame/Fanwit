@@ -80,6 +80,26 @@ theme.select
 
 The fence is `fanwit-run`, then a command id and optional JSON arguments: `layout.applyPreset {"preset": "browser"}`.
 
+### Diagrams in TikZ
+
+A fence named `tikz` draws a figure with LaTeX. Options after the name give it a caption and a description for screen readers:
+
+```tikz caption="A command runs through its pipeline" alt="Three boxes: palette, command, handler, joined by arrows"
+\node[fwuser] (p) {Palette};
+\node[fwcore, right=12mm of p] (c) {Command};
+\node[fwhost, right=22mm of c] (h) {Handler};
+\draw[fwarrow] (p) -- (c);
+\draw[fwarrow] (c) -- node[fwlabel, above] {when, args} (h);
+```
+
+The body above is just TikZ commands, so it is wrapped in a `tikzpicture`; a body that starts its own environment (`\begin{tikzpicture}[...]`, `\begin{wf}`, `\begin{forest}`) is used as it is. Every diagram can use the specification's styles (`fwnode`, `fwcore`, `fwhost`, `fwwarm`, `fwuser`, `fwgrey`, `fwarrow`, `fwdash`, `fwlabel`, `layer`), colours (`fwInk`, `fwBrand`, `fwAccent`, ...), macros (`\key`, `\pill`, `\cd`) and its wireframe kit, all in `docs/_tex/fanwit-diagrams.sty`.
+
+<Callout kind="under-the-hood">
+
+A diagram compiles once (`latex` then `dvisvgm`, about a second) into `docs/_diagrams/<hash>.svg`, keyed by its source and the style package. Commit those files: readers, CI and contributors without TeX get the picture from the cache, and only an edited diagram compiles again. `pnpm fw docs check` renders missing diagrams, fails on one that does not compile, and deletes SVGs no page uses any more. Dark reading themes invert the colours and turn the hues back.
+
+</Callout>
+
 ### Svelte in Markdown
 
 Pages are compiled by [mdsvex](https://mdsvex.pngwn.io), so a page can use Svelte components next to the prose: a live diagram, a small demo, a chart. Code blocks are highlighted at build time by [Shiki](https://shiki.style) and follow the reading theme.

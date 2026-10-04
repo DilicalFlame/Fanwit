@@ -6,6 +6,7 @@
  */
 import { mdsvex, escapeSvelte } from "mdsvex";
 import { createHighlighter } from "shiki";
+import { tikzPreprocessor } from "./tikz.mjs";
 
 const LANGS = ["ts", "js", "svelte", "toml", "rust", "json", "jsonc", "sh", "bash", "powershell", "css", "html", "md", "yaml", "diff", "xml", "ini"];
 /** Reading themes pick one of these with `--shiki-light` / `--shiki-dark` (see reading.css). */
@@ -36,8 +37,9 @@ export async function highlight(code, lang) {
 	return `{@html \`${escapeSvelte(html)}\`}`;
 }
 
-/** The preprocessors for svelte.config.js: mdsvex, then Svelte 5 syntax for its front matter script. */
+/** The preprocessors for svelte.config.js: TikZ diagrams, mdsvex, then Svelte 5 syntax for its front matter script. */
 export const manualMarkdown = () => [
+	tikzPreprocessor(escapeSvelte),
 	mdsvex({
 		extensions: [".md"],
 		highlight: { highlighter: highlight },

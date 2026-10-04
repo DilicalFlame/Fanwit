@@ -57,6 +57,14 @@ html[data-reading-tone="dark"] { color-scheme: dark; }
 .fw-doc-body strong { font-weight: 650; }
 .fw-doc-body hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
 .fw-doc-body img, .fw-doc-body svg.fw-figure { max-width: 100%; height: auto; }
+/* TikZ diagrams (tikz.mjs): drawn for paper, so dark reading themes invert them and turn the
+   hues back; ponytail: one filter for every colour, a per-colour dark palette if it ever looks off */
+.fw-doc-body .fw-diagram { margin: 0 0 var(--doc-para, 1em); }
+.fw-doc-body .fw-tikz { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.5em; }
+.fw-doc-body .fw-tikz svg { height: auto; }
+html[data-reading-tone="dark"] .fw-doc-body .fw-tikz svg { filter: invert(0.92) hue-rotate(180deg); }
+.fw-doc-body .fw-figure figcaption { font-size: 0.85em; color: var(--muted-foreground); text-align: center; }
+.fw-doc-body .fw-tikz-missing { border: 1px dashed var(--destructive); border-radius: 8px; padding: 0.5em 1em; }
 .fw-doc-body blockquote { border-left: 3px solid var(--primary); background: color-mix(in oklab, var(--primary) 7%, transparent); padding: 0.6em 1em; border-radius: 0 6px 6px 0; }
 .fw-doc-body blockquote > :last-child { margin-bottom: 0; }
 .fw-doc-body table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 0.88em; line-height: 1.5; max-width: 100%; }
