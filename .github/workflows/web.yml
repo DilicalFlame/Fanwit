@@ -1,13 +1,25 @@
 name: web
 
+# GitHub Pages: the web build of the app at the site root, and the versioned docs site under
+# /docs (Section 21.10). Pushes to main publish the docs as "next"; tags (v1.2.0) publish a
+# release. Earlier versions live on the docs-site branch, so every deploy carries all of them.
 on:
   push:
     branches: [main]
+    tags: ["v*"]
 
 permissions:
-  contents: read
+  contents: write # the docs-site branch
   pages: write
   id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # URL path of the docs on Pages. A project site serves from /<repo>; with a custom domain use /docs.
+  DOCS_BASE: /${{ github.event.repository.name }}/docs
 
 jobs:
   deploy:
@@ -23,6 +35,34 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+
+      - name: Docs version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v=next; fi
+          echo "DOCS_VERSION=$v" >> "$GITHUB_ENV"
+      - name: Build the docs site
+        run: node packages/fw/fw.mjs docs build --version "$DOCS_VERSION" --base "$DOCS_BASE/v/$DOCS_VERSION"
+
+      - name: Earlier versions
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin docs-site >/dev/null; then
+            git clone --depth 1 --branch docs-site "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" site
+          else
+            mkdir site && git -C site init -b docs-site
+          fi
+      - run: node packages/fw/fw.mjs docs publish site --version "$DOCS_VERSION"
+      - name: Keep this version
+        shell: bash
+        run: |
+          cd site
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" commit -m "docs: publish $DOCS_VERSION" || exit 0
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:docs-site
+
+      - name: Assemble
+        run: mkdir -p build/docs && rsync -a --exclude .git site/ build/docs/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build
