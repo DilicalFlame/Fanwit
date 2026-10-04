@@ -14,6 +14,12 @@ export function activateCore(ctx: ModuleContext) {
 	const { layout, windows, notify, themes, settings, vault, palette, menus } = k.sys;
 	const h = (id: string, fn: Parameters<typeof ctx.commands.handle>[1]) => ctx.commands.handle(id, fn);
 	const win = () => layout.windowId;
+	/** The pane a command acts on: the one a menu was opened on (tab/context), else the active pane. */
+	const targetPane = (inv: { target?: unknown }): string | undefined => (inv.target as { pane?: string } | undefined)?.pane ?? layout.activePane ?? undefined;
+	const targetTabset = (inv: { target?: unknown }): string | undefined => {
+		const pane = (inv.target as { pane?: string } | undefined)?.pane;
+		return (pane && parentOf(layout.doc, pane)?.parent) || layout.activeTabset || undefined;
+	};
 
 	// ----- palette -----
 	h("palette.open", () => palette.open(">"));
@@ -107,9 +113,10 @@ export function activateCore(ctx: ModuleContext) {
 		await k.host.windows.close();
 	});
 	h("window.open", ({ kind, props }: { kind: string; props?: Record<string, unknown> }) => windows.open(kind, props ?? {}).then((w) => w.label));
-	h("window.popOut", async () => {
-		if (!layout.activePane) return;
-		await layout.dispatch({ type: "popOut", pane: layout.activePane }, { origin: "command" });
+	h("window.popOut", async (_a, inv) => {
+		const pane = targetPane(inv);
+		if (!pane) return;
+		await layout.dispatch({ type: "popOut", pane }, { origin: "command" });
 	});
 	h("window.minimize", () => k.host.windows.minimize());
 	h("window.toggleMaximize", () => k.host.windows.toggleMaximize());
@@ -123,13 +130,17 @@ export function activateCore(ctx: ModuleContext) {
 
 	// ----- layout -----
 	const L = (a: Parameters<typeof layout.dispatch>[0]) => layout.dispatch(a, { origin: "command" });
-	h("layout.splitRight", () => L({ type: "split", dir: "row" }));
-	h("layout.splitDown", () => L({ type: "split", dir: "column" }));
+	const split = (dir: "row" | "column", inv: { target?: unknown }) => {
+		const pane = (inv.target as { pane?: string } | undefined)?.pane;
+		return L({ type: "split", dir, node: targetTabset(inv), pane: pane && layout.doc.pane[pane] ? pane : undefined });
+	};
+	h("layout.splitRight", (_a, inv) => split("row", inv));
+	h("layout.splitDown", (_a, inv) => split("column", inv));
 	h("layout.togglePrimarySidebar", () => L({ type: "toggleRegion", region: "sidebar" }));
 	h("layout.toggleSecondarySidebar", () => L({ type: "toggleRegion", region: "inspector" }));
 	h("layout.togglePanel", () => L({ type: "toggleRegion", region: "panel" }));
 	h("layout.toggleZen", () => L({ type: "setAttrs", table: "window", id: win(), attrs: { zen: !layout.doc.window[win()]?.zen || undefined } }));
-	h("layout.maximizeTabset", () => L({ type: "maximize", node: layout.activeTabset }));
+	h("layout.maximizeTabset", (_a, inv) => L({ type: "maximize", node: targetTabset(inv) }));
 	h("layout.equalize", () => {
 		const p = layout.activeTabset ? parentOf(layout.doc, layout.activeTabset) : null;
 		const split = p && layout.doc.node[p.parent];
@@ -141,8 +152,14 @@ export function activateCore(ctx: ModuleContext) {
 	h("layout.openView", ({ view, region, props }: { view: string; region?: string; props?: Record<string, unknown> }) => layout.openView(view, props, { target: region }));
 	h("layout.saveWorkspace", ({ name }: { name: string }) => layout.saveWorkspace(name, vault.current?.configDir ?? k.host.dirs.data));
 	h("layout.loadWorkspace", ({ name }: { name: string }) => layout.loadWorkspace(name, vault.current?.configDir ?? k.host.dirs.data));
-	h("layout.floatPane", () => layout.activePane && L({ type: "float", pane: layout.activePane }));
-	h("layout.moveToPanel", () => layout.activePane && L({ type: "movePane", pane: layout.activePane, to: { region: "panel" } }));
+	h("layout.floatPane", (_a, inv) => {
+		const pane = targetPane(inv);
+		if (pane) return L({ type: "float", pane });
+	});
+	h("layout.moveToPanel", (_a, inv) => {
+		const pane = targetPane(inv);
+		if (pane) return L({ type: "movePane", pane, to: { region: "panel" } });
+	});
 	const cycleRegion = (dir: 1 | -1) => {
 		const regions = REGION_CYCLE.filter((r) => document.querySelector(`[data-fw-region="${r}"]`));
 		const cur = (document.activeElement?.closest("[data-fw-region]") as HTMLElement | null)?.dataset.fwRegion;
@@ -166,22 +183,22 @@ export function activateCore(ctx: ModuleContext) {
 	h("tab.next", () => step(1));
 	h("tab.prev", () => step(-1));
 	h("tab.close", async (_a, inv) => {
-		const pane = (inv.target as { pane?: string } | undefined)?.pane ?? layout.activePane;
+		const pane = targetPane(inv);
 		if (!pane) return;
 		if (layout.dirty[pane] && !(await k.sys.dialog.ask(`"${layout.paneTitle(pane)}" has unsaved changes. Close it anyway?`, { title: "Close tab", okLabel: "Close without saving", kind: "warning" }))) return;
 		await L({ type: "closePane", pane });
 	});
 	h("tab.closeOthers", (_a, inv) => {
-		const pane = (inv.target as { pane?: string } | undefined)?.pane ?? layout.activePane;
+		const pane = targetPane(inv);
 		if (pane) return L({ type: "closeOthers", pane });
 	});
 	h("tab.reopen", () => layout.reopenClosed());
 	h("tab.pin", (_a, inv) => {
-		const pane = (inv.target as { pane?: string } | undefined)?.pane ?? layout.activePane;
+		const pane = targetPane(inv);
 		if (pane) return L({ type: "setAttrs", table: "pane", id: pane, attrs: { pinned: !layout.doc.pane[pane]?.pinned || undefined } });
 	});
 	h("tab.copyPath", async (_a, inv) => {
-		const pane = (inv.target as { pane?: string } | undefined)?.pane ?? layout.activePane;
+		const pane = targetPane(inv);
 		const path = pane ? (layout.doc.pane[pane]?.props?.path as string | undefined) : undefined;
 		if (path) {
 			await navigator.clipboard.writeText(path);
