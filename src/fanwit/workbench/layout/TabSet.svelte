@@ -20,7 +20,8 @@
 	const panes = $derived([...n.panes].sort((a, b) => Number(!!layout.doc.pane[b]?.pinned) - Number(!!layout.doc.pane[a]?.pinned)));
 	const active = $derived(n.active && n.panes.includes(n.active) ? n.active : n.panes[0]);
 	const focused = $derived(layout.activeTabset === node);
-	const strip = $derived(n.strip ?? (region === "panel" || region === "main" ? "top" : "top"));
+	/** top (default), bottom (sheet tabs) or hidden (one view filling the area). */
+	const strip = $derived(n.strip ?? "top");
 	const closeButton = $derived(k.sys.settings.get<string>("layout.closeButton"));
 	let stripEl = $state<HTMLDivElement>();
 	let overflowOpen = $state(false);
@@ -85,11 +86,11 @@
 	});
 </script>
 
-<div class="flex min-h-0 min-w-0 flex-1 flex-col bg-background" data-fw-tabset={node} class:fw-focused={focused}>
+<div class="flex min-h-0 min-w-0 flex-1 {strip === 'bottom' ? 'flex-col-reverse' : 'flex-col'} bg-background" data-fw-tabset={node} class:fw-focused={focused}>
 	{#if strip !== "hidden" && panes.length}
-		<div class="flex shrink-0 items-stretch border-b border-border bg-tab" style:height="var(--tab-h)">
+		<div class="flex shrink-0 items-stretch {strip === 'bottom' ? 'border-t' : 'border-b'} border-border bg-tab" style:height="var(--tab-h)">
 			<div bind:this={stripEl} role="tablist" aria-label="Tabs" class="relative flex min-w-0 flex-1 items-stretch overflow-x-auto [scrollbar-width:none]" data-fw-strip={node} onwheel={wheel}>
-				<span bind:this={indicator} aria-hidden="true" class="pointer-events-none absolute top-0 left-0 z-10 h-0.5 w-0 bg-tab-border transition-opacity duration-150" style:opacity={focused ? 1 : 0}></span>
+				<span bind:this={indicator} aria-hidden="true" class="pointer-events-none absolute {strip === 'bottom' ? 'bottom-0' : 'top-0'} left-0 z-10 h-0.5 w-0 bg-tab-border transition-opacity duration-150" style:opacity={focused ? 1 : 0}></span>
 				{#each panes as p, i (p)}
 					{@const pane = layout.doc.pane[p]}
 					{@const isActive = p === active}

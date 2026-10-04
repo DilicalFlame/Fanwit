@@ -19,15 +19,7 @@ import { devtoolsModule } from "./devtools";
 import { manualModule } from "./manual";
 import { pluginsModule } from "./plugins";
 import { explorerModule } from "./explorer";
-import presetWorkbench from "../layout/presets/workbench.toml?raw";
-import presetNotes from "../layout/presets/notes.toml?raw";
-import presetCanvas from "../layout/presets/canvas.toml?raw";
-import presetThree from "../layout/presets/three-column.toml?raw";
-import presetDashboard from "../layout/presets/dashboard.toml?raw";
-import presetSingle from "../layout/presets/single.toml?raw";
-import presetZen from "../layout/presets/zen.toml?raw";
-import presetWizard from "../layout/presets/wizard.toml?raw";
-import presetMedia from "../layout/presets/media.toml?raw";
+import presetVscode from "../layout/presets/vscode.toml?raw";
 import Toggle from "../workbench/menus/kinds/Toggle.svelte";
 import IconRow from "../workbench/menus/kinds/IconRow.svelte";
 import Segmented from "../workbench/menus/kinds/Segmented.svelte";
@@ -135,17 +127,9 @@ export const coreModule = defineModule({
 			{ id: "system", title: "System", description: "Updates, crashes and vault problems" },
 			{ id: "jobs", title: "Background jobs" }
 		],
-		layoutPresets: [
-			preset("workbench", "Workbench", presetWorkbench, "IDE: activity bar, sidebars, editor grid, bottom panel"),
-			preset("notes", "Notes", presetNotes, "Sidebar, tabbed editor with preview, right outline"),
-			preset("canvas", "Canvas", presetCanvas, "Canvas with floating tool palette and inspector"),
-			preset("three-column", "Three column", presetThree, "List, detail and composer"),
-			preset("dashboard", "Dashboard grid", presetDashboard, "Grid of cards"),
-			preset("single", "Single pane utility", presetSingle, "One pane, no chrome"),
-			preset("wizard", "Wizard", presetWizard, "Full screen step views"),
-			preset("media", "Media, full bleed", presetMedia, "Full bleed view with footer controls"),
-			preset("zen", "Zen", presetZen, "Distraction free")
-		],
+		// the app's default; more showcases (Figma, Blender, Discord...) live in src/app/modules/showcase
+		layoutPresets: [preset("vscode", "VS Code", presetVscode, "Activity bar, switchable sidebars, tabbed editor groups, bottom panel")],
+
 		contextKeys: [
 			{ key: "vault.open", type: "boolean", description: "A vault is open" },
 			{ key: "vault.name", type: "string", description: "Name of the open vault" },

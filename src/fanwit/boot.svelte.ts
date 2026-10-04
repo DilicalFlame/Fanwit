@@ -31,7 +31,7 @@ import { icons } from "./icons/registry.svelte";
 import { coreModules } from "./core";
 import { catalogs } from "./i18n/catalogs";
 import type { CommandDefinition } from "./commands/types";
-import presetWorkbench from "./layout/presets/workbench.toml?raw";
+import presetVscode from "./layout/presets/vscode.toml?raw";
 import ViewHost from "./workbench/ViewHost.svelte";
 import WindowView from "./workbench/WindowView.svelte";
 import { DockDrag } from "./workbench/layout/dnd.svelte";
@@ -385,8 +385,8 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	logBridge(k);
 
 	// ----- layout: per vault or global workspace -----
-	const presetId = config.layout?.default ?? "workbench";
-	const defaultText = layout.presets.get(presetId)?.text ?? presetWorkbench;
+	const presetId = config.layout?.default ?? "vscode";
+	const defaultText = layout.presets.get(presetId)?.text ?? presetVscode;
 	const persist = config.data?.layout?.persist ?? "global";
 	await layout.load(persist === "none" ? null : host.dirs.data, defaultText);
 	vault.onDidOpen.on(async (v) => {

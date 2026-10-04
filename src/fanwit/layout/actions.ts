@@ -362,7 +362,8 @@ export function reduce(input: LayoutDoc, a: LayoutAction, ctx: ReduceContext): R
 					delete doc.pane[moved].pinned;
 				}
 			}
-			doc.node[fresh] = { type: "tabs", panes: moved ? [moved] : [], active: moved };
+			// the new group looks like the one it split from (a hidden or bottom strip stays so)
+			doc.node[fresh] = { type: "tabs", panes: moved ? [moved] : [], active: moved, ...(t.type === "tabs" && t.strip ? { strip: t.strip } : {}) };
 			insertBeside(doc, base, fresh, a.side ?? (a.dir === "row" ? "right" : "bottom"));
 			focus = moved;
 			break;
@@ -527,7 +528,7 @@ export function mergePreset(preset: LayoutDoc, prev: LayoutDoc, identity: Reduce
 	if (!main) return doc;
 	for (const [id, p] of Object.entries(prev.pane)) {
 		const key = `${p.view}|${identity?.(p.view, p.props ?? {}) ?? ""}`;
-		if (have.has(key) || !p.props) continue; // only document-like panes travel
+		if (have.has(key) || typeof p.props?.path !== "string") continue; // only open files travel
 		const pid = doc.pane[id] ? newId(doc, id) : id;
 		doc.pane[pid] = p;
 		(doc.node[main] as TabsNode).panes.push(pid);

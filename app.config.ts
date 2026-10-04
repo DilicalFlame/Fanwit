@@ -13,7 +13,7 @@ export default defineAppConfig({
 		layout: { persist: "vault" }, // per vault workspace.toml (global when no vault is open)
 		notifications: { history: "global", retentionDays: 30 }
 	},
-	layout: { default: "workbench" },
+	layout: { default: "vscode" },
 	settings: {},
 	plugins: { allow: ["data", "worker", "none"], registries: [] },
 	features: { labs: true, devtools: true, manual: true, plugins: true, tray: true, onboarding: true, samples: true }

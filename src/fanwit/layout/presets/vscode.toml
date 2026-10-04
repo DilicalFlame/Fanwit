@@ -1,7 +1,8 @@
 #:schema https://fanwit.dev/schema/layout-1.json
 # Live layout. Edit and save: the app updates immediately. The app writes here too.
+# VS Code style: activity bar, switchable sidebars, tabbed editor groups you can split, bottom panel.
 version = 1
-preset = "workbench"
+preset = "vscode"
 
 [window.main]
 kind = "main"

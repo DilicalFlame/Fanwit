@@ -363,11 +363,18 @@ function doctor() {
 		}
 	};
 	scanViews("src");
-	for (const f of fs.readdirSync(abs("src/fanwit/layout/presets"))) {
-		const doc = parseToml(read(`src/fanwit/layout/presets/${f}`));
-		const missing = Object.values(doc.pane ?? {}).map((p) => p.view).filter((v) => !views.has(v));
-		ok(`preset ${f} views`, !missing.length, missing.join(", "));
-	}
+	// every presets/ folder: the core's and those modules ship (src/app/modules/showcase/presets)
+	const presetDirs = [];
+	const findPresets = (d) => {
+		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) if (e.isDirectory()) (e.name === "presets" ? presetDirs.push(`${d}/${e.name}`) : findPresets(`${d}/${e.name}`));
+	};
+	findPresets("src");
+	for (const d of presetDirs)
+		for (const f of fs.readdirSync(abs(d)).filter((x) => x.endsWith(".toml"))) {
+			const doc = parseToml(read(`${d}/${f}`));
+			const missing = Object.values(doc.pane ?? {}).map((p) => p.view).filter((v) => !views.has(v));
+			ok(`preset ${f} views`, !missing.length, missing.join(", "));
+		}
 	// Installer Kit (Section 16.15): pinned downloads; unsigned installers trip SmartScreen and Gatekeeper
 	if (exists("installer.toml")) {
 		const steps = parseToml(read("installer.toml")).step ?? [];
