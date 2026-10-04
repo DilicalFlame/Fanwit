@@ -42,6 +42,9 @@ pub struct Saved {
 struct Lock {
     child: String,
     effects: Vec<String>,
+    /// Windows: the hook on the parent that replaces the system beep (see `blocked_hook`).
+    #[cfg(windows)]
+    hook: Option<blocked_hook::Hook>,
 }
 
 #[derive(Default)]
@@ -281,7 +284,9 @@ pub async fn fw_win_open<R: Runtime>(app: AppHandle<R>, opts: OpenOpts) -> Resul
         .always_on_top(opts.always_on_top.unwrap_or(false))
         .skip_taskbar(opts.skip_taskbar.unwrap_or(false))
         .decorations(opts.decorations.unwrap_or(false))
-        .shadow(opts.shadow.unwrap_or(true));
+        .shadow(opts.shadow.unwrap_or(true))
+        // focus = "none" (panels): appear without taking focus from the opener
+        .focused(opts.focus.as_deref() != Some("none"));
     #[cfg(not(target_os = "macos"))]
     {
         b = b.transparent(opts.transparent.unwrap_or(false));
@@ -316,9 +321,16 @@ pub async fn fw_win_open<R: Runtime>(app: AppHandle<R>, opts: OpenOpts) -> Resul
     }
     if opts.focus.as_deref() == Some("lock") {
         if let Some(p) = &parent {
+            #[cfg(windows)]
+            let hook = blocked_hook::install(&app, p);
             state.windows.locks.lock().unwrap().insert(
                 p.label().to_string(),
-                Lock { child: opts.label.clone(), effects: opts.on_blocked.clone().unwrap_or_else(|| vec!["bell".into(), "shake".into()]) },
+                Lock {
+                    child: opts.label.clone(),
+                    effects: opts.on_blocked.clone().unwrap_or_else(|| vec!["bell".into(), "shake".into()]),
+                    #[cfg(windows)]
+                    hook,
+                },
             );
             let _ = p.set_enabled(false);
             let _ = app.emit_to(p.label(), "fw://lock", serde_json::json!({ "locked": true, "child": opts.label }));
@@ -332,8 +344,12 @@ fn release_lock<R: Runtime>(app: &AppHandle<R>, child: &str) {
     let parent = {
         let mut locks = state.windows.locks.lock().unwrap();
         let p = locks.iter().find(|(_, l)| l.child == child).map(|(p, _)| p.clone());
-        if let Some(p) = &p {
-            locks.remove(p);
+        #[allow(unused_variables)]
+        if let Some(lock) = p.as_ref().and_then(|p| locks.remove(p)) {
+            #[cfg(windows)]
+            if let Some(h) = lock.hook {
+                blocked_hook::remove(app, h);
+            }
         }
         p
     };
@@ -374,9 +390,10 @@ fn run_feedback<R: Runtime>(app: &AppHandle<R>, label: &str, effects: &[String])
         match e.as_str() {
             "bell" => bell(),
             "shake" => {
-                // shadow shake is drawn by the page; native shake only for decorated windows
-                let _ = app.emit_to(label, "fw://blocked", serde_json::json!({ "effects": effects }));
-                if !cfg!(target_os = "linux") {
+                // Wayland clients cannot move their windows: the page shakes its content instead
+                if cfg!(target_os = "linux") {
+                    let _ = app.emit_to(label, "fw://blocked", serde_json::json!({ "effects": ["shake"] }));
+                } else {
                     shake(w.clone());
                 }
             }
@@ -455,30 +472,83 @@ pub fn fw_win_system_menu<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
     Ok(())
 }
 
+/// The user tried to use a parent locked by a child: focus the child and play the kind's effects
+/// (once per 400 ms: one click can arrive both as a blocked click and as a focus change).
+fn blocked<R: Runtime>(app: &AppHandle<R>, parent: &str) {
+    let state = app.state::<State>();
+    let Some((child, effects)) = state.windows.locks.lock().unwrap().get(parent).map(|l| (l.child.clone(), l.effects.clone())) else { return };
+    let Some(c) = app.get_webview_window(&child) else { return };
+    let _ = c.set_focus();
+    let mut last = state.windows.last_blocked.lock().unwrap();
+    let now = Instant::now();
+    if last.get(&child).is_some_and(|t| now.duration_since(*t) < Duration::from_millis(400)) {
+        return;
+    }
+    last.insert(child.clone(), now);
+    drop(last);
+    run_feedback(app, &child, &effects);
+}
+
+/// Windows: a click on a disabled owner window makes the system beep and flash the child,
+/// whatever the kind asked for. A subclass on the parent swallows that click (WM_SETCURSOR with
+/// HTERROR) and plays the kind's own effects instead; the parent stays truly disabled.
+#[cfg(windows)]
+mod blocked_hook {
+    use tauri::{AppHandle, Runtime, WebviewWindow};
+    use windows_sys::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
+    use windows_sys::Win32::UI::Shell::{DefSubclassProc, RemoveWindowSubclass, SetWindowSubclass};
+    use windows_sys::Win32::UI::WindowsAndMessaging::{HTERROR, WM_SETCURSOR};
+
+    const ID: usize = 0x6677_6c6b;
+    type Callback = Box<dyn Fn() + Send>;
+
+    pub struct Hook {
+        hwnd: isize,
+        data: usize,
+    }
+
+    unsafe extern "system" fn proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM, _id: usize, data: usize) -> LRESULT {
+        if msg == WM_SETCURSOR && (lp & 0xffff) as u16 as i16 as i32 == HTERROR {
+            // high word: the mouse message that hit the disabled window (button downs only)
+            if matches!(((lp >> 16) & 0xffff) as u32, 0x201 | 0x204 | 0x207 | 0xA1 | 0xA4 | 0xA7) {
+                (*(data as *const Callback))();
+            }
+            return 1;
+        }
+        DefSubclassProc(hwnd, msg, wp, lp)
+    }
+
+    pub fn install<R: Runtime>(app: &AppHandle<R>, parent: &WebviewWindow<R>) -> Option<Hook> {
+        let hwnd = parent.hwnd().ok()?.0 as isize;
+        let (handle, label) = (app.clone(), parent.label().to_string());
+        let cb: Callback = Box::new(move || {
+            let (h, l) = (handle.clone(), label.clone());
+            // leave the window procedure before focusing and moving windows
+            let _ = handle.run_on_main_thread(move || super::blocked(&h, &l));
+        });
+        let data = Box::into_raw(Box::new(cb)) as usize;
+        // subclasses are installed and removed on the window's own (main) thread
+        let _ = app.run_on_main_thread(move || unsafe {
+            SetWindowSubclass(hwnd as HWND, Some(proc), ID, data);
+        });
+        Some(Hook { hwnd, data })
+    }
+
+    pub fn remove<R: Runtime>(app: &AppHandle<R>, h: Hook) {
+        let _ = app.run_on_main_thread(move || unsafe {
+            // fails harmlessly when the parent is already gone
+            RemoveWindowSubclass(h.hwnd as HWND, Some(proc), ID);
+            drop(Box::from_raw(h.data as *mut Callback));
+        });
+    }
+}
+
 pub fn on_window_event<R: Runtime>(w: &Window<R>, e: &WindowEvent) {
     let app = w.app_handle();
     match e {
         WindowEvent::Moved(_) | WindowEvent::Resized(_) => capture(w),
-        WindowEvent::Focused(true) => {
-            // a locked parent got focus: bounce focus to the child and give feedback
-            let state = app.state::<State>();
-            let lock = state.windows.locks.lock().unwrap().get(w.label()).map(|l| (l.child.clone(), l.effects.clone()));
-            if let Some((child, effects)) = lock {
-                if let Some(c) = app.get_webview_window(&child) {
-                    let _ = c.set_focus();
-                    let mut last = state.windows.last_blocked.lock().unwrap();
-                    let now = Instant::now();
-                    let recent = last.get(&child).map(|t| now.duration_since(*t) < Duration::from_millis(400)).unwrap_or(false);
-                    if !recent {
-                        last.insert(child.clone(), now);
-                        drop(last);
-                        // Windows' native modality already beeps and flashes for disabled owners
-                        let effects: Vec<String> = if cfg!(windows) { effects.into_iter().filter(|e| e != "bell").collect() } else { effects };
-                        run_feedback(app, &child, &effects);
-                    }
-                }
-            }
-        }
+        // a locked parent got focus (task bar, Alt+Tab): back to the child, with feedback
+        WindowEvent::Focused(true) => blocked(app, w.label()),
         WindowEvent::CloseRequested { .. } => capture(w),
         WindowEvent::Destroyed => {
             let label = w.label().to_string();

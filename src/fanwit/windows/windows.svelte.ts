@@ -76,7 +76,7 @@ export interface VirtualWindow {
 	layoutWindow?: string;
 }
 
-const DEFAULTS: Record<WindowBase, Partial<WindowKindSpec>> = {
+export const DEFAULTS: Record<WindowBase, Partial<WindowKindSpec>> = {
 	main: { size: [1280, 800], position: "remember", persist: "global", web: "tab" },
 	aux: { size: [960, 680], position: "cascade", persist: "global", web: "virtual" },
 	child: { size: [520, 420], position: "center-parent", parent: "opener", focus: "lock", onBlocked: ["bell", "shake"], skipTaskbar: true, persist: "none", web: "modal", minimizable: false },
@@ -193,6 +193,8 @@ export class WindowService {
 		const q = new URLSearchParams({ label, opener });
 		if (this.k.sys.vault.current) q.set("vault", this.k.sys.vault.current.path);
 		if (Object.keys(props).length) q.set("props", JSON.stringify(props));
+		// kinds registered at runtime (Window Lab, defineWindowKind in a view) are unknown to the new window's kernel
+		q.set("spec", JSON.stringify({ ...spec, owner: undefined }));
 		const result = new Promise<R | undefined>((resolve) => this.pending.set(label, resolve as (v: unknown) => void));
 		const cascade = spec.position === "cascade" ? this.cascade(kind) : undefined;
 		await this.k.host.windows.open({
@@ -342,10 +344,12 @@ export class WindowService {
 		const top = [...this.virtual].filter((v) => v.modal).sort((a, b) => b.z - a.z)[0];
 		if (!top) return;
 		const effects = top.spec.onBlocked ?? ["bell", "shake"];
+		if (!effects.length) return;
 		haptic("warning");
 		if (effects.includes("bell")) beep("bell");
 		const reduced = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-		top.feedback = effects.includes("shake") && !reduced ? "shake" : "flash";
+		// reduced motion turns a shake into a flash
+		top.feedback = effects.includes("shake") && !reduced ? "shake" : effects.includes("shake") || effects.includes("flash") ? "flash" : null;
 		setTimeout(() => (top.feedback = null), 420);
 		if (effects.includes("attention")) void this.k.host.notify.attention();
 	}

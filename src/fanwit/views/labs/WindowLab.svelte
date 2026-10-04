@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getKernel } from "../../ui.svelte";
 	import Icon from "../../icons/Icon.svelte";
-	import type { BlockedEffect, FocusPolicy, WebPresentation, WindowBase, WindowKindSpec } from "../../windows/windows.svelte";
+	import { DEFAULTS, type BlockedEffect, type FocusPolicy, type WebPresentation, type WindowBase, type WindowKindSpec } from "../../windows/windows.svelte";
 
 	/** Window Lab (Figure 17.18): try every window option and copy the resulting kind spec. */
 	const k = getKernel();
@@ -32,18 +32,28 @@
 			reg.dispose();
 		}
 	}
+	/** Picking a kind starts from that kind's defaults; the controls then override them. */
+	function pickBase(b: WindowBase) {
+		base = b;
+		const d = DEFAULTS[b];
+		focus = d.focus ?? "none";
+		onBlocked = d.onBlocked ?? (d.focus === "lock" ? ["bell", "shake"] : []);
+		alwaysOnTop = !!d.alwaysOnTop;
+		skipTaskbar = !!d.skipTaskbar;
+		web = d.web ?? "virtual";
+	}
 	const toggle = (e: BlockedEffect) => (onBlocked = onBlocked.includes(e) ? onBlocked.filter((x) => x !== e) : [...onBlocked, e]);
 </script>
 
 <div class="grid h-full min-h-0 grid-cols-[minmax(260px,320px)_1fr] gap-0 text-[13px]">
 	<div class="flex flex-col gap-4 overflow-auto border-r border-border p-4">
 		<label class="flex flex-col gap-1"><span class="fw-section-title px-0">Kind</span>
-			<select class="fw-input" bind:value={base}>{#each ["aux", "child", "panel", "sheet", "palette", "splash", "tray"] as b (b)}<option value={b}>{b}</option>{/each}</select>
+			<select class="fw-input" value={base} onchange={(e) => pickBase(e.currentTarget.value as WindowBase)}>{#each ["aux", "child", "panel", "sheet", "palette", "splash", "tray"] as b (b)}<option value={b}>{b}</option>{/each}</select>
 		</label>
 		<div><div class="fw-section-title px-0">Focus policy</div>
 			<div role="radiogroup" class="flex rounded-md border border-border p-0.5 text-xs">{#each ["none", "takeover", "lock"] as f (f)}<button role="radio" aria-checked={focus === f} class="h-7 flex-1 rounded {focus === f ? 'bg-accent' : ''}" onclick={() => (focus = f as FocusPolicy)}>{f}</button>{/each}</div>
 		</div>
-		<div><div class="fw-section-title px-0">On blocked</div>
+		<div class:opacity-50={focus !== "lock"} title={focus !== "lock" ? "Only a locked parent blocks clicks: pick focus = lock" : undefined}><div class="fw-section-title px-0">On blocked</div>
 			<div class="flex flex-wrap gap-2">
 				{#each ["bell", "shake", "flash", "attention"] as e (e)}
 					<label class="flex items-center gap-1" title={e === "shake" && wayland ? "Wayland clients cannot move their windows: the shadow shake (css) is used" : ""}><input type="checkbox" checked={onBlocked.includes(e as BlockedEffect)} onchange={() => toggle(e as BlockedEffect)} />{e}</label>
@@ -55,7 +65,7 @@
 			<label class="flex items-center gap-2"><input type="checkbox" bind:checked={skipTaskbar} />Skip taskbar</label>
 			<label class="flex items-center gap-2"><input type="checkbox" bind:checked={cssShadow} />Shadow drawn in page (css)</label>
 		</div>
-		<label class="flex flex-col gap-1"><span class="fw-section-title px-0">Web presentation</span>
+		<label class="flex flex-col gap-1"><span class="fw-section-title px-0">Web presentation{k.host.caps.nativeWindows ? " (web build only)" : ""}</span>
 			<select class="fw-input" bind:value={web}>{#each ["virtual", "modal", "popup", "tab", "pip"] as w (w)}<option value={w}>{w}</option>{/each}</select>
 		</label>
 		<div class="flex gap-2"><button class="fw-btn fw-btn-primary" onclick={open}><Icon name="app-window" size={13} />Open window</button><button class="fw-btn" onclick={() => { void navigator.clipboard.writeText(code); k.sys.notify.toast("Spec copied", "success"); }}>Copy spec</button></div>

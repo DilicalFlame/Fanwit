@@ -6,7 +6,7 @@
 	import Overlays from "$fanwit/workbench/Overlays.svelte";
 	import LayoutRoot from "$fanwit/workbench/layout/LayoutRoot.svelte";
 	import EmptyState from "$fanwit/workbench/EmptyState.svelte";
-	import type { WindowSelf } from "$fanwit/windows/windows.svelte";
+	import type { WindowKindSpec, WindowSelf } from "$fanwit/windows/windows.svelte";
 
 	/**
 	 * Every non main window kind (/w/settings, /w/menu-editor, /w/view?window=..., child and panel
@@ -23,7 +23,15 @@
 	} catch {
 		props = {};
 	}
-	const spec = $derived(k.sys.windows.kinds.get(kind));
+	/** The registered kind, else the spec its opener sent (kinds registered at runtime). */
+	const sent = (() => {
+		try {
+			return JSON.parse(params.get("spec") ?? "null") as WindowKindSpec | null;
+		} catch {
+			return null;
+		}
+	})();
+	const spec = $derived(k.sys.windows.kinds.get(kind) ?? (sent?.kind === kind ? sent : undefined));
 	let title = $state("");
 	$effect(() => {
 		title = spec ? k.sys.windows.title(spec, props) : kind;
