@@ -43,7 +43,7 @@ export interface Editor {
 }
 
 /** An editor in `parent`; Ctrl/Cmd+Enter calls `run`. */
-export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" | "svelte" | "rust"; run: () => void; change: (text: string) => void; label: string }): Editor {
+export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" | "ts" | "svelte" | "rust"; run: () => void; change: (text: string) => void; label: string }): Editor {
 	const view = new EditorView({
 		parent,
 		doc: o.doc,
@@ -52,7 +52,7 @@ export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" |
 			// the editor shares the width with the output: wrap instead of hiding the end of lines
 			EditorView.lineWrapping,
 			keymap.of([{ key: "Mod-Enter", run: () => (o.run(), true) }, indentWithTab]),
-			o.lang === "svelte" ? html() : o.lang === "rust" ? rust() : javascript(),
+			o.lang === "svelte" ? html() : o.lang === "rust" ? rust() : javascript({ typescript: o.lang === "ts" }),
 			theme,
 			syntaxHighlighting(colours),
 			EditorView.updateListener.of((u) => u.docChanged && o.change(u.state.doc.toString())),

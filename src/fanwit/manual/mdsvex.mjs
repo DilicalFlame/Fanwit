@@ -18,10 +18,12 @@ const esc = (/** @type {string} */ s) => s.replace(/&/g, "&amp;").replace(/</g, 
 
 /**
  * Highlight one fenced block. ```fanwit-run fences become a Run button that executes a real
- * command (handled by the page view); every block gets a Copy button.
- * @param {string} code @param {string | null | undefined} lang
+ * command (handled by the page view); every block gets a Copy button. `file="Child.svelte"` after
+ * the language names the block (shown as its label; a Playground's files).
+ * @param {string} code @param {string | null | undefined} lang @param {string | null | undefined} [meta]
  */
-export async function highlight(code, lang) {
+export async function highlight(code, lang, meta) {
+	const file = /file="([^"]+)"/.exec(meta ?? "")?.[1];
 	let html;
 	if (lang === "fanwit-run") {
 		const [cmd, ...rest] = code.trim().split(/\s+/);
@@ -32,7 +34,8 @@ export async function highlight(code, lang) {
 		const h = await highlighter;
 		const l = lang && h.getLoadedLanguages().includes(lang) ? lang : "text";
 		const pre = h.codeToHtml(code, { lang: l, themes: CODE_THEMES, defaultColor: false });
-		html = `<div class="fw-code" data-lang="${esc(lang ?? "")}">${lang ? `<span class="fw-code-lang">${esc(lang)}</span>` : ""}<button type="button" class="fw-copy" data-copy aria-label="Copy code">Copy</button>${pre}</div>`;
+		const label = file ?? lang;
+		html = `<div class="fw-code" data-lang="${esc(lang ?? "")}"${file ? ` data-file="${esc(file)}"` : ""}>${label ? `<span class="fw-code-lang">${esc(label)}</span>` : ""}<button type="button" class="fw-copy" data-copy aria-label="Copy code">Copy</button>${pre}</div>`;
 	}
 	return `{@html \`${escapeSvelte(html)}\`}`;
 }

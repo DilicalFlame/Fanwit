@@ -258,6 +258,10 @@ html[data-reading-tone="dark"] { --cm-keyword: #ff7b72; --cm-string: #a5d6ff; --
 .fw-doc-body .fw-play-line.error { color: var(--destructive, #c33); }
 .fw-doc-body .fw-play-line.muted { color: var(--muted-foreground); border: 0; font-family: var(--font-sans); }
 .fw-doc-body .fw-play-line.trace { color: var(--muted-foreground); }
+.fw-doc-body .fw-code[data-file] .fw-code-lang { text-transform: none; }
+.fw-doc-body .fw-play-files { display: flex; gap: 2px; padding: 0 0.4em; border-bottom: 1px solid var(--border); background: var(--muted); }
+.fw-doc-body .fw-play-files button { padding: 0.3em 0.8em; font: 12px var(--font-mono); color: var(--muted-foreground); border-bottom: 2px solid transparent; }
+.fw-doc-body .fw-play-files button.active { color: var(--foreground); border-bottom-color: var(--primary); }
 .fw-doc-body .fw-play-keys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.6em; margin-bottom: 0.6em; font-size: 0.9em; }
 .fw-doc-body .fw-play-label { font-weight: 600; color: var(--muted-foreground); }
 .fw-doc-body a.fw-play-btn { text-decoration: none; color: inherit; }
