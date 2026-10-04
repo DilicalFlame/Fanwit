@@ -35,8 +35,12 @@
 			error = e;
 		}
 	}
+	// only a new path or vault reloads: props is a fresh object after every layout change, and
+	// reloading then would also throw away unsaved edits
+	const path = $derived(props.path);
+	const current = $derived(vault.current);
 	$effect(() => {
-		if (props.path && vault.current) void load();
+		if (path && current) void load();
 	});
 	$effect(() => {
 		if (paneId) layout.dirty[paneId] = dirty;
