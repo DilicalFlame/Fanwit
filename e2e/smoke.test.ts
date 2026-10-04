@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { boot } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
 	// skip onboarding: mark it done in the web host's OPFS backed state
@@ -24,10 +25,7 @@ test("workbench boots without errors and the palette runs commands", async ({ pa
 });
 
 test("context menu opens on a tab", async ({ page }) => {
-	await page.goto("/");
-	const skip = page.getByRole("button", { name: "Skip" });
-	await page.waitForTimeout(500);
-	if (await skip.isVisible().catch(() => false)) await skip.click();
+	await boot(page);
 	await page.locator("[data-fw-tab]").first().click({ button: "right" });
 	await expect(page.getByRole("menu").first()).toBeVisible();
 	await expect(page.getByRole("menuitem", { name: /Close tab/ })).toBeVisible();

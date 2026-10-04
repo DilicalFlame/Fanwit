@@ -1,53 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { boot as start, cmd, needsLabs, prompt } from "./helpers";
 
-/** End to end flows on the web build (BrowserHost: OPFS vaults, SQLite WASM, worker plugins). */
-
-async function start(page: Page) {
-	const errors: string[] = [];
-	page.on("pageerror", (e) => errors.push(e.message));
-	await page.goto("/");
-	await expect(page.locator("[data-fw-region=titlebar]")).toBeVisible();
-	const skip = page.getByRole("button", { name: "Skip" });
-	await skip.waitFor({ timeout: 3000 }).catch(() => {});
-	if (await skip.isVisible().catch(() => false)) await skip.click();
-	return errors;
-}
-
-async function cmd(page: Page, query: string) {
-	await page.keyboard.press("Control+Shift+P");
-	await expect(page.getByRole("dialog", { name: "Command palette" })).toBeVisible();
-	await page.keyboard.type(query);
-	await page.waitForTimeout(250);
-	await page.keyboard.press("Enter");
-}
-
-async function prompt(page: Page, value: string) {
-	await expect(page.getByRole("combobox")).toBeVisible();
-	await page.keyboard.type(value);
-	await page.waitForTimeout(250);
-	await page.keyboard.press("Enter");
-}
-
-test("create a vault in browser storage, add a note, edit and save it", async ({ page }) => {
-	const errors = await start(page);
-	await cmd(page, "create new vault");
-	await prompt(page, `e2e-${Date.now().toString(36)}`);
-	await expect(page.locator("[data-fw-region=statusbar]")).toContainText("e2e-");
-	await expect(page.getByText("Welcome.md")).toBeVisible();
-	await cmd(page, "explorer: new file");
-	await prompt(page, "today");
-	const editor = page.getByLabel("Note today.md");
-	await expect(editor).toBeVisible();
-	await editor.click();
-	await page.keyboard.press("End");
-	await page.keyboard.type("\nwritten by playwright");
-	await expect(page.getByLabel("unsaved").first()).toBeVisible();
-	await page.keyboard.press("Control+s");
-	await expect(page.getByLabel("unsaved")).toHaveCount(0);
-	expect(errors).toEqual([]);
-});
+/** App wide flows on the web build (BrowserHost: OPFS vaults, SQLite WASM, worker plugins). Flows of a part live in its *.e2e.ts. */
 
 test("custom menu kinds drive undoable commands", async ({ page }) => {
+	needsLabs();
 	await start(page);
 	await cmd(page, "layout.openView");
 	await prompt(page, "Menu Lab");
@@ -60,21 +17,8 @@ test("custom menu kinds drive undoable commands", async ({ page }) => {
 	await expect(shape).toHaveCSS("background-color", "rgb(59, 130, 246)");
 });
 
-test("worker isolated plugin updates the status bar", async ({ page }) => {
-	await start(page);
-	await cmd(page, "create new vault");
-	await prompt(page, `wc-${Date.now().toString(36)}`);
-	await expect(page.locator("[data-fw-region=statusbar]")).toContainText("wc-");
-	await expect(page.getByText("Welcome.md")).toBeVisible();
-	await cmd(page, "open plugin manager");
-	await page.getByRole("button", { name: /Install samples/ }).click();
-	await page.getByRole("switch", { name: "Enable Word Count" }).click();
-	await page.getByRole("button", { name: "Close", exact: true }).last().click();
-	await page.getByText("Welcome.md").click();
-	await expect(page.locator("[data-fw-region=statusbar]")).toContainText(/\d+ words/, { timeout: 10_000 });
-});
-
 test("SQLite WASM: write in developer mode, read back", async ({ page }) => {
+	needsLabs();
 	await start(page);
 	await cmd(page, "toggle developer mode");
 	await cmd(page, "layout.openView");
@@ -101,24 +45,6 @@ test("settings window is generated and changes apply live", async ({ page }) => 
 	await expect(page.getByText("theme.mode")).toBeVisible();
 });
 
-test("backlinks come from the vault indexer and update on save", async ({ page }) => {
-	await start(page);
-	await cmd(page, "create new vault");
-	await prompt(page, `bl-${Date.now().toString(36)}`);
-	await expect(page.getByText("Welcome.md")).toBeVisible();
-	await cmd(page, "explorer: new file");
-	await prompt(page, "links");
-	const editor = page.getByLabel("Note links.md");
-	await editor.click();
-	await page.keyboard.press("End");
-	await page.keyboard.type("\nsee [[Welcome]]");
-	await page.keyboard.press("Control+s");
-	await expect(page.getByLabel("unsaved")).toHaveCount(0);
-	await page.getByText("Welcome.md").click();
-	await cmd(page, "show backlinks");
-	await expect(page.locator("[data-fw-region=inspector]").getByText("links.md")).toBeVisible({ timeout: 10_000 });
-});
-
 test("a user script in .fanwit/scripts registers a command", async ({ page }) => {
 	await start(page);
 	const name = `us-${Date.now().toString(36)}`;
@@ -133,8 +59,8 @@ test("a user script in .fanwit/scripts registers a command", async ({ page }) =>
 		await w.close();
 	}, name);
 	await cmd(page, "open plugin manager");
-	await page.getByRole("button", { name: "Reload plugins" }).click();
-	await page.getByRole("switch", { name: "Enable Script: greet" }).click();
+	await page.getByRole("button", { name: "Rescan plugins" }).click();
+	await page.getByRole("switch", { name: "Turn Script: greet on" }).click();
 	await page.getByRole("button", { name: "Close", exact: true }).last().click();
 	await cmd(page, "greet from script");
 	await expect(page.getByText("hello from a script")).toBeVisible({ timeout: 10_000 });
