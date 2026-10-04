@@ -352,7 +352,7 @@ function doctor() {
 		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) {
 			const p = `${d}/${e.name}`;
 			if (e.isDirectory()) walk(p);
-			else if (/\.(ts|svelte)$/.test(e.name) && !p.startsWith("src/fanwit/host") && !p.startsWith("src/lib/") && /from "@tauri-apps\//.test(read(p)) && !/startup\.svelte\.ts$/.test(p)) offenders.push(p);
+			else if (/\.(ts|svelte)$/.test(e.name) && !p.startsWith("src/fanwit/host") && /from "@tauri-apps\//.test(read(p)) && !/startup\.svelte\.ts$/.test(p)) offenders.push(p);
 		}
 	};
 	walk("src");
