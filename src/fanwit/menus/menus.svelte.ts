@@ -406,7 +406,8 @@ export class MenuService {
 			checked: cmd?.def.toggled ? ctx.evaluate(cmd.def.toggled, el, extra) : false,
 			disabledReason,
 			keys: item.command ? this.k.keys.label(item.command) : null,
-			hidden: item.hidden || !visible
+			// an item for a command that is not registered (a feature turned off) is hidden, not dead
+			hidden: item.hidden || !visible || (!!item.command && !cmd)
 		};
 	}
 

@@ -173,6 +173,8 @@ export class KeybindingService {
 			if (b.steps.length <= buffer.length) return false;
 			for (let i = 0; i < buffer.length; i++) if (b.steps[i] !== buffer[i]) return false;
 			if (!matchesAt(b, buffer.length)) return false;
+			// a binding to a command that is not registered leaves the key to the browser
+			if (!this.commands.get(b.command)) return false;
 			// text input rule: unmodified keys never fire while typing unless the clause opts in
 			if (inputFocus && !steps.hasModifier && !(b.when ?? "").includes("inputFocus") && !/^f\d+$|escape/.test(b.steps[buffer.length].split("+").pop()!)) return false;
 			return !b.when || compileWhen(b.when).eval(lookup);

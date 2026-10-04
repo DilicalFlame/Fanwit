@@ -75,3 +75,13 @@ test("deactivating a module disposes everything it registered", async () => {
 	await k.modules.deactivate("m");
 	await expect(k.commands.run("m.x")).rejects.toBeTruthy();
 });
+
+test("prune removes commands from the registry and from runs", async () => {
+	const k = await createTestKernel();
+	k.commands.register({ id: "t.keep", title: "keep" }, () => 1, "t");
+	k.commands.register({ id: "t.drop", title: "drop" }, () => 2, "t");
+	k.commands.prune((id) => id !== "t.drop");
+	expect(k.commands.get("t.drop")).toBeUndefined();
+	expect(await k.commands.run("t.keep")).toBe(1);
+	await expect(k.commands.run("t.drop")).rejects.toMatchObject({ code: "CMD_UNKNOWN" });
+});

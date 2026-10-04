@@ -138,6 +138,12 @@ export class CommandService {
 		});
 	}
 
+	/** Drop every command `keep` rejects, so no palette, menu, key or search can reach it (the docs site). */
+	prune(keep: (id: string) => boolean) {
+		for (const id of [...this.entries.keys()]) if (!keep(id)) this.entries.delete(id);
+		this.changed();
+	}
+
 	intercept(pattern: string, fn: Interceptor, owner: string, priority = 0): Disposable {
 		const entry = { pattern: globToRegExp(pattern), fn, owner, priority };
 		this.interceptors.push(entry);
