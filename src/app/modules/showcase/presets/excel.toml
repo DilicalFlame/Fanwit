@@ -1,0 +1,35 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Excel style: ribbon and formula bar in the header region, the cell grid in the middle and the
+# sheet tabs at the bottom (strip = "bottom").
+version = 1
+preset = "excel"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+header = { node = "ribbon", size = "72px" }
+main = { node = "sheets" }
+
+[node.ribbon]
+type = "tabs"
+strip = "hidden"
+panes = ["formula-bar"]
+
+[node.sheets]
+type = "tabs"
+strip = "bottom"
+panes = ["budget", "sales"]
+active = "budget"
+
+[pane.formula-bar]
+view = "showcase.excel.formulaBar"
+
+[pane.budget]
+view = "showcase.excel.sheet"
+props = { sheet = "budget", name = "Budget" }
+
+[pane.sales]
+view = "showcase.excel.sheet"
+props = { sheet = "sales", name = "Sales" }

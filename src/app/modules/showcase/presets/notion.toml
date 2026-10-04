@@ -1,0 +1,32 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Notion style: a page tree on the left and one page, no tabs and no chrome around it.
+version = 1
+preset = "notion"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+sidebar = { node = "pages", size = "260px" }
+main = { node = "page" }
+statusbar = { visible = false }
+
+[window.main.responsive]
+"< 800px" = { sidebar = "drawer" }
+
+[node.pages]
+type = "tabs"
+strip = "hidden"
+panes = ["sidebar"]
+
+[node.page]
+type = "tabs"
+strip = "hidden"
+panes = ["page"]
+
+[pane.sidebar]
+view = "showcase.notion.sidebar"
+
+[pane.page]
+view = "showcase.notion.page"

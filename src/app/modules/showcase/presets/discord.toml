@@ -1,0 +1,51 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Discord style: four columns in one row: servers, channels, chat and members. The fixed columns
+# are pixel sized and the chat takes the rest. Drag the borders to resize.
+version = 1
+preset = "discord"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "columns" }
+statusbar = { visible = false }
+
+[node.columns]
+type = "split"
+dir = "row"
+children = ["servers-col", "channels-col", "chat-col", "members-col"]
+sizes = ["72px", "240px", 1, "240px"]
+
+[node.servers-col]
+type = "tabs"
+strip = "hidden"
+panes = ["servers"]
+
+[node.channels-col]
+type = "tabs"
+strip = "hidden"
+panes = ["channels"]
+
+[node.chat-col]
+type = "tabs"
+strip = "hidden"
+panes = ["chat"]
+
+[node.members-col]
+type = "tabs"
+strip = "hidden"
+panes = ["members"]
+
+[pane.servers]
+view = "showcase.discord.servers"
+
+[pane.channels]
+view = "showcase.discord.channels"
+
+[pane.chat]
+view = "showcase.discord.chat"
+
+[pane.members]
+view = "showcase.discord.members"

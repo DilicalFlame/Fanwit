@@ -1,0 +1,21 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Terminal: tabs of shells and nothing else. Type "split" or "vsplit" to split a terminal like
+# tmux, "new" for another tab, "run <command>" to run any app command.
+version = 1
+preset = "terminal"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "terminals" }
+statusbar = { visible = false }
+
+[node.terminals]
+type = "tabs"
+panes = ["shell"]
+
+[pane.shell]
+view = "showcase.terminal"
+props = { name = "Terminal 1" }

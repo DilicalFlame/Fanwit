@@ -1,0 +1,91 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Obsidian style: a ribbon (activity bar) switching files, search and bookmarks, notes in tabs
+# split side by side, and graph and backlinks on the right.
+version = 1
+preset = "obsidian"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+sidebar = { node = "files", containers = ["files", "search", "bookmarks"], size = "240px" }
+main = { node = "editor" }
+inspector = { node = "right", size = "280px", visible = true }
+
+[window.main.responsive]
+"< 900px" = { sidebar = "drawer", inspector = "drawer" }
+
+[node.files]
+type = "stack"
+title = "Files"
+icon = "folder"
+panes = ["files"]
+
+[node.search]
+type = "stack"
+title = "Search"
+icon = "search"
+panes = ["search"]
+
+[node.bookmarks]
+type = "stack"
+title = "Bookmarks"
+icon = "bookmark"
+panes = ["bookmarks"]
+
+[node.editor]
+type = "split"
+dir = "row"
+children = ["left-tabs", "right-tabs"]
+sizes = [0.5, 0.5]
+
+[node.left-tabs]
+type = "tabs"
+panes = ["welcome", "ideas"]
+active = "welcome"
+
+[node.right-tabs]
+type = "tabs"
+panes = ["layouts"]
+
+[node.right]
+type = "split"
+dir = "column"
+children = ["graph-tabs", "links-tabs"]
+sizes = [0.55, 0.45]
+
+[node.graph-tabs]
+type = "tabs"
+panes = ["graph"]
+
+[node.links-tabs]
+type = "tabs"
+panes = ["backlinks"]
+
+[pane.files]
+view = "showcase.obsidian.files"
+
+[pane.search]
+view = "showcase.obsidian.search"
+
+[pane.bookmarks]
+view = "showcase.obsidian.bookmarks"
+
+[pane.welcome]
+view = "showcase.obsidian.note"
+props = { note = "Welcome.md" }
+
+[pane.ideas]
+view = "showcase.obsidian.note"
+props = { note = "Ideas.md" }
+
+[pane.layouts]
+view = "showcase.obsidian.note"
+props = { note = "Layouts.md" }
+
+[pane.graph]
+view = "showcase.obsidian.graph"
+
+[pane.backlinks]
+view = "showcase.obsidian.backlinks"

@@ -1,0 +1,80 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Photoshop style: an options bar on top, a tool strip on the left, documents as tabs in the
+# middle and groups of tabbed panels docked on the right. Every panel is a tab: drag it to another
+# group, out to float, or into a new window.
+version = 1
+preset = "photoshop"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+header = { node = "options", size = "40px" }
+sidebar = { node = "tools", size = "48px" }
+main = { node = "documents" }
+inspector = { node = "dock", size = "300px", visible = true }
+
+[node.options]
+type = "tabs"
+strip = "hidden"
+panes = ["options"]
+
+[node.tools]
+type = "tabs"
+strip = "hidden"
+panes = ["tools"]
+
+[node.documents]
+type = "tabs"
+panes = ["landscape", "sketch"]
+active = "landscape"
+
+[node.dock]
+type = "split"
+dir = "column"
+children = ["color-group", "adjust-group", "layers-group"]
+sizes = [0.3, 0.27, 0.43]
+
+[node.color-group]
+type = "tabs"
+panes = ["color", "swatches"]
+active = "color"
+
+[node.adjust-group]
+type = "tabs"
+panes = ["adjustments", "history"]
+active = "adjustments"
+
+[node.layers-group]
+type = "tabs"
+panes = ["layers"]
+
+[pane.options]
+view = "showcase.photoshop.options"
+
+[pane.tools]
+view = "showcase.photoshop.tools"
+
+[pane.landscape]
+view = "showcase.photoshop.canvas"
+props = { name = "landscape.psd", w = 900, h = 560, photo = true }
+
+[pane.sketch]
+view = "showcase.photoshop.canvas"
+props = { name = "Untitled-1", w = 640, h = 480 }
+
+[pane.color]
+view = "showcase.photoshop.color"
+
+[pane.swatches]
+view = "showcase.photoshop.swatches"
+
+[pane.adjustments]
+view = "showcase.photoshop.adjustments"
+
+[pane.history]
+view = "showcase.photoshop.history"
+
+[pane.layers]
+view = "showcase.photoshop.layers"

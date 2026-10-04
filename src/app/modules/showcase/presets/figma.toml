@@ -1,0 +1,49 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Figma style: the canvas fills the window; tools, layers and design float above it.
+# Drag a panel by its header, collapse it, or dock it into a tab set.
+version = 1
+preset = "figma"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "canvas" }
+statusbar = { visible = false }
+
+[node.canvas]
+type = "tabs"
+strip = "hidden"
+panes = ["canvas"]
+active = "canvas"
+
+[pane.canvas]
+view = "showcase.figma.canvas"
+
+[pane.layers]
+view = "showcase.figma.layers"
+
+[pane.design]
+view = "showcase.figma.design"
+
+[pane.tools]
+view = "showcase.figma.tools"
+
+[float.layers]
+window = "main"
+pane = "layers"
+rect = [12, 12, 232, 380]
+snap = true
+
+[float.design]
+window = "main"
+pane = "design"
+rect = [-252, 12, 240, 420]
+snap = true
+
+[float.tools]
+window = "main"
+pane = "tools"
+rect = [256, -96, 300, 84]
+snap = true

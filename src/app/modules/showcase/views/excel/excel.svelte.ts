@@ -1,0 +1,27 @@
+/** Excel showcase: cell text per sheet and the selection the formula bar edits. */
+import type { Kernel } from "$fanwit/kernel/kernel.svelte";
+import type { Cells } from "./formula";
+
+export const book = $state({
+	sheets: {
+		budget: {
+			A1: "Budget 2026", A3: "Item", B3: "Q1", C3: "Q2", D3: "Total",
+			A4: "Rent", B4: "3000", C4: "3000", D4: "=B4+C4",
+			A5: "Software", B5: "420", C5: "515", D5: "=B5+C5",
+			A6: "Travel", B6: "1200", C6: "800", D6: "=B6+C6",
+			A7: "Hardware", B7: "2500", C7: "0", D7: "=B7+C7",
+			A9: "Sum", B9: "=SUM(B4:B7)", C9: "=SUM(C4:C7)", D9: "=SUM(D4:D7)",
+			A10: "Average", B10: "=AVERAGE(B4:B7)", C10: "=AVERAGE(C4:C7)", D10: "=AVERAGE(D4:D7)"
+		},
+		sales: { A1: "Month", B1: "Units", C1: "Price", D1: "Revenue", A2: "Jan", B2: "120", C2: "9.5", D2: "=B2*C2", A3: "Feb", B3: "180", C3: "9.5", D3: "=B3*C3", A4: "Mar", B4: "150", C4: "11", D4: "=B4*C4", D6: "=SUM(D2:D4)" }
+	} as Record<string, Cells>,
+	sel: { sheet: "budget", ref: "B4", anchor: "B4" }
+});
+
+/** Sheet of the focused sheet tab (the layout's active document), else the first. */
+export function activeSheet(k: Kernel): string {
+	const layout = k.sys.layout;
+	const pane = layout.activeDocument ? layout.doc.pane[layout.activeDocument] : undefined;
+	if (pane?.view === "showcase.excel.sheet") return String(pane.props?.sheet);
+	return book.sel.sheet in book.sheets ? book.sel.sheet : Object.keys(book.sheets)[0];
+}

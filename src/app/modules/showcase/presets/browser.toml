@@ -1,0 +1,35 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Web browser style: the address bar lives in the header region above the page tabs. Tabs are
+# panes, so dragging one to an edge gives side by side browsing, and out of the window a new one.
+version = 1
+preset = "browser"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+header = { node = "toolbar", size = "72px" }
+main = { node = "pages" }
+statusbar = { visible = false }
+
+[node.toolbar]
+type = "tabs"
+strip = "hidden"
+panes = ["toolbar"]
+
+[node.pages]
+type = "tabs"
+panes = ["start", "wiki"]
+active = "start"
+
+[pane.toolbar]
+view = "showcase.browser.toolbar"
+
+[pane.start]
+view = "showcase.browser.page"
+props = { url = "about:newtab" }
+
+[pane.wiki]
+view = "showcase.browser.page"
+props = { url = "wiki.example/Layout" }

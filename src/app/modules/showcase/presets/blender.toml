@@ -1,0 +1,66 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# Blender style: the screen is split into areas. Each area picks its own editor from its header
+# (stored as pane props) and splits or closes itself. Drag the borders to resize.
+version = 1
+preset = "blender"
+
+[window.main]
+kind = "main"
+frame = "workbench"
+
+[window.main.regions]
+main = { node = "screen" }
+
+[node.screen]
+type = "split"
+dir = "column"
+children = ["upper", "timeline-area"]
+sizes = [0.8, 0.2]
+
+[node.upper]
+type = "split"
+dir = "row"
+children = ["viewport-area", "right"]
+sizes = [0.72, 0.28]
+
+[node.right]
+type = "split"
+dir = "column"
+children = ["outliner-area", "properties-area"]
+sizes = [0.38, 0.62]
+
+[node.viewport-area]
+type = "tabs"
+strip = "hidden"
+panes = ["viewport"]
+
+[node.outliner-area]
+type = "tabs"
+strip = "hidden"
+panes = ["outliner"]
+
+[node.properties-area]
+type = "tabs"
+strip = "hidden"
+panes = ["properties"]
+
+[node.timeline-area]
+type = "tabs"
+strip = "hidden"
+panes = ["timeline"]
+
+[pane.viewport]
+view = "showcase.blender.area"
+props = { editor = "viewport" }
+
+[pane.outliner]
+view = "showcase.blender.area"
+props = { editor = "outliner" }
+
+[pane.properties]
+view = "showcase.blender.area"
+props = { editor = "properties" }
+
+[pane.timeline]
+view = "showcase.blender.area"
+props = { editor = "timeline" }
