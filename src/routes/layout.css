@@ -305,6 +305,10 @@
 		@apply flex w-full cursor-default items-center gap-2 rounded-md px-2 text-left text-[13px] outline-none select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent;
 		min-height: var(--row-h);
 	}
+	/* custom title bars: room for the macOS traffic lights (set by TitleBar) */
+	.fw-titlebar-inset {
+		padding-left: var(--fw-titlebar-inset, 0px);
+	}
 	.fw-section-title {
 		@apply px-3 pt-3 pb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase;
 	}

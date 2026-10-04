@@ -223,6 +223,9 @@ export class LayoutService {
 
 	focusPane(pane: string) {
 		const p = parentOf(this.doc, pane);
+		const region = p ? locateNode(this.doc, p.parent)?.region : undefined;
+		// bars (title bar, header) are chrome: using them must not retarget tab commands at them
+		if (region === "titlebar" || region === "header") return;
 		this.activePane = pane;
 		if (p) this.activeTabset = p.parent;
 		if (p && locateNode(this.doc, p.parent)?.region === "main") this.activeDocument = pane;
@@ -232,7 +235,7 @@ export class LayoutService {
 		const path = typeof props.path === "string" ? props.path : undefined;
 		this.k.context.set("resource.path", path);
 		this.k.context.set("resource.ext", path?.split(".").pop()?.toLowerCase());
-		this.k.context.set("activeRegion", p ? locateNode(this.doc, p.parent)?.region : undefined);
+		this.k.context.set("activeRegion", region);
 		void this.k.modules.fire(`onView:${this.doc.pane[pane]?.view}`);
 	}
 

@@ -27,6 +27,39 @@ Flat keyed tables (`[node.x]`, `[pane.y]`), structure only, defaults omitted. Ed
 layout.openView {"view": "fanwit.layoutLab"}
 ```
 
+## Title bars
+
+The default title bar has the app button, menu bar, search, layout toggles and window controls.
+A layout can draw its own instead: give the `titlebar` region a node, and that node's view fills
+the bar.
+
+```toml
+[window.main.regions]
+titlebar = { node = "titlebar", size = "40px" }
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "myapp.titlebar"
+```
+
+The view draws its own background and keeps the bar usable as a window frame:
+
+- put `data-tauri-drag-region` on empty space so the window can be dragged (and double clicked
+  to maximise);
+- add the `fw-titlebar-inset` class to the outer element: it leaves room for the macOS traffic
+  lights;
+- place `<WindowControls />` (`$fanwit/workbench/WindowControls.svelte`) where minimise, maximise
+  and close belong. It follows the bar's text colour and shows nothing on macOS and the web;
+- `<MenuBar />` (`$fanwit/workbench/MenuBar.svelte`) gives the app button and the menu bar when
+  the app wants them.
+
+Views in the title bar and the header region never become the active pane, so tab commands such as
+Close tab keep acting on the document you were in. Every showcase preset ships its own bar.
+
 ## Presets
 
 A preset is a whole layout document you can switch to (View > Layout preset, the status bar, or
