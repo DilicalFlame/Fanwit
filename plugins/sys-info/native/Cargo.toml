@@ -1,0 +1,15 @@
+[package]
+name = "fanwit-plugin-sys-info"
+version = "1.0.0"
+edition = "2021"
+publish = false
+# a member of the app's cargo workspace, so the binary lands next to the app executable
+workspace = "../../../src-tauri"
+
+[[bin]]
+# the app runs exactly fanwit-plugin-<plugin id>
+name = "fanwit-plugin-sys-info"
+path = "src/main.rs"
+
+[dependencies]
+fanwit-plugin = { path = "../../../packages/fanwit-plugin-rs" }

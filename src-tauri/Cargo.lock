@@ -1237,6 +1237,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fanwit-plugin-sys-info"
+version = "1.0.0"
+dependencies = [
+ "fanwit-plugin",
+]
+
+[[package]]
 name = "fanwit-setup"
 version = "0.1.0"
 dependencies = [
