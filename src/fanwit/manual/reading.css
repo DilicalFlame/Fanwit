@@ -133,6 +133,17 @@ html[data-reading-tone="dark"] .fw-doc-body .shiki span { color: var(--shiki-dar
 .fw-doc-body .fw-callout[data-kind="warn"] { --c: oklch(0.7 0.16 70); }
 .fw-doc-body .fw-callout[data-kind="under-the-hood"] { --c: var(--muted-foreground); }
 .fw-doc-body .fw-callout[data-kind="learn-more"] { --c: oklch(0.6 0.13 240); }
+.fw-doc-body .fw-callout[data-kind="new"] { --c: oklch(0.65 0.15 330); }
+/* repository files (SourceFile.svelte, source.mjs) */
+.fw-doc-body .fw-source { margin: 0 0 var(--doc-para, 1em); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.fw-doc-body .fw-source > summary { display: flex; align-items: center; gap: 0.5em; padding: 0.45em 0.8em; cursor: pointer; background: var(--muted); font-size: 0.85em; list-style: none; }
+.fw-doc-body .fw-source > summary::-webkit-details-marker { display: none; }
+.fw-doc-body .fw-source > summary code { background: none; padding: 0; font-weight: 600; }
+.fw-doc-body .fw-source-meta { margin-left: auto; color: var(--muted-foreground); }
+.fw-doc-body .fw-source[open] > summary { border-bottom: 1px solid var(--border); }
+.fw-doc-body .fw-source .fw-code { margin: 0; border: 0; border-radius: 0; max-height: 70vh; overflow: auto; }
+.fw-doc-body .fw-source-loading, .fw-doc-body .fw-source-missing { padding: 0.6em 1em; margin: 0; color: var(--muted-foreground); font-size: 0.85em; }
+.fw-doc-body .fw-source-missing { color: var(--destructive); }
 .fw-doc-body .fw-callout :is(summary, .fw-callout-title) { display: flex; align-items: center; gap: 0.45em; font: 600 0.82em var(--font-sans); letter-spacing: 0.02em; text-transform: uppercase; color: var(--c); cursor: default; }
 .fw-doc-body .fw-callout summary { cursor: pointer; list-style: none; }
 .fw-doc-body .fw-callout summary::-webkit-details-marker { display: none; }

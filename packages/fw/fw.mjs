@@ -985,6 +985,22 @@ async function docs() {
 		const stale = exists(tikz.DIAGRAMS) ? fs.readdirSync(abs(tikz.DIAGRAMS)).filter((f) => !used.has(f)) : [];
 		for (const f of stale) remove(`${tikz.DIAGRAMS}/${f}`);
 		if (stale.length) console.log(`removed ${stale.length} unused diagram${stale.length > 1 ? "s" : ""}`);
+		// <Source path="..."> shows real files: the file, and any from/to markers, must still exist
+		const src = await import(pathToFileURL(abs("src/fanwit/manual/source.mjs")).href);
+		const shown = new Set();
+		for (const p of pages)
+			for (const t of src.sourceTags(p.body)) {
+				const r = src.readSource(t.attrs, ROOT);
+				if ("error" in r) problems.push(`${p.meta.file.slice(1)}: <Source>: ${r.error}`);
+				else if (p.meta.id.startsWith("learn/") && !t.attrs.from) shown.add(t.attrs.path);
+			}
+		// how much of the code the Rebuild chapters walk through (whole files only)
+		if (shown.size) {
+			const code = (dir) => (exists(dir) ? fs.readdirSync(abs(dir), { recursive: true }).map((f) => `${dir}/${String(f).replace(/\\/g, "/")}`).filter((f) => /\.(ts|svelte|mjs|rs|css)$/.test(f) && !/\.(test|e2e)\.ts$/.test(f)) : []);
+			const all = ["src/fanwit", "src/routes", "src-tauri/src"].flatMap(code);
+			const covered = all.filter((f) => shown.has(f)).length;
+			console.log(`rebuild covers ${covered} of ${all.length} source files (${Math.round((covered / all.length) * 100)}%)`);
+		}
 		// M10: every public symbol has a doc comment and an @example (Section 21.6.1)
 		for (const s of sets.filter((x) => x.api)) {
 			const { extractApi } = await import(pathToFileURL(abs("src/fanwit/manual/api.mjs")).href);

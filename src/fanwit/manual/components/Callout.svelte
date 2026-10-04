@@ -7,9 +7,10 @@
 	/**
 	 * `<Callout kind="why">...</Callout>`. "why" and "under-the-hood" fold away when the reader
 	 * picks Expert in the reading settings, and stay open in Guided and on Beginner pages.
-	 * "learn-more" points to the official docs of a tool (Svelte, Rust, Tauri).
+	 * "learn-more" points to the official docs of a tool (Svelte, Rust, Tauri). "new" introduces a
+ * language or framework feature the first time the code uses it (`title` names it).
 	 */
-	let { kind = "note", title, children }: { kind?: "why" | "tip" | "note" | "warn" | "under-the-hood" | "learn-more"; title?: string; children?: Snippet } = $props();
+	let { kind = "note", title, children }: { kind?: "why" | "tip" | "note" | "warn" | "under-the-hood" | "learn-more" | "new"; title?: string; children?: Snippet } = $props();
 	const k = getKernel();
 	const META: Record<string, [string, string]> = {
 		why: ["Why it is like this", "lightbulb"],
@@ -17,7 +18,8 @@
 		note: ["Note", "info"],
 		warn: ["Careful", "triangle-alert"],
 		"under-the-hood": ["Under the hood", "cog"],
-		"learn-more": ["Learn more", "graduation-cap"]
+		"learn-more": ["Learn more", "graduation-cap"],
+		new: ["New here", "sparkle"]
 	};
 	const [label, icon] = $derived(META[kind] ?? META.note);
 	const foldable = $derived(kind === "why" || kind === "under-the-hood");

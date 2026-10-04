@@ -17,10 +17,14 @@ import MiniSearch from "minisearch";
 import { docsets, errorCodes, fwCommands, glossaryOf, included, llmsTxt, pagesOf, pathsOf, rustCommands, type Docset } from "./discover.mjs";
 import { execFile } from "node:child_process";
 import { SEARCH_OPTIONS } from "./search-options";
+import { langOf, readSource } from "./source.mjs";
+import { codeHtml } from "./mdsvex.mjs";
 
 const ID = "virtual:fw-docs";
 const SEARCH = "virtual:fw-docs/search";
 const API = "virtual:fw-docs/api";
+const SOURCE = "virtual:fw-source/";
+const SOURCE_SUFFIX = ".fwsrc.js";
 const ids = [ID, SEARCH, API];
 
 export function fanwitDocs(): Plugin {
@@ -122,11 +126,21 @@ export function fanwitDocs(): Plugin {
 		},
 		resolveId(id) {
 			if (ids.includes(id)) return "\0" + id;
+			// a neutral suffix: an id ending in .json or .css would be claimed by Vite's own plugins
+			if (id.startsWith(SOURCE)) return "\0" + id + SOURCE_SUFFIX;
 		},
 		load(id) {
 			if (id === "\0" + ID) return model();
 			if (id === "\0" + SEARCH) return search();
 			if (id === "\0" + API) return apiModule();
+			// a repository file for <Source>: highlighted, and reloaded when the file changes
+			if (id.startsWith("\0" + SOURCE)) {
+				const file = id.slice(SOURCE.length + 1, -SOURCE_SUFFIX.length);
+				const r = readSource({ path: file }, root);
+				if ("error" in r) return `export default ${JSON.stringify(`<p>${r.error}</p>`)};`;
+				this.addWatchFile(path.join(root, file));
+				return codeHtml(r.code, langOf(file), file, file).then((html) => `export default ${JSON.stringify(html)};`);
+			}
 		},
 		configureServer(server) {
 			const docs = path.join(root, "docs");

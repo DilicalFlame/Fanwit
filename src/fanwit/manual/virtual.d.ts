@@ -34,5 +34,11 @@ declare module "virtual:fw-docs" {
 	}
 }
 
+/** A repository file for <Source> (source.mjs): its highlighted code block. */
+declare module "virtual:fw-source/*" {
+	const html: string;
+	export default html;
+}
+
 /** The Svelte runtime the compiler targets (no public types); the playground hands it to compiled components. */
 declare module "svelte/internal/client";
