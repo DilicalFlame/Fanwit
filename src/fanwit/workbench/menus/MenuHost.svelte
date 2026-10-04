@@ -2,6 +2,7 @@
 	import { getKernel, candidateLocation, cssSelector, svelteMeta } from "../../ui.svelte";
 	import type { MenuItem, ResolvedGroup, ResolvedItem } from "../../menus/menus.svelte";
 	import MenuSurface from "./MenuSurface.svelte";
+	import { measure } from "../../kernel/budget";
 
 	/**
 	 * Hosts the open context menu and the built in text/context menu for inputs. In developer mode
@@ -32,8 +33,7 @@
 		void resolved.then((g) => {
 			if (id !== seq) return;
 			groups = [...g.filter((x) => x.items.length), ...(dev ? [devGroup(o)] : [])];
-			const ms = performance.now() - t0;
-			if (ms > 16) k.scopedLog("menus").debug(`${o.location} resolved in ${ms.toFixed(1)} ms (budget 16 ms)`);
+			measure("fw:menus.resolve", t0, k.scopedLog("menus"), o.location);
 		});
 	});
 

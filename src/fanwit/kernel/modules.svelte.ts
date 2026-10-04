@@ -8,6 +8,7 @@ import { FanwitError, toFanwitError } from "./errors";
 import type { ScopedLogger } from "./logger";
 import { eventMatches, implicitEvents, type ActivateFn, type ModuleDefinition } from "./module";
 import type { ModuleContext } from "./context-api";
+import { BUDGETS, measure } from "./budget";
 
 export type ContributionPoint = (owner: string, value: unknown, mod: ModuleDefinition) => Disposable | void;
 
@@ -125,8 +126,8 @@ export class ModuleRegistry {
 				await (fn as ActivateFn)(m.ctx);
 				m.status = "active";
 				m.activatedBy = reason;
-				m.activationMs = Math.round((performance.now() - t0) * 10) / 10;
-				if (m.activationMs > 50) this.log.warn(`module "${id}" took ${m.activationMs} ms to activate (budget 50 ms)`);
+				m.activationMs = Math.round(measure("fw:module.activate", t0, undefined, id) * 10) / 10;
+				if (m.activationMs > BUDGETS["fw:module.activate"]) this.log.warn(`module "${id}" took ${m.activationMs} ms to activate (budget ${BUDGETS["fw:module.activate"]} ms)`);
 				else this.log.debug(`activated ${id} (${reason}) ${m.activationMs} ms`);
 				this.onDidActivate.fire(m);
 			} catch (e) {

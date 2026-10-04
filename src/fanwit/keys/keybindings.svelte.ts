@@ -12,6 +12,7 @@ import type { Host, Platform } from "../host/types";
 import type { CommandService } from "../commands/registry.svelte";
 import { compileWhen } from "../kernel/when";
 import { eventToSteps, formatSteps, parseBinding, toAccelerator, loadLayoutMap } from "./notation";
+import { measure } from "../kernel/budget";
 
 export type BindingSource = "core" | "module" | "plugin" | "user";
 
@@ -197,8 +198,7 @@ export class KeybindingService {
 		}
 		const winner = complete[0] ?? live[0];
 		this.resetChord();
-		const ms = performance.now() - t0;
-		if (ms > 4) this.log.debug(`dispatch took ${ms.toFixed(1)} ms (budget 4 ms)`);
+		measure("fw:keys.dispatch", t0, this.log, winner.command);
 		void this.commands
 			.run(winner.command, winner.args ?? {}, { source: "key", element: target })
 			.catch((err) => this.onError?.(err, winner.command));
