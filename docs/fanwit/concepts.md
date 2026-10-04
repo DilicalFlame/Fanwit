@@ -69,34 +69,48 @@ FaNWiT is six layers. Each one only talks to the layer below it, and only the ho
 \begin{tikzpicture}[x=1cm,y=1cm,
   box/.style={draw,rounded corners=2pt,minimum height=7.5mm,font=\scriptsize,align=center,inner sep=2pt},
   lyr/.style={font=\scriptsize\bfseries\color{fwSlate},anchor=east,align=right}]
+  \begin{scope}[reveal=6]
   % Layer 6
   \node[lyr] at (0.2,7.2) {6 Features};
   \node[box,fill=fwGreenSoft,draw=fwGreen,text width=6.3cm] at (3.65,7.2) {App modules (compile time, your code)};
   \node[box,fill=fwGreenSoft,draw=fwGreen,text width=6.3cm] at (10.25,7.2) {Runtime plugins (vault or app, lazy)};
+  \end{scope}
+  \begin{scope}[reveal=5]
   % Layer 5
   \node[lyr] at (0.2,6.0) {5 UI kit};
   \node[box,fill=fwWarmSoft,draw=fwWarm,text width=6.3cm] at (3.65,6.0) {shadcn-svelte components (owned source)};
   \node[box,fill=fwWarmSoft,draw=fwWarm,text width=6.3cm] at (10.25,6.0) {Workbench: TitleBar, TabStrip, Dock, Palette};
+  \end{scope}
+  \begin{scope}[reveal=4]
   % Layer 4
   \node[lyr] at (0.2,4.65) {4 Systems};
   \foreach \n [count=\i from 0] in {Commands,Keys,Menus,Layout,Windows,Notify,Themes,Settings,Data,Plugins}
     \node[box,fill=fwBrandSoft,draw=fwBrand,text width=1.08cm,font=\tiny,text height=1.6ex,text depth=0.4ex] at (0.95+\i*1.32,4.65) {\n};
+  \end{scope}
+  \begin{scope}[reveal=3]
   % Layer 3
   \node[lyr] at (0.2,3.35) {3 Kernel};
   \node[box,fill=fwBrandSoft!50,draw=fwBrand,text width=13cm,font=\tiny] at (6.95,3.35)
     {Service container \quad Context keys and when clauses \quad Event bus \quad Contribution registry \quad Lifecycle \quad Logger \quad Disposables};
+  \end{scope}
+  \begin{scope}[reveal=2]
   % Layer 2
   \node[lyr] at (0.2,2.05) {2 Host};
   \node[box,fill=fwAccentSoft,draw=fwAccent,text width=4cm] at (2.55,2.05) {TauriHost};
   \node[box,fill=fwAccentSoft,draw=fwAccent,text width=4cm] at (6.95,2.05) {BrowserHost};
   \node[box,fill=fwAccentSoft,draw=fwAccent,text width=4cm] at (11.35,2.05) {RemoteHost (optional)};
+  \end{scope}
+  \begin{scope}[reveal=1]
   % Layer 1
   \node[lyr] at (0.2,0.7) {1 Platform};
   \node[box,fill=fwPaper,draw=fwSlate,text width=4cm,minimum height=10mm] at (2.55,0.7) {Rust core crates\\ Tauri runtime, OS APIs};
   \node[box,fill=fwPaper,draw=fwSlate,text width=4cm,minimum height=10mm] at (6.95,0.7) {Browser APIs: OPFS, FS Access,\\ Notification, BroadcastChannel};
   \node[box,fill=fwPaper,draw=fwSlate,text width=4cm,minimum height=10mm] at (11.35,0.7) {Your server\\ (HTTP or WebSocket)};
+  \end{scope}
+  \begin{scope}[reveal=7]\begin{scope}[pulse]
   \draw[fwBrand,thick,dashed] (0.35,2.72) -- (13.55,2.72);
   \node[font=\tiny\color{fwBrand},anchor=north east,fill=white,inner sep=1pt] at (13.55,2.7) {Host interface: the only code that knows where it runs};
+  \end{scope}\end{scope}
 \end{tikzpicture}
 ```
 

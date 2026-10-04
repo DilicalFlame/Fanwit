@@ -40,16 +40,68 @@ Curly braces are the first addition to HTML: `{name}` inserts the value of `name
 How does a `.svelte` file become something a browser can run? The Svelte compiler turns it into a small JavaScript module that builds the page once and then, for each value the markup uses, knows exactly which piece of the page to update.
 
 ```tikz caption="From a .svelte file to the screen: the compiler runs once, when the app is built" alt="A .svelte file goes into the Svelte compiler, which produces a JavaScript module; the module creates the page, and when state changes it updates only the parts that use it"
-\begin{tikzpicture}[node distance=9mm,
-  box/.style={fwnode,text width=30mm,minimum height=12mm}]
-  \node[box,fill=fwWarmSoft,draw=fwWarm] (src) {\cd{Counter.svelte}\\[1pt]{\scriptsize script, markup, style}};
-  \node[box,fwcore,right=of src] (cmp) {Svelte compiler\\[1pt]{\scriptsize at build time}};
-  \node[box,fill=fwPaper,draw=fwSlate,right=of cmp] (js) {JavaScript module\\[1pt]{\scriptsize create, then update}};
-  \node[box,fwuser,right=16mm of js] (dom) {The page\\[1pt]{\scriptsize what you see}};
-  \draw[fwarrow] (src) -- (cmp);
-  \draw[fwarrow] (cmp) -- (js);
-  \draw[fwarrow] (js) -- node[fwlabel,above]{creates} (dom);
-  \draw[fwdash] (dom.south) to[bend left=25] node[fwlabel,below]{a click changes state} (js.south);
+\begin{tikzpicture}[x=1mm,y=1mm,font=\sffamily\small,
+  title/.style={font=\small\bfseries,text=fwInk},
+  sub/.style={font=\scriptsize,text=fwSlate}]
+% 1. the file
+\begin{scope}[reveal=1]
+  \fill[fwInk!12,rounded corners=1.5pt] (0.8,-0.8) -- (0.8,37.2) -- (22.8,37.2) -- (28.8,31.2) -- (28.8,-0.8) -- cycle;
+  \filldraw[fill=white,draw=fwInk!55,line width=0.6pt,rounded corners=1.5pt] (0,0) -- (0,38) -- (22,38) -- (28,32) -- (28,0) -- cycle;
+  \filldraw[fill=fwGrid,draw=fwInk!55,line width=0.6pt,line join=round] (22,38) -- (22,32) -- (28,32);
+  \fill[fwBrandSoft,rounded corners=1pt] (3,23) rectangle (25,29);
+  \node[font=\scriptsize\ttfamily,text=fwBrand] at (14,26) {<script>};
+  \fill[fwWarmSoft,rounded corners=1pt] (3,13.5) rectangle (25,20.5);
+  \node[font=\scriptsize\ttfamily,text=fwWarm!75!black] at (14,17) {<button>};
+  \fill[fwAccentSoft,rounded corners=1pt] (3,4) rectangle (25,11);
+  \node[font=\scriptsize\ttfamily,text=fwAccent!75!black] at (14,7.5) {<style>};
+  \node[title] at (14,44) {Counter.svelte};
+  \node[sub] at (14,40.5) {what you write};
+\end{scope}
+% 2. the compiler
+\begin{scope}[reveal=2,packet]\draw[fwarrow] (31,19) -- (42,19);\end{scope}
+\begin{scope}[reveal=2]
+  \fill[fwInk!14] (54.8,18.2) circle (8.5mm);
+  \node[circle,fill=fwBrand,minimum size=17mm,text=white] at (54,19) {\huge\faIcon{cogs}};
+  \node[title] at (54,44) {Svelte compiler};
+  \node[sub] at (54,40.5) {runs once, at build time};
+\end{scope}
+% 3. the generated module
+\begin{scope}[reveal=3,packet]\draw[fwarrow] (66,19) -- (74,19);\end{scope}
+\begin{scope}[reveal=3]
+  \fill[fwInk!14,rounded corners=2pt] (76.8,2.2) rectangle (110.8,34.2);
+  \filldraw[fill=fwInk,draw=fwInk,rounded corners=2pt] (76,3) rectangle (110,35);
+  \node[anchor=north west,font=\scriptsize\ttfamily,text=white,align=left,inner sep=0] at (79,32) {%
+    \textcolor{fwAccentSoft}{create}() \textbraceleft\\
+    \ \ make <button>\\
+    \textbraceright\\[3pt]
+    \textcolor{fwWarmSoft}{update}() \textbraceleft\\
+    \ \ set its text\\
+    \textbraceright};
+  \node[title] at (93,44) {JavaScript};
+  \node[sub] at (93,40.5) {small, no framework to load};
+\end{scope}
+% 4. the page
+\begin{scope}[reveal=4,packet]\draw[fwarrow] (112,19) -- (121,19);\end{scope}
+\begin{scope}[reveal=4]
+  \fill[fwInk!12,rounded corners=2pt] (123.8,2.2) rectangle (165.8,35.2);
+  \filldraw[fill=white,draw=fwInk!55,line width=0.6pt,rounded corners=2pt] (123,3) rectangle (165,36);
+  \fill[fwGrid,rounded corners=2pt] (123,30) rectangle (165,36);
+  \fill[fwGrid] (123,30) rectangle (165,32);
+  \draw[fwInk!55,line width=0.4pt] (123,30) -- (165,30);
+  \fill[fwRed!75] (126.5,33) circle (0.9); \fill[fwWarm!85] (129.3,33) circle (0.9); \fill[fwGreen!75] (132.1,33) circle (0.9);
+  \node[title] at (144,44) {The page};
+  \node[sub] at (144,40.5) {what you see};
+\end{scope}
+\begin{scope}[reveal=4]\begin{scope}[pulse]
+  \node[draw=fwBrand,fill=fwBrandSoft,rounded corners=2pt,font=\small,inner xsep=4pt,inner ysep=3pt,text=fwInk] at (144,17) {Clicked 3 times};
+\end{scope}\end{scope}
+% 5. a click comes back
+\begin{scope}[reveal=5,flow]
+  \draw[fwBrand,thick,-{Stealth[length=2.2mm]}] (144,1) .. controls (144,-12) and (93,-12) .. (93,1);
+\end{scope}
+\begin{scope}[reveal=5]
+  \node[font=\scriptsize,text=fwBrand,fill=white,inner sep=2pt] at (118.5,-9.5) {\faIcon{mouse-pointer}\ a click runs \texttt{count++}; \texttt{update()} changes only that text};
+\end{scope}
 \end{tikzpicture}
 ```
 

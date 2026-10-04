@@ -17,17 +17,44 @@ FaNWiT is a large codebase: a Svelte interface, a Rust core and a few hundred fi
 ## The route
 
 ```tikz caption="The Beginner level: four foundations, then the rebuild" alt="Five boxes left to right: Web basics, Svelte basics, Rust basics, Tauri basics, then Rebuild FaNWiT, which is larger"
-\begin{tikzpicture}[node distance=7mm,
-  stage/.style={fwnode,text width=24mm,minimum height=13mm},
-  big/.style={fwcore,text width=34mm,minimum height=13mm,font=\small\bfseries}]
-  \node[stage,fill=fwWarmSoft,draw=fwWarm] (web) {Web basics\\[1pt]{\scriptsize HTML, CSS, JS, TS}};
-  \node[stage,fill=fwWarmSoft,draw=fwWarm,right=of web] (sv) {Svelte basics\\[1pt]{\scriptsize components, runes}};
-  \node[stage,fill=fwAccentSoft,draw=fwAccent,right=of sv] (rs) {Rust basics\\[1pt]{\scriptsize ownership, Result}};
-  \node[stage,fill=fwAccentSoft,draw=fwAccent,right=of rs] (ta) {Tauri basics\\[1pt]{\scriptsize window, IPC}};
-  \node[big,right=9mm of ta] (re) {Rebuild FaNWiT\\[1pt]{\scriptsize\mdseries 20 working steps}};
-  \draw[fwarrow] (web) -- (sv); \draw[fwarrow] (sv) -- (rs); \draw[fwarrow] (rs) -- (ta); \draw[fwarrow] (ta) -- (re);
-  \node[fwlabel,below=2mm of sv] {the window's contents};
-  \node[fwlabel,below=2mm of rs] {the machine underneath};
+\begin{tikzpicture}[x=1mm,y=1mm,font=\sffamily\small,
+  stop/.style={circle,minimum size=13mm,line width=1.2pt,font=\huge},
+  name/.style={font=\small\bfseries,text=fwInk,align=center},
+  what/.style={font=\scriptsize,text=fwSlate,align=center,text width=42mm}]
+% the road
+\begin{scope}[reveal=0]
+  \draw[line width=7pt,fwGrid,line cap=round] plot[smooth,tension=0.7] coordinates {(0,10) (36,24) (72,8) (108,24) (150,14)};
+\end{scope}
+\begin{scope}[reveal=0]\begin{scope}[packet]
+  \draw[line width=0.8pt,fwSlate!60,dash pattern=on 2pt off 3pt] plot[smooth,tension=0.7] coordinates {(0,10) (36,24) (72,8) (108,24) (150,14)};
+\end{scope}\end{scope}
+% the stops
+\begin{scope}[reveal=1]
+  \node[stop,fill=fwWarmSoft,draw=fwWarm,text=fwWarm!80!black] at (0,10) {\faIcon{globe}};
+  \node[name] at (0,-2) {Web basics};
+  \node[what] at (0,-7) {HTML, CSS, JavaScript, TypeScript};
+\end{scope}
+\begin{scope}[reveal=2]
+  \node[stop,fill=fwWarmSoft,draw=fwWarm,text=fwWarm!80!black] at (36,24) {\faIcon{code}};
+  \node[name] at (36,41) {Svelte basics};
+  \node[what] at (36,36) {components, state, runes};
+\end{scope}
+\begin{scope}[reveal=3]
+  \node[stop,fill=fwAccentSoft,draw=fwAccent,text=fwAccent!80!black] at (72,8) {\faIcon{cog}};
+  \node[name] at (72,-4) {Rust basics};
+  \node[what] at (72,-9) {ownership, enums, Result};
+\end{scope}
+\begin{scope}[reveal=4]
+  \node[stop,fill=fwAccentSoft,draw=fwAccent,text=fwAccent!80!black] at (108,24) {\faIcon[regular]{window-maximize}};
+  \node[name] at (108,41) {Tauri basics};
+  \node[what] at (108,36) {a window, and talking to Rust};
+\end{scope}
+\begin{scope}[reveal=5]
+  \begin{scope}[pulse]\fill[fwBrandSoft] (150,14) circle (11mm);\end{scope}
+  \node[stop,minimum size=16mm,fill=fwBrand,draw=fwBrand,text=white,font=\LARGE] at (150,14) {\faIcon{rocket}};
+  \node[name] at (150,-1) {Rebuild FaNWiT};
+  \node[what] at (150,-6) {20 steps, each one working};
+\end{scope}
 \end{tikzpicture}
 ```
 
