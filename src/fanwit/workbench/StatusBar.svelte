@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel, menu } from "../ui.svelte";
+	import { getKernel, menu, useT } from "../ui.svelte";
 	import { ctxkeys } from "../kernel/context.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import type { StatusItem } from "./status.svelte";
@@ -9,6 +9,7 @@
 	 * priority, problems, layout preset, theme mode and the notification bell. A live region.
 	 */
 	const k = getKernel();
+	const t = useT();
 	const { status, vault, notify, layout, themes } = k.sys;
 	const problems = $derived(layout.diagnostics.length + (k.sys.settings.global.diagnostics.length ?? 0));
 	const chord = $derived(k.keys.chord);
@@ -32,14 +33,14 @@
 <footer
 	class="flex h-6 shrink-0 items-stretch justify-between bg-statusbar text-[11.5px] text-statusbar-foreground select-none"
 	data-fw-region="statusbar"
-	aria-label="Status bar"
+	aria-label={t("ui.status.label", "Status bar")}
 	use:menu={{ location: "statusbar/item" }}
 >
 	<div class="flex min-w-0 items-stretch">
-		<button class="flex items-center gap-1.5 px-2 hover:bg-white/10" title="Switch vault" onclick={() => k.commands.run("vault.switch")}>
+		<button class="flex items-center gap-1.5 px-2 hover:bg-white/10" title={k.commands.title("vault.switch")} onclick={() => k.commands.run("vault.switch")}>
 			<Icon name={vault.current ? "library" : "folder-open"} size={13} />
-			<span class="truncate">{vault.current ? vault.current.name : k.host.kind === "browser" ? "No vault (browser)" : "No vault"}</span>
-			{#if vault.current?.readonly}<span class="rounded bg-white/15 px-1">read only</span>{/if}
+			<span class="truncate">{vault.current ? vault.current.name : k.host.kind === "browser" ? t("ui.status.noVaultBrowser", "No vault (browser)") : t("ui.status.noVault", "No vault")}</span>
+			{#if vault.current?.readonly}<span class="rounded bg-white/15 px-1">{t("ui.status.readOnly", "read only")}</span>{/if}
 		</button>
 		{#each status.sorted("left") as i (i.id)}{@render item(i)}{/each}
 		<span aria-live="polite" class="flex items-center px-2">
@@ -51,19 +52,19 @@
 	<div class="flex min-w-0 items-stretch">
 		{#each status.sorted("right") as i (i.id)}{@render item(i)}{/each}
 		{#if problems}
-			<button class="flex items-center gap-1 px-2 hover:bg-white/10" title="Problems" onclick={() => layout.openView("fanwit.problems", {}, { target: "panel" })}>
+			<button class="flex items-center gap-1 px-2 hover:bg-white/10" title={t("view.fanwit.problems", "Problems")} onclick={() => layout.openView("fanwit.problems", {}, { target: "panel" })}>
 				<Icon name="circle-alert" size={13} />{problems}
 			</button>
 		{/if}
 		{#if layout.doc.preset}
-			<button class="flex items-center gap-1 px-2 hover:bg-white/10" title="Layout preset" onclick={() => k.commands.run("layout.applyPreset", {}, { source: "toolbar" })}>
+			<button class="flex items-center gap-1 px-2 hover:bg-white/10" title={t("ui.status.preset", "Layout preset")} onclick={() => k.commands.run("layout.applyPreset", {}, { source: "toolbar" })}>
 				<Icon name="layout-template" size={13} />{layout.doc.preset}
 			</button>
 		{/if}
-		<button class="flex items-center px-2 hover:bg-white/10" title="Toggle light and dark" aria-label="Toggle light and dark" onclick={() => k.commands.run("theme.toggleMode")}>
+		<button class="flex items-center px-2 hover:bg-white/10" title={k.commands.title("theme.toggleMode")} aria-label={k.commands.title("theme.toggleMode")} onclick={() => k.commands.run("theme.toggleMode")}>
 			<Icon name={themes.mode === "dark" ? "moon" : "sun"} size={13} />
 		</button>
-		<button class="relative flex items-center gap-1 px-2 hover:bg-white/10" title="Notifications" aria-label="Notifications, {notify.unread} unread" onclick={() => (notify.centerOpen = !notify.centerOpen)}>
+		<button class="relative flex items-center gap-1 px-2 hover:bg-white/10" title={t("category.Notifications", "Notifications")} aria-label={t("ui.status.notifications", "Notifications, {count} unread", { count: notify.unread })} onclick={() => (notify.centerOpen = !notify.centerOpen)}>
 			<Icon name={notify.dnd ? "bell-off" : notify.unread ? "bell-dot" : "bell"} size={13} />
 			{#if notify.unread}<span>{notify.unread}</span>{/if}
 		</button>

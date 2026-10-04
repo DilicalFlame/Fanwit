@@ -11,7 +11,7 @@
 	$effect(() => {
 		draft = def.type === "json" ? JSON.stringify(value ?? def.default, null, 1) : def.type === "string[]" ? ((value as string[] | undefined) ?? []).join(", ") : String(value ?? "");
 	});
-	const label = (o: string) => def.labels?.[o] ?? o;
+	const label = (o: string) => k.sys.settings.optionLabel(def, o);
 </script>
 
 {#if widget === "switch"}

@@ -30,6 +30,41 @@ export default defineModule({
 		menus: {
 			"explorer/item": [{ id: "notes.openPreview", command: "notes.openPreview", group: "navigation", order: 3, args: { path: "${target.path}" }, when: "resource.ext == 'md'" }],
 			"tab/context": [{ id: "notes.tabPreview", command: "notes.openPreview", group: "view", order: 2, args: { path: "${target.path}" }, when: "resource.ext == 'md'" }]
+		},
+		// translations travel with the module; English stays in the definitions above
+		i18n: {
+			hi: {
+				"category.Notes": "नोट्स",
+				"command.notes.newDaily": "आज का दैनिक नोट खोलें",
+				"command.notes.togglePreview": "पूर्वावलोकन दिखाएँ या छिपाएँ",
+				"command.notes.openPreview": "बगल में पूर्वावलोकन खोलें",
+				"command.notes.showBacklinks": "बैकलिंक दिखाएँ",
+				"settingsCategory.Editor": "एडिटर",
+				"setting.notes.editor.fontSize": "एडिटर फ़ॉन्ट आकार",
+				"setting.notes.editor.wrap": "पंक्ति लपेटना",
+				"setting.notes.editor.wrap.off": "बंद",
+				"setting.notes.editor.wrap.soft": "सॉफ़्ट रैप",
+				"setting.notes.editor.wrap.bounded": "कॉलम पर",
+				"setting.notes.editor.wrapColumn": "लपेटने का कॉलम",
+				"setting.notes.daily.folder": "दैनिक नोट्स का फ़ोल्डर",
+				"view.notes.backlinks": "बैकलिंक"
+			},
+			de: {
+				"category.Notes": "Notizen",
+				"command.notes.newDaily": "Heutige Tagesnotiz öffnen",
+				"command.notes.togglePreview": "Vorschau umschalten",
+				"command.notes.openPreview": "Vorschau seitlich öffnen",
+				"command.notes.showBacklinks": "Rückverweise anzeigen",
+				"settingsCategory.Editor": "Editor",
+				"setting.notes.editor.fontSize": "Schriftgröße im Editor",
+				"setting.notes.editor.wrap": "Zeilenumbruch",
+				"setting.notes.editor.wrap.off": "Aus",
+				"setting.notes.editor.wrap.soft": "Weicher Umbruch",
+				"setting.notes.editor.wrap.bounded": "An Spalte",
+				"setting.notes.editor.wrapColumn": "Umbruchspalte",
+				"setting.notes.daily.folder": "Ordner für Tagesnotizen",
+				"view.notes.backlinks": "Rückverweise"
+			}
 		}
 	},
 	activationEvents: ["onVault"],

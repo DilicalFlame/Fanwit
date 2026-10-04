@@ -260,7 +260,21 @@ export class LayoutService {
 	paneTitle(id: string): string {
 		const p = this.doc.pane[id];
 		if (!p) return id;
-		return this.titles[id] ?? p.title ?? viewTitle(this.views.get(p.view), p.props ?? {}, p.view);
+		if (this.titles[id]) return this.titles[id];
+		const i18n = (this.k.sys as { i18n?: { t(key: string, params: object, fallback: string): string } }).i18n;
+		if (p.title) return i18n ? i18n.t(`title.${p.title}`, {}, p.title) : p.title;
+		const v = this.views.get(p.view);
+		const base = viewTitle(v, p.props ?? {}, p.view);
+		// static view titles translate by view id; computed ones (a file name) stay as they are
+		return i18n && typeof v?.title === "string" ? i18n.t(`view.${p.view}`, {}, base) : base;
+	}
+
+	/** A node's title from the layout (preset text), translated by phrase: `title.<text>`. */
+	nodeTitle(id: string): string {
+		const title = (this.doc.node[id] as { title?: string } | undefined)?.title;
+		if (!title) return id;
+		const i18n = (this.k.sys as { i18n?: { t(key: string, params: object, fallback: string): string } }).i18n;
+		return i18n ? i18n.t(`title.${title}`, {}, title) : title;
 	}
 
 	/** Replace the workspace with a preset, keeping document panes whose identity still exists. */

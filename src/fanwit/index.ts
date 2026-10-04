@@ -21,7 +21,7 @@ export { defineLayout, defineLayoutNode } from "./layout/define";
 export type { ViewContribution } from "./layout/views";
 export { sql } from "./data/db";
 export { defineAppConfig, type AppConfig } from "./config";
-export { getKernel, useDisposable, menu } from "./ui.svelte";
+export { getKernel, useT, useDisposable, menu } from "./ui.svelte";
 /**
  * An icon by name: any Lucide icon (loaded on first use), or one registered with
  * `ctx.icons.register(name, svg)`. Size defaults to 16 px; colour follows the text.

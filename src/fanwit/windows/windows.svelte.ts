@@ -83,6 +83,8 @@ export interface VirtualWindow {
 	spec: WindowKindSpec;
 	props: Record<string, unknown>;
 	title: string;
+	/** Set by the window itself (setTitle); otherwise the title follows the kind and the language. */
+	titleSet?: boolean;
 	rect: { x: number; y: number; w: number; h: number };
 	z: number;
 	minimized: boolean;
@@ -193,8 +195,10 @@ export class WindowService {
 	}
 
 	title(spec: WindowKindSpec, props: Record<string, unknown>) {
-		const t = typeof spec.title === "function" ? spec.title(props) : spec.title;
-		return t ?? spec.kind;
+		if (typeof spec.title === "function") return spec.title(props) ?? spec.kind;
+		// static titles translate by kind: `window.<kind>`
+		const i18n = (this.k.sys as { i18n?: { t(key: string, params: object, fallback: string): string } }).i18n;
+		return spec.title && i18n ? i18n.t(`window.${spec.kind}`, {}, spec.title) : (spec.title ?? spec.kind);
 	}
 
 	/** Open a window of a registered kind. */

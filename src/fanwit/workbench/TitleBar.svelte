@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel } from "../ui.svelte";
+	import { getKernel, useT } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import KeyChip from "./KeyChip.svelte";
 	import MenuBar from "./MenuBar.svelte";
@@ -18,6 +18,7 @@
 	 */
 	let { title, compact = false, showMenus = true, closeOnly = false }: { title?: string; compact?: boolean; showMenus?: boolean; closeOnly?: boolean } = $props();
 	const k = getKernel();
+	const t = useT();
 	const host = k.host;
 	const mac = host.platform === "macos";
 	const web = !host.caps.nativeWindows;
@@ -64,10 +65,10 @@
 				<button
 					class="flex h-6 w-full max-w-md items-center gap-2 rounded-md border border-border bg-background/60 px-2 text-xs text-muted-foreground hover:bg-background"
 					onclick={() => k.commands.run("palette.quickOpen")}
-					aria-label="Search or run a command"
+					aria-label={t("ui.titlebar.search", "Search or run a command")}
 				>
 					<Icon name="search" size={13} />
-					<span class="flex-1 truncate text-left">{vaultName ? `Search ${vaultName}` : "Search or run a command"}</span>
+					<span class="flex-1 truncate text-left">{vaultName ? t("ui.titlebar.searchVault", "Search {name}", { name: vaultName }) : t("ui.titlebar.search", "Search or run a command")}</span>
 					<KeyChip keys={k.keys.label("palette.quickOpen")} />
 				</button>
 			{:else if title}
@@ -77,13 +78,13 @@
 
 		{#if !compact && !narrow}
 			<div class="flex items-center gap-0.5 pr-1">
-				<button class="fw-icon-btn" aria-label="Toggle primary sidebar" aria-pressed={regions?.sidebar?.visible ?? true} title="Toggle primary sidebar" onclick={() => k.commands.run("layout.togglePrimarySidebar")}>
+				<button class="fw-icon-btn" aria-label={k.commands.title("layout.togglePrimarySidebar")} aria-pressed={regions?.sidebar?.visible ?? true} title={k.commands.title("layout.togglePrimarySidebar")} onclick={() => k.commands.run("layout.togglePrimarySidebar")}>
 					<Icon name={(regions?.sidebar?.visible ?? true) ? "panel-left" : "panel-left-dashed"} size={15} />
 				</button>
-				<button class="fw-icon-btn" aria-label="Toggle panel" aria-pressed={regions?.panel?.visible ?? false} title="Toggle panel" onclick={() => k.commands.run("layout.togglePanel")}>
+				<button class="fw-icon-btn" aria-label={k.commands.title("layout.togglePanel")} aria-pressed={regions?.panel?.visible ?? false} title={k.commands.title("layout.togglePanel")} onclick={() => k.commands.run("layout.togglePanel")}>
 					<Icon name={regions?.panel?.visible ? "panel-bottom" : "panel-bottom-dashed"} size={15} />
 				</button>
-				<button class="fw-icon-btn" aria-label="Toggle secondary sidebar" aria-pressed={regions?.inspector?.visible ?? false} title="Toggle secondary sidebar" onclick={() => k.commands.run("layout.toggleSecondarySidebar")}>
+				<button class="fw-icon-btn" aria-label={k.commands.title("layout.toggleSecondarySidebar")} aria-pressed={regions?.inspector?.visible ?? false} title={k.commands.title("layout.toggleSecondarySidebar")} onclick={() => k.commands.run("layout.toggleSecondarySidebar")}>
 					<Icon name={regions?.inspector?.visible ? "panel-right" : "panel-right-dashed"} size={15} />
 				</button>
 			</div>

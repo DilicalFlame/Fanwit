@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel } from "../../ui.svelte";
+	import { getKernel, useT } from "../../ui.svelte";
 	import Icon from "../../icons/Icon.svelte";
 	import { enter } from "../../motion/motion";
 	import SettingControl from "./SettingControl.svelte";
@@ -17,6 +17,7 @@
 	 */
 	let { props }: { props: { page?: string } } = $props();
 	const k = getKernel();
+	const t = useT();
 	const s = k.sys.settings;
 	// svelte-ignore state_referenced_locally (seeded once from the props it opened with)
 	let page = $state(props.page && !props.page.startsWith("@") ? props.page : "General");
@@ -45,7 +46,7 @@
 			} else if (tok.startsWith("@id:")) {
 				if (!d.key.startsWith(tok.slice(4))) return false;
 			} else {
-				const hay = `${d.title ?? ""} ${d.description ?? ""} ${d.key} ${JSON.stringify(s.get(d.key))}`.toLowerCase();
+				const hay = `${d.title ?? ""} ${d.description ?? ""} ${s.title(d)} ${s.describe(d) ?? ""} ${d.key} ${JSON.stringify(s.get(d.key))}`.toLowerCase();
 				if (!hay.includes(tok.toLowerCase())) return false;
 			}
 		}
@@ -61,7 +62,7 @@
 	async function change(d: SettingDef, v: unknown) {
 		try {
 			await s.set(d.key, v, { scope });
-			if (d.restart) k.sys.notify.send({ title: `${d.title ?? d.key} changes after a restart`, kind: "info", actions: [{ label: "Restart now", command: "app.reload" }] });
+			if (d.restart) k.sys.notify.send({ title: t("ui.settings.restartNeeded", "{name} changes after a restart", { name: s.title(d) }), kind: "info", actions: [{ label: t("ui.settings.restartNow", "Restart now"), command: "app.reload" }] });
 		} catch (e) {
 			k.sys.notify.error(e);
 		}
@@ -69,16 +70,16 @@
 </script>
 
 <div class="flex h-full min-h-0">
-	<nav class="flex w-56 shrink-0 flex-col gap-0.5 overflow-auto border-r border-border bg-sidebar p-2" aria-label="Settings categories">
+	<nav class="flex w-56 shrink-0 flex-col gap-0.5 overflow-auto border-r border-border bg-sidebar p-2" aria-label={t("ui.settings.categories", "Settings categories")}>
 		<div class="relative mb-2">
 			<Icon name="search" size={13} class="absolute top-2 left-2 text-muted-foreground" />
-			<input class="fw-input pl-7 text-xs" placeholder="Search settings" aria-label="Search settings" bind:value={query} />
+			<input class="fw-input pl-7 text-xs" placeholder={t("ui.settings.search", "Search settings")} aria-label={t("ui.settings.search", "Search settings")} bind:value={query} />
 		</div>
 		{#each categories as c (c)}
-			<button class="rounded px-2 py-1 text-left text-[13px] {page === c && !query ? 'bg-sidebar-accent font-medium' : 'hover:bg-sidebar-accent/60'}" onclick={() => { page = c; query = ""; }}>{c}</button>
+			<button class="rounded px-2 py-1 text-left text-[13px] {page === c && !query ? 'bg-sidebar-accent font-medium' : 'hover:bg-sidebar-accent/60'}" onclick={() => { page = c; query = ""; }}>{s.categoryTitle(c)}</button>
 		{/each}
 		{#if pluginGroups.length}
-			<div class="fw-section-title px-2">Plugins</div>
+			<div class="fw-section-title px-2">{s.categoryTitle("Plugins")}</div>
 			{#each pluginGroups as p (p)}
 				<button class="rounded px-2 py-1 text-left text-[13px] {page === p ? 'bg-sidebar-accent' : 'hover:bg-sidebar-accent/60'}" onclick={() => (page = p)}>{k.modules.modules.get(p)?.def.title ?? p}</button>
 			{/each}
@@ -91,14 +92,14 @@
 	<div class="flex min-w-0 flex-1 flex-col">
 		<div class="flex h-10 shrink-0 items-center gap-2 border-b border-border px-4">
 			{#if !CUSTOM.includes(page) || query}
-				<div role="tablist" aria-label="Scope" class="flex rounded-md border border-border p-0.5 text-xs">
+				<div role="tablist" aria-label={t("ui.settings.scope", "Scope")} class="flex rounded-md border border-border p-0.5 text-xs">
 					{#each [["global", "User"], ["vault", "Vault"], ["window", "Window"]] as [sc, label] (sc)}
-						<button role="tab" aria-selected={scope === sc} disabled={sc === "vault" && !k.sys.vault.current} class="h-6 rounded px-3 disabled:opacity-40 {scope === sc ? 'bg-accent' : ''}" onclick={() => (scope = sc as SettingScope)}>{label}</button>
+						<button role="tab" aria-selected={scope === sc} disabled={sc === "vault" && !k.sys.vault.current} class="h-6 rounded px-3 disabled:opacity-40 {scope === sc ? 'bg-accent' : ''}" onclick={() => (scope = sc as SettingScope)}>{t(`ui.settings.scope.${sc}`, label)}</button>
 					{/each}
 				</div>
 			{/if}
 			<span class="flex-1"></span>
-			<button class="fw-btn h-7" aria-pressed={showToml} onclick={() => (showToml = !showToml)}><Icon name="file-code" size={13} /> Open as TOML</button>
+			<button class="fw-btn h-7" aria-pressed={showToml} onclick={() => (showToml = !showToml)}><Icon name="file-code" size={13} /> {t("ui.settings.openToml", "Open as TOML")}</button>
 		</div>
 		<div class="flex min-h-0 flex-1">
 			<div class="min-w-0 flex-1 overflow-auto px-6 py-4">
@@ -109,12 +110,12 @@
 				{:else if page === "About" && !query}
 					<About />
 				{:else}
-					<h1 class="mb-3 text-lg font-semibold">{query ? `Results for "${query}"` : (k.modules.modules.get(page)?.def.title ?? page)}</h1>
+					<h1 class="mb-3 text-lg font-semibold">{query ? t("ui.settings.results", "Results for \"{query}\"", { query }) : (k.modules.modules.get(page)?.def.title ?? s.categoryTitle(page))}</h1>
 					{#if page === "Menus" && !query}
-						<button class="fw-btn mb-4" onclick={() => k.commands.run("menus.edit")}><Icon name="list-tree" size={13} /> Open the Context Menu Editor</button>
+						<button class="fw-btn mb-4" onclick={() => k.commands.run("menus.edit")}><Icon name="list-tree" size={13} /> {k.commands.title("menus.edit")}</button>
 					{/if}
 					{#if page === "Plugins" && !query}
-						<button class="fw-btn mb-4" onclick={() => k.commands.run("plugins.open")}><Icon name="puzzle" size={13} /> Open the Plugin Manager</button>
+						<button class="fw-btn mb-4" onclick={() => k.commands.run("plugins.open")}><Icon name="puzzle" size={13} /> {k.commands.title("plugins.open")}</button>
 					{/if}
 					{#each rows as d (d.key)}
 						{#if visibleRow(d)}
@@ -123,30 +124,30 @@
 								{#if modified}<span class="absolute top-3 bottom-3 left-0 w-0.5 rounded bg-tab-border" aria-label="modified"></span>{/if}
 								<div class="min-w-64 flex-1">
 									<div class="flex flex-wrap items-center gap-1.5 text-[13px] font-medium">
-										{d.title ?? d.key}
-										{#if d.restart}<span class="rounded bg-warning-muted px-1 text-[10px] text-warning">restart</span>{/if}
-										{#if d.experimental}<span class="rounded bg-info-muted px-1 text-[10px] text-info">experimental</span>{/if}
-										{#if d.deprecated}<span class="rounded bg-muted px-1 text-[10px]">deprecated</span>{/if}
-										{#if s.cliOverridden(d.key)}<span class="flex items-center gap-0.5 rounded bg-muted px-1 text-[10px]" title="Overridden by a CLI flag or environment variable for this process"><Icon name="terminal" size={10} />CLI</span>{/if}
+										{s.title(d)}
+										{#if d.restart}<span class="rounded bg-warning-muted px-1 text-[10px] text-warning">{t("ui.settings.restart", "restart")}</span>{/if}
+										{#if d.experimental}<span class="rounded bg-info-muted px-1 text-[10px] text-info">{t("ui.settings.experimental", "experimental")}</span>{/if}
+										{#if d.deprecated}<span class="rounded bg-muted px-1 text-[10px]">{t("ui.settings.deprecated", "deprecated")}</span>{/if}
+										{#if s.cliOverridden(d.key)}<span class="flex items-center gap-0.5 rounded bg-muted px-1 text-[10px]" title={t("ui.settings.cliOverride", "Overridden by a CLI flag or environment variable for this process")}><Icon name="terminal" size={10} />CLI</span>{/if}
 									</div>
-									{#if d.description}<div class="mt-0.5 text-xs text-muted-foreground">{d.description}</div>{/if}
+									{#if d.description}<div class="mt-0.5 text-xs text-muted-foreground">{s.describe(d)}</div>{/if}
 									<div class="mt-0.5 font-mono text-[10.5px] text-muted-foreground/70">{d.key}</div>
 								</div>
 								<div class="flex items-center gap-2">
 									{#if scopeAllowed(d)}
 										<SettingControl def={d} value={valueIn(d)} onchange={(v) => change(d, v)} />
 									{:else}
-										<span class="text-xs text-muted-foreground">Not available in this scope</span>
+										<span class="text-xs text-muted-foreground">{t("ui.settings.notInScope", "Not available in this scope")}</span>
 									{/if}
 									<div class="relative">
-										<button class="fw-icon-btn opacity-0 group-hover:opacity-100 focus-visible:opacity-100" aria-label="More actions for {d.title ?? d.key}" onclick={() => (gearFor = gearFor === d.key ? null : d.key)}><Icon name="settings" size={14} /></button>
+										<button class="fw-icon-btn opacity-0 group-hover:opacity-100 focus-visible:opacity-100" aria-label={t("ui.settings.moreActions", "More actions for {name}", { name: s.title(d) })} onclick={() => (gearFor = gearFor === d.key ? null : d.key)}><Icon name="settings" size={14} /></button>
 										{#if gearFor === d.key}
 											<div role="menu" tabindex="-1" class="absolute right-0 z-10 w-52 rounded-md border border-border bg-popover p-1 shadow-lg" onmouseleave={() => (gearFor = null)}>
-												<button role="menuitem" class="fw-menu-row" onclick={() => { void s.reset(d.key, { scope }); gearFor = null; }}>Reset</button>
-												<button role="menuitem" class="fw-menu-row" onclick={() => { void navigator.clipboard.writeText(d.key); gearFor = null; }}>Copy setting id</button>
-												<button role="menuitem" class="fw-menu-row" onclick={() => { void navigator.clipboard.writeText(s.tomlFor(d.key)); gearFor = null; }}>Copy as TOML</button>
-												<button role="menuitem" class="fw-menu-row" onclick={() => { showToml = true; gearFor = null; }}>Show in file</button>
-												<button role="menuitem" class="fw-menu-row" onclick={() => { layersFor = d.key; gearFor = null; }}>Show all layers</button>
+												<button role="menuitem" class="fw-menu-row" onclick={() => { void s.reset(d.key, { scope }); gearFor = null; }}>{t("ui.settings.reset", "Reset")}</button>
+												<button role="menuitem" class="fw-menu-row" onclick={() => { void navigator.clipboard.writeText(d.key); gearFor = null; }}>{t("ui.settings.copyId", "Copy setting id")}</button>
+												<button role="menuitem" class="fw-menu-row" onclick={() => { void navigator.clipboard.writeText(s.tomlFor(d.key)); gearFor = null; }}>{t("ui.settings.copyToml", "Copy as TOML")}</button>
+												<button role="menuitem" class="fw-menu-row" onclick={() => { showToml = true; gearFor = null; }}>{t("ui.settings.showInFile", "Show in file")}</button>
+												<button role="menuitem" class="fw-menu-row" onclick={() => { layersFor = d.key; gearFor = null; }}>{t("ui.settings.showLayers", "Show all layers")}</button>
 											</div>
 										{/if}
 									</div>
@@ -157,13 +158,13 @@
 										{#each LAYERS as l (l)}
 											<div class="flex gap-2 {ins.source === l ? 'font-semibold text-foreground' : 'text-muted-foreground'}"><span class="w-16">{l}</span><span>{JSON.stringify((ins as unknown as Record<string, unknown>)[l]) ?? "–"}</span></div>
 										{/each}
-										<button class="mt-1 text-[10px] underline" onclick={() => (layersFor = null)}>hide</button>
+										<button class="mt-1 text-[10px] underline" onclick={() => (layersFor = null)}>{t("ui.settings.hide", "hide")}</button>
 									</div>
 								{/if}
 							</div>
 						{/if}
 					{:else}
-						<p class="text-sm text-muted-foreground">No settings match.</p>
+						<p class="text-sm text-muted-foreground">{t("ui.settings.noMatch", "No settings match.")}</p>
 					{/each}
 				{/if}
 				</div>

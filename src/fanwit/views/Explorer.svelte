@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, tick } from "svelte";
-	import { getKernel, menu } from "../ui.svelte";
+	import { getKernel, menu, useT } from "../ui.svelte";
 	import { ctxkeys } from "../kernel/context.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import EmptyState from "../workbench/EmptyState.svelte";
@@ -13,6 +13,7 @@
 	 * rename (F2), drag and drop to move, and the explorer/item context menu.
 	 */
 	const k = getKernel();
+	const t = useT();
 	const { vault, layout, notify } = k.sys;
 	interface Node {
 		name: string;
@@ -150,22 +151,22 @@
 
 <div class="flex h-full min-h-0 flex-col" use:ctxkeys={{ focusedView: "fanwit.explorer" }}>
 	{#if !vault.current}
-		<EmptyState icon="folder-open" title="No vault open" description="Open a folder to browse its files here.">
-			<button class="fw-btn fw-btn-primary" onclick={() => k.commands.run("vault.open").catch((e) => notify.error(e))}>Open folder</button>
-			<button class="fw-btn" onclick={() => k.commands.run("vault.switch")}>Vaults…</button>
+		<EmptyState icon="folder-open" title={t("ui.explorer.noVault", "No vault open")} description={t("ui.explorer.noVaultHint", "Open a folder to browse its files here.")}>
+			<button class="fw-btn fw-btn-primary" onclick={() => k.commands.run("vault.open").catch((e) => notify.error(e))}>{t("ui.explorer.openFolder", "Open folder")}</button>
+			<button class="fw-btn" onclick={() => k.commands.run("vault.switch")}>{t("ui.explorer.vaults", "Vaults…")}</button>
 		</EmptyState>
 	{:else}
 		<div class="flex h-7 shrink-0 items-center gap-0.5 px-2 text-[11px] font-semibold text-muted-foreground uppercase">
 			<span class="flex-1 truncate">{vault.current.name}</span>
-			<button class="fw-icon-btn" title="New file" aria-label="New file" onclick={() => k.commands.run("explorer.newFile", { dir: selectedDir() }, { source: "toolbar" }).catch((e) => notify.error(e))}><Icon name="file-plus" size={14} /></button>
-			<button class="fw-icon-btn" title="New folder" aria-label="New folder" onclick={() => k.commands.run("explorer.newFolder", { dir: selectedDir() }, { source: "toolbar" }).catch((e) => notify.error(e))}><Icon name="folder-plus" size={14} /></button>
-			<button class="fw-icon-btn" title="Refresh" aria-label="Refresh" onclick={refresh}><Icon name="refresh-cw" size={13} /></button>
-			<button class="fw-icon-btn" title="Collapse all" aria-label="Collapse all" onclick={() => (open = {})}><Icon name="chevrons-down-up" size={14} /></button>
+			<button class="fw-icon-btn" title={k.commands.title("explorer.newFile")} aria-label={k.commands.title("explorer.newFile")} onclick={() => k.commands.run("explorer.newFile", { dir: selectedDir() }, { source: "toolbar" }).catch((e) => notify.error(e))}><Icon name="file-plus" size={14} /></button>
+			<button class="fw-icon-btn" title={k.commands.title("explorer.newFolder")} aria-label={k.commands.title("explorer.newFolder")} onclick={() => k.commands.run("explorer.newFolder", { dir: selectedDir() }, { source: "toolbar" }).catch((e) => notify.error(e))}><Icon name="folder-plus" size={14} /></button>
+			<button class="fw-icon-btn" title={t("ui.explorer.refresh", "Refresh")} aria-label={t("ui.explorer.refresh", "Refresh")} onclick={refresh}><Icon name="refresh-cw" size={13} /></button>
+			<button class="fw-icon-btn" title={t("ui.explorer.collapseAll", "Collapse all")} aria-label={t("ui.explorer.collapseAll", "Collapse all")} onclick={() => (open = {})}><Icon name="chevrons-down-up" size={14} /></button>
 		</div>
 		<div
 			role="tree"
 			tabindex="-1"
-			aria-label="Files in {vault.current.name}"
+			aria-label={t("ui.explorer.filesIn", "Files in {name}", { name: vault.current.name })}
 			class="min-h-0 flex-1 overflow-auto pb-4"
 			onkeydown={keys}
 			ondragover={(e) => e.preventDefault()}
@@ -173,8 +174,8 @@
 			use:menu={{ location: "explorer/empty", target: { dir: "" } }}
 		>
 			{#if error}<div class="px-3 py-2 text-xs text-destructive">{error}</div>{/if}
-			{#if loading && !entries.length}<div class="px-3 py-2 text-xs text-muted-foreground">Loading…</div>{/if}
-			{#if !loading && !entries.length}<div class="px-3 py-2 text-xs text-muted-foreground">This vault is empty. Right click to create a file.</div>{/if}
+			{#if loading && !entries.length}<div class="px-3 py-2 text-xs text-muted-foreground">{t("ui.loading", "Loading…")}</div>{/if}
+			{#if !loading && !entries.length}<div class="px-3 py-2 text-xs text-muted-foreground">{t("ui.explorer.empty", "This vault is empty. Right click to create a file.")}</div>{/if}
 			{#each visible as n (n.path)}
 				<div
 					role="treeitem"

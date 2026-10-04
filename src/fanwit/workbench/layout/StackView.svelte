@@ -19,7 +19,7 @@
 <div class="flex min-h-0 min-w-0 flex-1 flex-col bg-sidebar text-sidebar-foreground" data-fw-tabset={node}>
 	{#if region === "sidebar" || region === "inspector"}
 		<div class="flex h-9 shrink-0 items-center justify-between px-3 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase" use:menu={{ location: "activity/item", target: { node } }}>
-			<span>{n.title ?? node}</span>
+			<span>{layout.nodeTitle(node)}</span>
 		</div>
 	{/if}
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden">

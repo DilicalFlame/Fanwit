@@ -176,6 +176,27 @@ export class SettingsService {
 		return this.defs.get(key);
 	}
 
+	/** Translation hook (set at boot): `setting.<key>`, `setting.<key>.description`, `setting.<key>.<option>`, `settingsCategory.<name>`. */
+	translate: (key: string, fallback: string) => string = (_k, f) => f;
+
+	title(d: SettingDef) {
+		return this.translate(`setting.${d.key}`, d.title ?? d.key);
+	}
+
+	describe(d: SettingDef) {
+		return d.description ? this.translate(`setting.${d.key}.description`, d.description) : undefined;
+	}
+
+	optionLabel(d: SettingDef, option: string) {
+		// language names stay in their own language, so anyone can find theirs
+		const label = d.labels?.[option] ?? option;
+		return d.key === "general.language" ? label : this.translate(`setting.${d.key}.${option}`, label);
+	}
+
+	categoryTitle(category: string) {
+		return this.translate(`settingsCategory.${category}`, category);
+	}
+
 	list() {
 		void this.version;
 		return [...this.defs.values()];

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from "svelte";
-	import { getKernel } from "../ui.svelte";
+	import { getKernel, useT } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import KeyChip from "./KeyChip.svelte";
 	import { enter, leave } from "../motion/motion";
@@ -11,6 +11,7 @@
 	 * from a command's argument schema.
 	 */
 	const k = getKernel();
+	const t = useT();
 	const p = k.sys.palette;
 	let input = $state<HTMLInputElement>();
 	let list = $state<HTMLDivElement>();
@@ -76,7 +77,7 @@
 
 {#if p.visible}
 	<div class="fixed inset-0 z-[90]" role="presentation" out:leave onpointerdown={(e) => e.target === e.currentTarget && p.close()}>
-		<div role="dialog" aria-modal="true" aria-label="Command palette" use:enter={{ preset: "drop", origin: "top center" }} out:leave={{ preset: "pop" }} class="mx-auto mt-[8vh] flex max-h-[70vh] w-[min(640px,calc(100%-24px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
+		<div role="dialog" aria-modal="true" aria-label={t("ui.palette.label", "Command palette")} use:enter={{ preset: "drop", origin: "top center" }} out:leave={{ preset: "pop" }} class="mx-auto mt-[8vh] flex max-h-[70vh] w-[min(640px,calc(100%-24px))] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
 			{#if p.prompt}
 				<div class="flex items-center gap-2 border-b border-border px-3 pt-2 pb-1 text-xs text-muted-foreground">
 					<Icon name="square-terminal" size={13} />
@@ -89,7 +90,7 @@
 				<input
 					bind:this={input}
 					class="h-11 flex-1 bg-transparent text-sm outline-none"
-					placeholder={p.prompt ? (p.step?.spec.description ?? `Value for ${p.step?.title}`) : (p.mode?.placeholder ?? "Type a file name, or > for commands, ? for help")}
+					placeholder={p.prompt ? (p.step?.spec.description ?? t("ui.palette.valueFor", "Value for {name}", { name: p.step?.title ?? "" })) : p.mode?.placeholder ? t(`ui.palette.placeholder.${p.mode.title}`, p.mode.placeholder) : t("ui.palette.placeholder", "Type a file name, or > for commands, ? for help")}
 					value={p.query}
 					oninput={(e) => p.setQuery((e.currentTarget as HTMLInputElement).value)}
 					onkeydown={keys}
@@ -132,17 +133,17 @@
 						<KeyChip keys={it.keys} />
 					</div>
 				{:else}
-					<div class="px-3 py-6 text-center text-xs text-muted-foreground">{p.loading ? "Searching…" : p.prompt ? "Type a value and press Enter" : "No results"}</div>
+					<div class="px-3 py-6 text-center text-xs text-muted-foreground">{p.loading ? t("ui.palette.searching", "Searching…") : p.prompt ? t("ui.palette.typeValue", "Type a value and press Enter") : t("ui.palette.noResults", "No results")}</div>
 				{/each}
 			</div>
 			<div class="flex items-center gap-3 border-t border-border px-3 py-1.5 text-[11px] text-muted-foreground">
 				{#if p.prompt}
-					<span>Enter to continue · Backspace on empty input goes back · Esc cancels</span>
+					<span>{t("ui.palette.promptHelp", "Enter to continue · Backspace on empty input goes back · Esc cancels")}</span>
 				{:else}
-					<span>{p.mode?.prefix === ">" ? "recently used first" : (p.mode?.title ?? "")}</span>
+					<span>{p.mode?.prefix === ">" ? t("ui.palette.recentFirst", "recently used first") : p.mode?.title ? t(`ui.palette.mode.${p.mode.title}`, p.mode.title) : ""}</span>
 					<span class="flex-1"></span>
 					{#each MODES as [pre, name] (pre)}
-						<button class="hover:text-foreground" onclick={() => p.setQuery(pre)}><b>{pre}</b> {name}</button>
+						<button class="hover:text-foreground" onclick={() => p.setQuery(pre)}><b>{pre}</b> {t(`ui.palette.prefix.${name}`, name)}</button>
 					{/each}
 				{/if}
 			</div>

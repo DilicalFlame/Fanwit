@@ -390,7 +390,10 @@ export class MenuService {
 		const enabledWhen = ctx.evaluate(item.when, el, extra);
 		const cmdEnabled = !cmd || ctx.evaluate(cmd.def.when, el, extra);
 		const kind = item.kind ?? (item.items || item.submenu ? "submenu" : "action");
-		const label = item.label ?? (item.props?.label as string | undefined) ?? (cmd ? cmd.def.shortTitle ?? this.k.commands.title(cmd.def.id) : item.command ?? item.id);
+		// an item's own label translates by item id: `menu.<id>`
+		const i18n = (this.k.sys as { i18n?: { t(key: string, params: object, fallback: string): string } }).i18n;
+		const own = item.label && i18n ? i18n.t(`menu.${item.id}`, {}, item.label) : item.label;
+		const label = own ?? (item.props?.label as string | undefined) ?? (cmd ? cmd.def.shortTitle ?? this.k.commands.title(cmd.def.id) : item.command ?? item.id);
 		const disabledReason = !enabledWhen ? ctx.explain(item.when, ctx.lookup(el, extra)) : !cmdEnabled ? ctx.explain(cmd!.def.when, ctx.lookup(el, extra)) : null;
 		return {
 			...item,

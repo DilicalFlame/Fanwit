@@ -13,6 +13,7 @@
 	 */
 	const k = getKernel();
 	const w = k.sys.windows;
+	const titleOf = (v: VirtualWindow) => (v.titleSet ? v.title : w.title(v.spec, v.props));
 	const sorted = $derived([...w.virtual].sort((a, b) => a.z - b.z));
 	const topModal = $derived([...w.virtual].filter((v) => v.modal).sort((a, b) => b.z - a.z)[0]);
 	const minimized = $derived(w.virtual.filter((v) => v.minimized));
@@ -53,7 +54,10 @@
 			props: v.props,
 			opener: v.opener,
 			close: async (value?: unknown) => w.closeVirtual(v.id, value),
-			setTitle: (t: string) => (v.title = t)
+			setTitle: (t: string) => {
+				v.title = t;
+				v.titleSet = true;
+			}
 		};
 	}
 
@@ -70,7 +74,7 @@
 		<div
 			role="dialog"
 			aria-modal={v.modal}
-			aria-label={v.title}
+			aria-label={titleOf(v)}
 			tabindex="-1"
 			use:enter={"dialog"}
 			out:leave|global={{ preset: "dialog" }}
@@ -84,7 +88,7 @@
 		>
 			<!-- svelte-ignore a11y_no_static_element_interactions (drag to move, double click to maximize; the buttons do the same by keyboard) -->
 			<header class="flex h-8 shrink-0 cursor-move items-center gap-2 border-b border-border bg-titlebar px-2 text-xs select-none" onpointerdown={(e) => drag(e, v, "move")} ondblclick={() => (v.maximized = !v.maximized)}>
-				<span class="flex-1 truncate font-medium">{v.title}</span>
+				<span class="flex-1 truncate font-medium">{titleOf(v)}</span>
 				{#if !v.modal && v.spec.minimizable !== false}
 					<button class="fw-icon-btn" aria-label="Minimize" onpointerdown={(e) => e.stopPropagation()} onclick={() => (v.minimized = true)}><Icon name="minus" size={13} /></button>
 				{/if}
@@ -110,7 +114,7 @@
 {#if minimized.length}
 	<nav class="fixed bottom-8 left-1/2 z-[55] flex -translate-x-1/2 gap-1 rounded-lg border border-border bg-popover p-1 shadow-lg" aria-label="Minimized windows">
 		{#each minimized as v (v.id)}
-			<button class="fw-btn h-7" use:enter={"rise"} onclick={() => w.raise(v.id)}><Icon name="app-window" size={13} />{v.title}</button>
+			<button class="fw-btn h-7" use:enter={"rise"} onclick={() => w.raise(v.id)}><Icon name="app-window" size={13} />{titleOf(v)}</button>
 		{/each}
 	</nav>
 {/if}

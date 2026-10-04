@@ -91,9 +91,27 @@ Contributing a command adds `onCommand:<id>` to the module's events. Until it fi
 
 ## Translations
 
-Command titles and categories are translated by key: `command.<id>` and `category.<name>`. Contribute a catalog per locale with `contributes.i18n` (`{ de: { "command.notes.new": "Neue Notiz" } }`), or add one at runtime with `ctx.i18n.add`. Messages use ICU syntax for parameters, plurals and select, and anything missing falls back to English.
+Text is translated by key, with the English kept in the code as the fallback:
 
-The core catalogs live in `src/fanwit/i18n/catalogs.ts`. Every locale there appears in the Language setting, so `catalogs.test.ts` fails unless it covers every core command title and category. Add a language by adding a complete catalog. The `pseudo` locale accents and lengthens every string, so you can spot text that is not translated or does not fit. View text (buttons and labels inside views) is still English unless the view calls `ctx.i18n.t`.
+| What | Key |
+|---|---|
+| Command title, category | `command.<id>`, `category.<name>` |
+| Setting title, description, option | `setting.<key>`, `setting.<key>.description`, `setting.<key>.<option>`; categories `settingsCategory.<name>` |
+| View, window kind, menu item with its own label | `view.<id>`, `window.<kind>`, `menu.<id>` |
+| A title written in a layout preset | `title.<text>` |
+| Text inside a component | any key you choose, through `useT()` |
+
+```svelte
+<script lang="ts">
+	import { useT } from "$fanwit";
+	const t = useT();
+</script>
+<p>{t("notes.empty", "No notes yet")}</p>
+```
+
+A module ships its catalogs with `contributes.i18n` (`{ hi: { "command.notes.newDaily": "आज का दैनिक नोट खोलें" } }`; the notes module is an example), or adds them at runtime with `ctx.i18n.add`. Messages use ICU syntax for parameters, plurals and select. Everything re-renders when the Language setting changes.
+
+The core catalogs live in `src/fanwit/i18n/catalogs.ts`. Every locale there appears in the Language setting, so `catalogs.test.ts` fails unless it covers every key the core frame asks for, including the `t("key", "English")` calls in its components. Add a language by adding a complete catalog: run the test with `FW_I18N_TODO=todo.json` to get the missing keys with their English text. The `pseudo` locale accents and lengthens every translated string, so text that stays plain is text nobody translated.
 
 ## Pitfalls
 

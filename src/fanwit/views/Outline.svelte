@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { getKernel } from "../ui.svelte";
+	import { getKernel, useT } from "../ui.svelte";
 	import EmptyState from "../workbench/EmptyState.svelte";
 
 	/** Heading outline of the active document (Markdown headings), click to reveal. */
 	const k = getKernel();
+	const t = useT();
 	const { layout, vault } = k.sys;
 	const path = $derived(layout.activeDocument ? (layout.doc.pane[layout.activeDocument]?.props?.path as string | undefined) : undefined);
 	let text = $state("");
@@ -23,9 +24,9 @@
 </script>
 
 {#if !headings.length}
-	<EmptyState icon="list-tree" title="No outline" description="Headings of the active document appear here." />
+	<EmptyState icon="list-tree" title={t("ui.outline.empty", "No outline")} description={t("ui.outline.emptyHint", "Headings of the active document appear here.")} />
 {:else}
-	<ul class="h-full overflow-auto py-1 text-[13px]" role="tree" aria-label="Outline">
+	<ul class="h-full overflow-auto py-1 text-[13px]" role="tree" aria-label={t("view.fanwit.outline", "Outline")}>
 		{#each headings as h, i (i)}
 			<li role="treeitem" aria-selected="false" aria-level={h.level}>
 				<button class="w-full truncate px-2 py-0.5 text-left hover:bg-sidebar-accent/60" style:padding-left="{8 + (h.level - 1) * 12}px" onclick={() => k.events.emit("editor:reveal" as never, { path, line: h.line } as never)}>{h.title}</button>

@@ -267,6 +267,7 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	k.commands.setConfirmer((message, danger, okLabel) => dialog.ask(message, { title: "Confirm", kind: danger ? "warning" : "info", okLabel: okLabel ?? "Continue", cancelLabel: "Cancel" }));
 	k.keys.onError = (e) => notify.error(e);
 	k.commands.translate = (key, fallback) => i18n.t(key, {}, fallback);
+	settings.translate = (key, fallback) => i18n.t(key, {}, fallback);
 	for (const [loc, msgs] of Object.entries(catalogs)) i18n.add(loc, msgs);
 
 	// ----- contribution points -----

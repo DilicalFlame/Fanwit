@@ -49,9 +49,9 @@
 			data-activity={id}
 			data-fw-id="activity-{id}"
 			class="relative flex size-10 items-center justify-center rounded-md transition-colors hover:text-activity-active {isActive ? 'text-activity-active' : ''}"
-			aria-label={node?.title ?? id}
+			aria-label={layout.nodeTitle(id)}
 			aria-pressed={isActive}
-			title={node?.title ?? id}
+			title={layout.nodeTitle(id)}
 			tabindex={id === st?.node ? 0 : -1}
 			onclick={() => activate(id)}
 			use:menu={{ location: "activity/item", target: { node: id, region } }}

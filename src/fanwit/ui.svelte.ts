@@ -31,6 +31,26 @@ export function getKernel(): Kernel {
 }
 
 /**
+ * The translator for a component: `t(key, english, params?)`. The English text stays in the code
+ * as the fallback; catalogs (`src/fanwit/i18n/catalogs.ts`, `contributes.i18n`) supply the rest.
+ * Reactive, so text re-renders when the Language setting changes.
+ *
+ * @example
+ * ```svelte
+ * <script lang="ts">
+ *   import { useT } from "$fanwit";
+ *   const t = useT();
+ * </script>
+ * <p>{t("notes.empty", "No notes yet")}</p>
+ * <p>{t("notes.count", "{count, plural, one {# note} other {# notes}}", { count })}</p>
+ * ```
+ */
+export function useT(): (key: string, english: string, params?: Record<string, unknown>) => string {
+	const i18n = getKernel().sys.i18n;
+	return (key, english, params = {}) => i18n.t(key, params, english);
+}
+
+/**
  * Dispose automatically when the component unmounts: for listeners and registrations made by a
  * view rather than a module.
  *

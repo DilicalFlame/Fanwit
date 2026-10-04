@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getKernel, menu } from "../ui.svelte";
+	import { getKernel, menu, useT } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import { identity } from "../gen/identity";
 
@@ -10,6 +10,7 @@
 	 */
 	let { app = true, menus = true, collapsed = false, icon }: { app?: boolean; menus?: boolean; collapsed?: boolean; icon?: string } = $props();
 	const k = getKernel();
+	const t = useT();
 	const nativeMenus = k.host.platform === "macos" && k.host.caps.nativeWindows;
 	const MENUS = [
 		["menubar/file", "File"],
@@ -51,7 +52,7 @@
 	</button>
 {/if}
 {#if menus && !nativeMenus && !collapsed}
-	<div role="menubar" tabindex="-1" aria-label="Menu bar" class="flex shrink-0 items-center" onkeydown={menubarKeys}>
+	<div role="menubar" tabindex="-1" aria-label={t("ui.menubar.label", "Menu bar")} class="flex shrink-0 items-center" onkeydown={menubarKeys}>
 		{#each MENUS as [loc, label] (loc)}
 			<button
 				role="menuitem"
@@ -61,7 +62,7 @@
 				data-fw-id="menubar-{label.toLowerCase()}"
 				class="h-7 rounded px-2 text-[12.5px] hover:bg-current/10 {openMenu === loc ? 'bg-current/10' : ''}"
 				onclick={(e) => showMenu(loc, e.currentTarget)}
-				onpointerenter={(e) => openMenu && openMenu !== loc && showMenu(loc, e.currentTarget)}>{label}</button
+				onpointerenter={(e) => openMenu && openMenu !== loc && showMenu(loc, e.currentTarget)}>{t(`ui.menubar.${label.toLowerCase()}`, label)}</button
 			>
 		{/each}
 	</div>
