@@ -1,0 +1,20 @@
+[package]
+name = "text-stats"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+# built on its own for wasm32: `pnpm fw plugin build text-stats` writes ../plugin.wasm
+[workspace]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+fanwit-plugin = { path = "../../../packages/fanwit-plugin-rs" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"

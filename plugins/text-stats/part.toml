@@ -1,0 +1,5 @@
+id = "plugin-text-stats"
+title = "text-stats"
+kind = "plugin"
+# reacts to notes:changed from the notes sample
+requires = ["sample-notes"]
