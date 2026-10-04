@@ -244,6 +244,9 @@ html[data-reading-tone="dark"] { --cm-keyword: #ff7b72; --cm-string: #a5d6ff; --
 .fw-doc-body .fw-play-editor { min-width: 0; overflow: hidden; border-right: 1px solid var(--border); }
 .fw-doc-body .fw-play-out { overflow: auto; padding: 0.7em; font-size: 0.85em; background: var(--background); }
 .fw-doc-body .fw-play-preview { font-size: 1rem; }
+/* a reader's component looks the way it would in a plain page: browser defaults, not the app's reset
+   (zero specificity, so the component's own styles still win) */
+:where(.fw-play-preview) :where(*) { all: revert; }
 .fw-doc-body .fw-play-cmds { display: flex; flex-wrap: wrap; gap: 0.4em; margin-bottom: 0.6em; }
 .fw-doc-body .fw-play-line { font: 12px/1.5 var(--font-mono); white-space: pre-wrap; border-bottom: 1px dashed var(--border); padding: 0.15em 0; }
 .fw-doc-body .fw-play-line.error { color: var(--destructive, #c33); }
@@ -252,6 +255,17 @@ html[data-reading-tone="dark"] { --cm-keyword: #ff7b72; --cm-string: #a5d6ff; --
 .fw-doc-body .fw-play-keys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.6em; margin-bottom: 0.6em; font-size: 0.9em; }
 .fw-doc-body .fw-play-label { font-weight: 600; color: var(--muted-foreground); }
 .fw-doc-body a.fw-play-btn { text-decoration: none; color: inherit; }
+/* labs (Lab.svelte) */
+.fw-doc-body .fw-lab { margin: 0 0 var(--doc-para, 1em); border: 1px solid color-mix(in oklab, var(--primary) 35%, var(--border)); border-radius: 12px; overflow: hidden; }
+.fw-doc-body .fw-lab-head { display: flex; align-items: center; gap: 0.45em; padding: 0.45em 0.8em; background: color-mix(in oklab, var(--primary) 8%, transparent); font-size: 0.9em; }
+.fw-doc-body .fw-lab-kind { font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8em; color: var(--primary); }
+.fw-doc-body .fw-lab-title { font-weight: 600; margin-right: auto; }
+.fw-doc-body .fw-lab-status { display: inline-flex; align-items: center; gap: 0.3em; font-size: 0.85em; color: var(--muted-foreground); }
+.fw-doc-body .fw-lab.done { border-color: color-mix(in oklab, var(--success, #16a34a) 50%, var(--border)); }
+.fw-doc-body .fw-lab.done .fw-lab-status { color: var(--success, #16a34a); font-weight: 600; }
+.fw-doc-body .fw-lab-body { padding: 0.8em 1em 0.2em; }
+.fw-doc-body .fw-lab-body > :last-child { margin-bottom: 0.8em; }
+.fw-doc-body .fw-lab-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.6em; padding: 0.45em 0.8em; border-top: 1px solid var(--border); font-size: 0.85em; color: var(--muted-foreground); }
 @media (max-width: 700px) { .fw-doc-body .fw-play-main { grid-template-columns: 1fr; height: auto !important; } .fw-doc-body .fw-play-editor { height: 220px; border-right: 0; border-bottom: 1px solid var(--border); } }
 
 .fw-doc-body .fw-check { margin: 0 0 var(--doc-para, 1em); border: 1px solid var(--border); border-radius: 10px; padding: 0.8em 1em; font-family: var(--font-sans); }

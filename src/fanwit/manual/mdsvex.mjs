@@ -53,7 +53,7 @@ export const manualMarkdown = () => [
 ];
 
 /** Components every page can use without importing them (src/fanwit/manual/components). */
-export const COMPONENTS = ["Callout", "Steps", "Tabs", "FileTree", "Keys", "Term", "Api", "Diagram", "CommandPipeline", "LayoutPreview", "LiveToml", "Playground", "Check", "Levels"];
+export const COMPONENTS = ["Callout", "Steps", "Tabs", "FileTree", "Keys", "Term", "Api", "Diagram", "CommandPipeline", "LayoutPreview", "LiveToml", "Playground", "Check", "Levels", "Lab"];
 
 /**
  * Import the manual components a page uses. Code samples cannot match: highlighted code is

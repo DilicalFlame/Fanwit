@@ -41,6 +41,8 @@ export class ManualState {
 
 	/** Pages read to the end (or marked read), remembered across sessions. */
 	read = $state.raw<ReadonlySet<string>>(new Set());
+	/** Labs completed (their ids), remembered across sessions. */
+	labs = $state.raw<ReadonlySet<string>>(new Set());
 
 	readonly pages = $derived(catalog(this.api));
 	readonly docset = $derived(docsets.find((s) => s.id === this.set));
@@ -68,6 +70,10 @@ export class ManualState {
 		void k.sys.storage
 			.get<string[]>("fanwit.manual", "read")
 			.then((r) => Array.isArray(r) && (this.read = new Set([...r, ...this.read])))
+			.catch(() => {});
+		void k.sys.storage
+			.get<string[]>("fanwit.manual", "labs")
+			.then((r) => Array.isArray(r) && (this.labs = new Set([...r, ...this.labs])))
 			.catch(() => {});
 		void k.sys.storage
 			.get<string>("fanwit.manual", "level")
@@ -124,6 +130,16 @@ export class ManualState {
 		else next.delete(key);
 		this.read = next;
 		void this.k.sys.storage.set("fanwit.manual", "read", [...next]).catch(() => {});
+	}
+
+	/** Mark a lab done (or not yet) and remember it. */
+	markLab(id: string, done = true) {
+		if (this.labs.has(id) === done) return;
+		const next = new Set(this.labs);
+		if (done) next.add(id);
+		else next.delete(id);
+		this.labs = next;
+		void this.k.sys.storage.set("fanwit.manual", "labs", [...next]).catch(() => {});
 	}
 
 	/** Learning paths a page is part of, with its position in each. */

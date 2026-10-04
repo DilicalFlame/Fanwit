@@ -137,8 +137,29 @@ These work in any page without an import. Leave a blank line inside a component'
 | `<Playground mode="module" id="...">` | One code block becomes an editor. **module**: a module that joins the running app on Run and is removed on Stop. **kernel**: the same module in a sandbox kernel, with its commands, context keys and a trace of every event and run. **svelte**: a component compiled in the browser and rendered beside the code. **rust**: Rust compiled and run on the Rust Playground. `id` keeps the reader's edits when the title changes |
 | `<Check question options answer>` | A question answered in place, with the explanation (its content) shown after |
 | `<Levels />` | A card per reading level with the reader's progress and where to continue |
+| `<Lab id title expect>` | A goal, steps and a playground. With `expect`, it completes by itself when the playground's output contains that text; without it, the reader marks it done. Completed labs are remembered |
 
 Module playgrounds put code into the running app, so they run only in development builds, on the docs site, or with developer mode on; in a production manual they show the code read only. The other three cannot touch the app and always run: a sandbox kernel lives only inside its playground, Svelte compiles in the page, and Rust compiles on [play.rust-lang.org](https://play.rust-lang.org), which needs the internet and has the standard library only.
+
+A lab wraps a playground with a goal. This one checks itself: make the button count to 3 (or change the code so it starts at 3).
+
+<Lab id="manual-lab-demo" title="Count to three" expect="Count: 3">
+
+Click the button until it says **Count: 3**, or change `$state(0)` so it starts there.
+
+<Playground mode="svelte" id="manual-lab-demo" title="Counter" height={180}>
+
+```svelte
+<script>
+	let count = $state(0);
+</script>
+
+<button onclick={() => count++}>Count: {count}</button>
+```
+
+</Playground>
+
+</Lab>
 
 <Playground mode="rust" id="manual-rust-demo" title="Rust, run from the page" height={200}>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack, type Snippet } from "svelte";
+	import { getContext, untrack, type Snippet } from "svelte";
 	import { buildMode } from "virtual:fw-docs";
 	import { getKernel } from "../../ui.svelte";
 	import Icon from "../../icons/Icon.svelte";
@@ -7,6 +7,7 @@
 	import type { ModuleRun } from "../playground/run-module";
 	import type { SandboxRun } from "../playground/run-kernel";
 	import type { SvelteRun } from "../playground/run-svelte";
+	import { LAB, type LabReporter } from "./Lab.svelte";
 
 	/**
 	 * A playground. Put one code block inside; it becomes an editor.
@@ -58,6 +59,19 @@
 	});
 
 	const print = (kind: "log" | "error" | "trace", text: string) => (lines = [...lines.slice(-80), { kind, text }]);
+
+	// inside a <Lab>: report what the output shows, so the lab can check itself
+	const lab = getContext<LabReporter | undefined>(LAB);
+	$effect(() => {
+		if (lab && lines.length) lab.report(lines.map((l) => l.text).join("\n"));
+	});
+	$effect(() => {
+		const el = preview;
+		if (!lab || !el) return;
+		const mo = new MutationObserver(() => lab.report(el.innerText));
+		mo.observe(el, { subtree: true, childList: true, characterData: true });
+		return () => mo.disconnect();
+	});
 
 	$effect(() => {
 		if (!source || !host) return;
