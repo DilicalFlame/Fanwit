@@ -221,7 +221,8 @@ pnpm fw plugin new my-tool --ui iframe            # ... with its own page
 pnpm fw plugin new my-fast --runtime wasm         # Rust compiled to WebAssembly
 pnpm fw plugin new my-native --runtime sidecar    # a native Rust process
 pnpm fw plugin build [id]                         # compile the Rust half (plugin.wasm or the binary)
-pnpm fw plugin pack <id>                          # registry entry with a SHA-256 per file
+pnpm fw plugin keygen [file]                      # Ed25519 signing key; prints the public key
+pnpm fw plugin pack <id>                          # registry entry with a SHA-256 per file, signed with FW_PLUGIN_KEY
 pnpm fw sdk build                                 # typed plugin SDK for this app
 ```
 
@@ -238,7 +239,11 @@ WebAssembly plugins need `rustup target add wasm32-unknown-unknown`. The built `
 
 Start with `--safe-mode` to turn code plugins off for one session; styles and snippets still load.
 
-Community plugins come from registries the app lists in `app.config.ts` (`plugins.registries`). Every file is checked against its SHA-256 before install.
+Community plugins come from registries the app lists in `app.config.ts` (`plugins.registries`). Before install the app checks the entry's Ed25519 signature against `plugins.trustedKeys`, then every file against the SHA-256 the signature covers. An entry with a signature that does not verify is refused outright; an entry with no signature installs only when **Allow unsigned plugins** is on. A SHA-256 alone only proves the file matches the registry, not who wrote the registry.
+
+```ts
+plugins: { registries: ["https://plugins.example.com/registry.json"], trustedKeys: ["<public key from fw plugin keygen>"] }
+```
 
 ## User scripts
 

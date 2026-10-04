@@ -35,6 +35,8 @@ export interface AppConfig {
 		allow?: ("data" | "worker" | "none")[];
 		/** Static registry.json URLs the app trusts. */
 		registries?: string[];
+		/** Ed25519 public keys (base64, raw 32 bytes) whose registry signatures are trusted; `pnpm fw plugin keygen` makes one. */
+		trustedKeys?: string[];
 	};
 	/** Turn core feature modules off (tree shaken when false). */
 	features?: Partial<Record<"labs" | "devtools" | "manual" | "plugins" | "tray" | "onboarding" | "samples", boolean>>;

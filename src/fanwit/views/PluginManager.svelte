@@ -191,7 +191,7 @@
 								<p class="line-clamp-2 min-h-8 text-xs text-muted-foreground">{e.description ?? ""}</p>
 								<div class="flex items-center gap-1">
 									{@render badge(RUNTIME[e.runtime === "wasm" ? "wasm" : e.isolation === "none" ? "main thread" : "js"])}
-									{#if !e.signature}{@render badge("Unsigned", "bg-warning-muted")}{/if}
+									{#if !e.verified}{@render badge(e.signature ? "Untrusted signature" : "Unsigned", "bg-warning-muted")}{/if}
 									<span class="flex-1"></span>
 									{#if update}<button class="fw-btn fw-btn-primary" onclick={() => install(e)}>Update</button>{:else if installed}<span class="text-xs text-muted-foreground">Installed</span>{:else}<button class="fw-btn" onclick={() => install(e)}>Install</button>{/if}
 								</div>
@@ -199,7 +199,7 @@
 						{/each}
 					</ul>
 				{:else}
-					<EmptyState icon="globe" title={k.sys.config.plugins?.registries?.length ? "Nothing found" : "No registries configured"} description="Community plugins come from registry.json files the app trusts (plugins.registries in app.config.ts). Every file is checked against its SHA-256." />
+					<EmptyState icon="globe" title={k.sys.config.plugins?.registries?.length ? "Nothing found" : "No registries configured"} description="Community plugins come from registry.json files the app trusts (plugins.registries in app.config.ts). Entries must be signed by a key in plugins.trustedKeys, and every file is checked against its SHA-256." />
 				{/if}
 			</div>
 		{:else}

@@ -26,6 +26,7 @@ import { connect, deny, hasPermission, messagePort, workerPort, type PluginConne
 import { isDataOnly, parseManifest, satisfies, scriptManifest, type PluginManifest } from "./manifest";
 import type { Widget } from "./widgets";
 import { WORKER_PRELUDE } from "./worker-prelude";
+import { verifySignature } from "./signature";
 
 export type PluginScope = "builtin" | "global" | "vault";
 
@@ -60,8 +61,11 @@ export interface RegistryEntry {
 	runtime?: string;
 	category?: string;
 	files: { path: string; url: string; sha256: string }[];
+	/** Ed25519 signature (base64) over signedMessage(entry), made by `fw plugin pack` with FW_PLUGIN_KEY. */
 	signature?: string;
 	registry: string;
+	/** Set by loadRegistries: the signature checks out against one of plugins.trustedKeys. */
+	verified?: boolean;
 }
 
 // Built in plugins: every plugins/<id>/ folder of this repo, bundled as lazy chunks (nothing loads
@@ -618,7 +622,8 @@ export class PluginService {
 		for (const url of this.k.sys.config.plugins?.registries ?? []) {
 			try {
 				const r = (await (await fetch(url)).json()) as { plugins: Omit<RegistryEntry, "registry">[] };
-				out.push(...r.plugins.map((p) => ({ ...p, registry: url })));
+				const keys = this.k.sys.config.plugins?.trustedKeys ?? [];
+				for (const p of r.plugins) out.push({ ...p, registry: url, verified: await verifySignature(p, keys) });
 			} catch (e) {
 				this.k.scopedLog("plugins").warn(`registry ${url} failed: ${(e as Error).message}`);
 			}
@@ -627,15 +632,18 @@ export class PluginService {
 		return out;
 	}
 
-	/** Download, verify SHA-256 of every file, then install. */
+	/** Verify the signature, download, verify SHA-256 of every file, then install. */
 	async installFromRegistry(entry: RegistryEntry) {
+		// never trust entry.verified: the entry may not have come through loadRegistries
+		const verified = await verifySignature(entry, this.k.sys.config.plugins?.trustedKeys ?? []);
+		if (entry.signature && !verified) throw new FanwitError("PLUGIN_SIGNATURE", { message: `${entry.name} has a signature that does not match a trusted key; nothing was installed.`, hint: "The registry entry was altered or signed by an untrusted key. Add the publisher's key to plugins.trustedKeys only if you trust them." });
+		if (!verified && !this.k.sys.settings.get("plugins.allowUnsigned")) throw new FanwitError("PLUGIN_UNSIGNED", { message: `${entry.name} is not signed by a trusted key.`, hint: "Enable Allow unsigned plugins in Settings, Plugins to install it." });
 		const files: Record<string, string | Uint8Array> = {};
 		for (const f of entry.files) {
 			const data = new Uint8Array(await (await fetch(new URL(f.url, entry.registry))).arrayBuffer());
 			if ((await sha256(data)) !== f.sha256) throw new FanwitError("PLUGIN_INTEGRITY", { message: `${entry.id}/${f.path} failed its SHA-256 check; nothing was installed.` });
 			files[f.path] = /\.(toml|md|js|css|html|json|svg|txt)$/.test(f.path) ? new TextDecoder().decode(data) : data;
 		}
-		if (!entry.signature && !this.k.sys.settings.get("plugins.allowUnsigned")) throw new FanwitError("PLUGIN_UNSIGNED", { message: `${entry.name} is not signed.`, hint: "Enable Allow unsigned plugins in Settings, Plugins to install it." });
 		return this.installFromFiles(files);
 	}
 

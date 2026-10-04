@@ -43,3 +43,5 @@ dooing.json
 /plugins/*/wasm/target
 
 FANWIT-Specification.pdf
+# plugin signing keys (fw plugin keygen)
+*.key

@@ -5,7 +5,7 @@
  * line level, so comments and formatting survive (defect D7).
  */
 import { execSync, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, createPrivateKey, generateKeyPairSync, sign as cryptoSign } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline/promises";
@@ -648,14 +648,26 @@ async function plugin() {
 		};
 		walk(dir);
 		const entry = { id, name: manifest.name, version: manifest.version, description: manifest.description, author: manifest.author, category: manifest.category, runtime: manifest.runtime ?? "js", isolation: manifest.isolation ?? "worker", files };
+		// same string as signedMessage() in src/fanwit/plugins/plugins.svelte.ts
+		const keyFile = process.env.FW_PLUGIN_KEY;
+		if (keyFile) entry.signature = cryptoSign(null, Buffer.from(JSON.stringify({ id, version: manifest.version, files: files.map((f) => ({ path: f.path, sha256: f.sha256 })) })), createPrivateKey(fs.readFileSync(path.resolve(keyFile)))).toString("base64");
 		write(`dist/plugins/${id}/${manifest.version}/entry.json`, JSON.stringify(entry, null, 2) + "\n");
 		const regFile = "dist/plugins/registry.json";
 		const reg = exists(regFile) ? JSON.parse(read(regFile)) : { plugins: [] };
 		reg.plugins = [...reg.plugins.filter((p) => !(p.id === id && p.version === manifest.version)), entry];
 		write(regFile, JSON.stringify(reg, null, 2) + "\n");
 		report();
-		console.log("Sign the entry (minisign) and host dist/plugins/ on any static host; list registry.json in app.config.ts plugins.registries.");
-	} else die("fw plugin <new <id> [--kind --runtime --ui] | build [id] [--release] | pack <id>>", 2);
+		console.log(`${keyFile ? "Signed with FW_PLUGIN_KEY." : "UNSIGNED: set FW_PLUGIN_KEY to a key from `pnpm fw plugin keygen`."} Host dist/plugins/ on any static host; list registry.json in app.config.ts plugins.registries.`);
+	} else if (sub === "keygen") {
+		const out = path.resolve(id ?? "plugin-signing.key");
+		if (fs.existsSync(out)) die(`${out} already exists`);
+		const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+		fs.writeFileSync(out, privateKey.export({ type: "pkcs8", format: "pem" }), { mode: 0o600 });
+		const pub = Buffer.from(publicKey.export({ format: "jwk" }).x, "base64url").toString("base64");
+		console.log(`private key: ${out} (keep it secret, out of git; sign with FW_PLUGIN_KEY=${out})
+public key:  ${pub}
+Add the public key to app.config.ts plugins.trustedKeys.`);
+	} else die("fw plugin <new <id> [--kind --runtime --ui] | build [id] [--release] | pack <id> | keygen [file]>", 2);
 }
 
 // ---------- sdk ----------
