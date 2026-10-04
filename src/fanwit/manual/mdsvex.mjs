@@ -37,12 +37,20 @@ export async function highlight(code, lang, meta) {
 		const label = file ?? lang;
 		html = `<div class="fw-code" data-lang="${esc(lang ?? "")}"${file ? ` data-file="${esc(file)}"` : ""}>${label ? `<span class="fw-code-lang">${esc(label)}</span>` : ""}<button type="button" class="fw-copy" data-copy aria-label="Copy code">Copy</button>${pre}</div>`;
 	}
-	return `{@html \`${escapeSvelte(html)}\`}`;
+	return `{@html \`${inLiteral(html)}\`}`;
 }
+
+/**
+ * HTML made safe inside `{@html \`...\`}`: escapeSvelte handles braces, backticks and \t \r \n,
+ * but a template literal would still eat every other backslash (`"\""` in a Rust example lost
+ * its escapes), so the rest become `&#92;`.
+ * @param {string} html
+ */
+export const inLiteral = (html) => escapeSvelte(html).replace(/\\/g, "&#92;");
 
 /** The preprocessors for svelte.config.js: TikZ diagrams, mdsvex, then Svelte 5 syntax for its front matter script. */
 export const manualMarkdown = () => [
-	tikzPreprocessor(escapeSvelte),
+	tikzPreprocessor(inLiteral),
 	mdsvex({
 		extensions: [".md"],
 		highlight: { highlighter: highlight },

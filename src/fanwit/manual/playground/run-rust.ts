@@ -13,13 +13,17 @@ export interface RustResult {
 }
 
 /** Cargo's own progress lines, which say nothing about the reader's code. */
-const PROGRESS = /^\s*(Compiling playground|Finished `|Running `target)/;
+const PROGRESS = /^\s*(Compiling playground|Finished `|Running `target|Running unittests|Doc-tests)/;
+
+/** Code with #[test] functions and no main runs its tests (cargo test) instead of a program. */
+export const isTests = (code: string) => /#\[test\]/.test(code) && !/fn\s+main\s*\(/.test(code);
 
 export async function runRust(code: string, signal?: AbortSignal): Promise<RustResult> {
+	const tests = isTests(code);
 	const res = await fetch(API, {
 		method: "POST",
 		headers: { "content-type": "application/json" },
-		body: JSON.stringify({ channel: "stable", mode: "debug", edition: "2024", crateType: "bin", tests: false, code, backtrace: false }),
+		body: JSON.stringify({ channel: "stable", mode: "debug", edition: "2024", crateType: tests ? "lib" : "bin", tests, code, backtrace: false }),
 		signal
 	});
 	if (!res.ok) throw new Error(`The Rust Playground answered ${res.status}. Try again, or open the code there.`);

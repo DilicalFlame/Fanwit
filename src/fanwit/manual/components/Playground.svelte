@@ -166,8 +166,9 @@
 				abort = new AbortController();
 				const r = await runRust(code, abort.signal);
 				lines = [];
-				if (r.stderr) print(r.ok ? "trace" : "error", r.stderr);
+				// the program's output first; warnings after it, dimmed (errors when it did not build)
 				if (r.stdout) print("log", r.stdout.replace(/\n$/, ""));
+				if (r.stderr) print(r.ok ? "trace" : "error", r.stderr);
 				if (r.ok && !r.stdout) print("trace", "The program ran and printed nothing.");
 			} else if (mode === "kernel") {
 				const { runSandbox } = await import("../playground/run-kernel");
