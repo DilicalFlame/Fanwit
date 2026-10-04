@@ -6,6 +6,7 @@
  */
 import type { Kernel } from "../../kernel/kernel.svelte";
 import { haptic } from "../../motion/motion";
+import { parentOf, type TabsNode } from "../../layout/model";
 
 export type Zone = "center" | "left" | "right" | "top" | "bottom" | "strip";
 
@@ -19,15 +20,29 @@ export interface DragState {
 	over: { node: string; zone: Zone; index?: number; rect: DOMRect; preview: { x: number; y: number; w: number; h: number } } | null;
 	float: boolean;
 	outside: boolean;
+	/** Shown for a drag happening in another window that is over this one. */
+	remote?: boolean;
 }
+
+type Hover = { to: string; pane?: string; title?: string; x?: number; y?: number };
 
 export class DockDrag {
 	state = $state<DragState | null>(null);
+	/** Window that is showing the drop hint for a drag out of this one. */
+	private hoverTo: string | null = null;
+	private probing = false;
 
 	constructor(private k: Kernel) {
-		// a tab dragged out of another window and released over this one
+		// a tab dragged out of another window: show where it lands here (no pane = it left)
+		k.events.on("fw:dock-hover" as never, (m: Hover) => {
+			if (m.to !== k.host.windows.label || (this.state && !this.state.remote)) return;
+			if (!m.pane || !k.sys.layout.doc.pane[m.pane]) return void (this.state = null);
+			this.state = { pane: m.pane, title: m.title ?? "", x: m.x!, y: m.y!, over: this.hit(m.x!, m.y!) ?? this.fallback(), float: false, outside: false, remote: true };
+		});
+		// ... and released over this one
 		k.events.on("fw:dock-drop" as never, (m: { to: string; pane: string; x: number; y: number }) => {
 			if (m.to !== k.host.windows.label || !k.sys.layout.doc.pane[m.pane]) return; // another window, or another vault
+			if (this.state?.remote) this.state = null;
 			this.drop(m.pane, this.hit(m.x, m.y) ?? this.fallback())
 				.then(() => k.host.windows.focus())
 				.catch((err) => k.sys.notify.error(err));
@@ -37,7 +52,30 @@ export class DockDrag {
 	/** Off any tab set: the focused tab set, else the main area's first. */
 	private fallback(): Over | null {
 		const set = document.querySelector<HTMLElement>("[data-fw-tabset].fw-focused") ?? document.querySelector<HTMLElement>('[data-fw-region="main"] [data-fw-tabset]');
-		return set ? { node: set.dataset.fwTabset!, zone: "center", rect: new DOMRect(), preview: { x: 0, y: 0, w: 0, h: 0 } } : null;
+		if (!set) return null;
+		const r = set.getBoundingClientRect();
+		return { node: set.dataset.fwTabset!, zone: "center", rect: r, preview: { x: r.left, y: r.top, w: r.width, h: r.height } };
+	}
+
+	/** Over another window: ask which one (one query in flight) and let it draw the hint. */
+	private async probe(s: DragState) {
+		if (this.probing) return;
+		this.probing = true;
+		const [x, y] = [s.x, s.y];
+		const other = await this.k.host.windows.at?.().catch(() => null);
+		this.probing = false;
+		if (this.state !== s) return; // the drag ended meanwhile
+		if (s.x !== x || s.y !== y) void this.probe(s); // moved while asking: follow up so the hint ends where the cursor stops
+		if (this.hoverTo && this.hoverTo !== other?.label) this.leave();
+		if (!other) return;
+		this.hoverTo = other.label;
+		this.k.events.emit("fw:dock-hover" as never, { to: other.label, pane: s.pane, title: s.title, x: other.x, y: other.y } as never, { scope: "app" });
+	}
+
+	/** Clear the hint in the window the drag was over. */
+	private leave() {
+		if (this.hoverTo) this.k.events.emit("fw:dock-hover" as never, { to: this.hoverTo } as never, { scope: "app" });
+		this.hoverTo = null;
 	}
 
 	/** Call from pointerdown on a tab or stack header. */
@@ -70,6 +108,7 @@ export class DockDrag {
 				ev.stopPropagation();
 				cleanup();
 				this.state = null;
+				this.leave();
 			}
 		};
 		const cleanup = () => {
@@ -90,6 +129,8 @@ export class DockDrag {
 		s.float = e.shiftKey;
 		s.outside = e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight;
 		s.over = s.float || s.outside ? null : this.hit(e.clientX, e.clientY);
+		if (s.outside && !s.float && this.k.host.caps.nativeWindows) void this.probe(s);
+		else if (this.hoverTo) this.leave();
 	}
 
 	/** Drop target under a client point: a tab strip slot, or a tab set's centre or edge. */
@@ -152,6 +193,7 @@ export class DockDrag {
 	private async commit(e: PointerEvent) {
 		const s = this.state;
 		this.state = null;
+		this.leave();
 		if (!s) return;
 		const layout = this.k.sys.layout;
 		try {
@@ -175,6 +217,13 @@ export class DockDrag {
 		if (!o) return;
 		haptic("select");
 		const layout = this.k.sys.layout;
+		const own = parentOf(layout.doc, pane)?.parent;
+		const edge = o.zone !== "strip" && o.zone !== "center";
+		// a tab set's only tab on its own edge: split it (a copy beside, like Split right), not move it beside itself
+		if (edge && own === o.node && (layout.doc.node[own] as TabsNode).panes.length === 1) {
+			await layout.dispatch({ type: "split", node: own, pane, dir: o.zone === "left" || o.zone === "right" ? "row" : "column", side: o.zone as "left" | "right" | "top" | "bottom" });
+			return;
+		}
 		if (o.zone === "strip") await layout.dispatch({ type: "movePane", pane, to: { node: o.node, index: o.index } });
 		else if (o.zone === "center") await layout.dispatch({ type: "movePane", pane, to: { node: o.node } });
 		else await layout.dispatch({ type: "movePane", pane, to: { edge: o.node, side: o.zone } });
