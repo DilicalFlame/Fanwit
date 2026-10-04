@@ -1,5 +1,5 @@
 #:schema https://fanwit.dev/schema/layout-1.json
-# Terminal: tabs of shells and nothing else. Type "split" or "vsplit" to split a terminal like
+# Windows Terminal style: shell tabs drawn in the title bar and nothing else. Type "split" or "vsplit" to split a terminal like
 # tmux, "new" for another tab, "run <command>" to run any app command.
 version = 1
 preset = "terminal"
@@ -9,13 +9,23 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "40px" }
 main = { node = "terminals" }
 statusbar = { visible = false }
 
 [node.terminals]
 type = "tabs"
+strip = "hidden"
 panes = ["shell"]
 
 [pane.shell]
 view = "showcase.terminal"
 props = { name = "Terminal 1" }
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.terminal.titlebar"

@@ -3,7 +3,7 @@
 	import Icon from "$fanwit/icons/Icon.svelte";
 	import { activePage, browser, canGo, go, navigate, NEW_TAB, toUrl } from "./browser.svelte";
 
-	/** Back, forward, reload, the address bar, bookmark star, new tab, and the bookmarks bar. */
+	/** Back, forward, reload, the address bar, bookmark star, and the bookmarks bar (new tabs open from the title bar). */
 	const k = getKernel();
 	const page = $derived(activePage(k));
 	const url = $derived(page ? String(k.sys.layout.doc.pane[page]?.props?.url ?? NEW_TAB) : "");
@@ -48,7 +48,6 @@
 				<Icon name="star" size={15} class={starred ? "fill-yellow-400 text-yellow-500" : "opacity-60"} />
 			</button>
 		</form>
-		<button class="fw-icon-btn" aria-label="New tab" title="New tab" onclick={() => k.commands.run("showcase.browser.newTab", {}, { source: "toolbar" })}><Icon name="plus" size={16} /></button>
 	</div>
 	<div class="flex items-center gap-1 overflow-hidden text-xs">
 		{#each browser.bookmarks as b (b)}

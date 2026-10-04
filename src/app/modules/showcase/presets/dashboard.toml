@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "52px" }
 main = { node = "board" }
 
 [node.board]
@@ -53,3 +54,11 @@ area = "3 / 3 / 4 / 4"
 [pane.orders]
 view = "showcase.dashboard.orders"
 area = "3 / 4 / 4 / 5"
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.dashboard.titlebar"

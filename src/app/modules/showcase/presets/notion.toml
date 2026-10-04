@@ -8,6 +8,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "44px" }
 sidebar = { node = "pages", size = "260px" }
 main = { node = "page" }
 statusbar = { visible = false }
@@ -30,3 +31,11 @@ view = "showcase.notion.sidebar"
 
 [pane.page]
 view = "showcase.notion.page"
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.notion.titlebar"

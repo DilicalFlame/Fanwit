@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import Icon from "$fanwit/icons/Icon.svelte";
-	import { currentPage, notion, uid, type Block, type BlockType } from "./notion.svelte";
+	import { currentPage, uid, type Block, type BlockType } from "./notion.svelte";
 
 	/** The open page: cover, icon, title and editable blocks. */
 	const page = $derived(currentPage());
-	const crumbs = $derived.by(() => {
-		const out = [];
-		for (let p: typeof page | undefined = page; p; p = notion.pages.find((x) => x.id === p!.parent)) out.unshift(p);
-		return out;
-	});
 	const TYPES: [BlockType, string][] = [["p", "Text"], ["h1", "Heading 1"], ["h2", "Heading 2"], ["todo", "To-do"], ["bullet", "Bulleted list"], ["quote", "Quote"]];
 	const STYLE: Record<BlockType, string> = { h1: "text-3xl font-bold mt-4", h2: "text-xl font-semibold mt-3", p: "", todo: "", bullet: "", quote: "border-l-[3px] border-current pl-3 italic" };
 
@@ -42,12 +37,6 @@
 </script>
 
 <div class="h-full w-full overflow-auto bg-white text-[#37352f] dark:bg-[#191919] dark:text-[#d4d4d4]">
-	<div class="flex h-11 items-center gap-1 px-3 text-sm">
-		{#each crumbs as c, i (c.id)}
-			{#if i}<span class="opacity-40">/</span>{/if}
-			<button class="rounded px-1.5 py-0.5 hover:bg-black/5 dark:hover:bg-white/10" onclick={() => (notion.current = c.id)}>{c.icon} {c.title || "Untitled"}</button>
-		{/each}
-	</div>
 	<div class="h-36" style:background="linear-gradient(120deg, #fbc2eb 0%, #a6c1ee 100%)"></div>
 	<div class="mx-auto max-w-3xl px-12 pb-24">
 		<button class="-mt-10 mb-2 text-6xl" title="Change icon" onclick={() => (page.icon = ["📄", "🚀", "✨", "🌱", "🧠", "🎯"][(Math.random() * 6) | 0])}>{page.icon}</button>

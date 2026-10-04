@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "26px" }
 main = { node = "columns" }
 statusbar = { visible = false }
 
@@ -49,3 +50,11 @@ view = "showcase.discord.chat"
 
 [pane.members]
 view = "showcase.discord.members"
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.discord.titlebar"

@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "34px" }
 sidebar = { node = "files", containers = ["files", "search", "bookmarks"], size = "240px" }
 main = { node = "editor" }
 inspector = { node = "right", size = "280px", visible = true }
@@ -89,3 +90,11 @@ view = "showcase.obsidian.graph"
 
 [pane.backlinks]
 view = "showcase.obsidian.backlinks"
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.obsidian.titlebar"

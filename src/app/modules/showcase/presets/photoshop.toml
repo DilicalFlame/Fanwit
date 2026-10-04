@@ -10,6 +10,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "36px" }
 header = { node = "options", size = "40px" }
 sidebar = { node = "tools", size = "48px" }
 main = { node = "documents" }
@@ -78,3 +79,11 @@ view = "showcase.photoshop.history"
 
 [pane.layers]
 view = "showcase.photoshop.layers"
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.photoshop.titlebar"

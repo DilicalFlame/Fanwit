@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "40px" }
 header = { node = "ribbon", size = "72px" }
 main = { node = "sheets" }
 
@@ -33,3 +34,11 @@ props = { sheet = "budget", name = "Budget" }
 [pane.sales]
 view = "showcase.excel.sheet"
 props = { sheet = "sales", name = "Sales" }
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.excel.titlebar"

@@ -1,6 +1,7 @@
 #:schema https://fanwit.dev/schema/layout-1.json
-# Web browser style: the address bar lives in the header region above the page tabs. Tabs are
-# panes, so dragging one to an edge gives side by side browsing, and out of the window a new one.
+# Chrome style: the page tabs are drawn in the title bar (the tab set hides its own strip) and the
+# address bar sits in the header region below. Tabs are panes: drag one to an edge for side by
+# side browsing, or out of the window for a new one.
 version = 1
 preset = "browser"
 
@@ -9,6 +10,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "40px" }
 header = { node = "toolbar", size = "72px" }
 main = { node = "pages" }
 statusbar = { visible = false }
@@ -20,6 +22,7 @@ panes = ["toolbar"]
 
 [node.pages]
 type = "tabs"
+strip = "hidden"
 panes = ["start", "wiki"]
 active = "start"
 
@@ -33,3 +36,11 @@ props = { url = "about:newtab" }
 [pane.wiki]
 view = "showcase.browser.page"
 props = { url = "wiki.example/Layout" }
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.browser.titlebar"

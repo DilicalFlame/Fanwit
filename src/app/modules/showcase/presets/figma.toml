@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "40px" }
 main = { node = "canvas" }
 statusbar = { visible = false }
 
@@ -47,3 +48,11 @@ window = "main"
 pane = "tools"
 rect = [256, -96, 300, 84]
 snap = true
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.figma.titlebar"

@@ -9,6 +9,7 @@ kind = "main"
 frame = "workbench"
 
 [window.main.regions]
+titlebar = { node = "titlebar", size = "30px" }
 main = { node = "screen" }
 
 [node.screen]
@@ -64,3 +65,11 @@ props = { editor = "properties" }
 [pane.timeline]
 view = "showcase.blender.area"
 props = { editor = "timeline" }
+
+[node.titlebar]
+type = "tabs"
+strip = "hidden"
+panes = ["titlebar"]
+
+[pane.titlebar]
+view = "showcase.blender.titlebar"

@@ -43,6 +43,18 @@ export default defineModule({
 			{ id: "showcase.terminal.new", title: "New terminal", category: "Showcase", icon: "square-terminal" }
 		],
 		views: [
+			// each app's own title bar, placed in the titlebar region of its preset
+			v("showcase.figma.titlebar", "Figma title bar", "app-window", () => import("./views/figma/Titlebar.svelte"), { singleton: true }),
+			v("showcase.blender.titlebar", "Blender title bar", "app-window", () => import("./views/blender/Titlebar.svelte"), { singleton: true }),
+			v("showcase.photoshop.titlebar", "Photoshop title bar", "app-window", () => import("./views/photoshop/Titlebar.svelte"), { singleton: true }),
+			v("showcase.notion.titlebar", "Notion title bar", "app-window", () => import("./views/notion/Titlebar.svelte"), { singleton: true }),
+			v("showcase.obsidian.titlebar", "Obsidian title bar", "app-window", () => import("./views/obsidian/Titlebar.svelte"), { singleton: true }),
+			v("showcase.discord.titlebar", "Discord title bar", "app-window", () => import("./views/discord/Titlebar.svelte"), { singleton: true }),
+			v("showcase.browser.titlebar", "Browser title bar", "app-window", () => import("./views/browser/Titlebar.svelte"), { singleton: true }),
+			v("showcase.excel.titlebar", "Excel title bar", "app-window", () => import("./views/excel/Titlebar.svelte"), { singleton: true }),
+			v("showcase.dashboard.titlebar", "Dashboard title bar", "app-window", () => import("./views/dashboard/Titlebar.svelte"), { singleton: true }),
+			v("showcase.terminal.titlebar", "Terminal title bar", "app-window", () => import("./views/terminal/Titlebar.svelte"), { singleton: true }),
+
 			v("showcase.figma.canvas", "Canvas", "pen-tool", () => import("./views/figma/Canvas.svelte"), { singleton: true }),
 			v("showcase.figma.layers", "Layers", "layers", () => import("./views/figma/Layers.svelte"), { singleton: true }),
 			v("showcase.figma.design", "Design", "sliders-horizontal", () => import("./views/figma/Design.svelte"), { singleton: true }),
