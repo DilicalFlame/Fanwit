@@ -372,6 +372,21 @@ function doctor() {
 			const missing = Object.values(doc.pane ?? {}).map((p) => p.view).filter((v) => !views.has(v));
 			ok(`preset ${f} views`, !missing.length, missing.join(", "));
 		}
+	// bundled plugins: manifests parse, files exist, Rust halves are built
+	for (const id of pluginIds()) {
+		let m;
+		try {
+			m = pluginManifest(id);
+		} catch (e) {
+			ok(`plugin ${id} manifest`, false, e.message.split("\n")[0]);
+			continue;
+		}
+		const missing = [...(m.contributes?.styles ?? []), ...(m.contributes?.themes ?? []), ...(m.contributes?.views ?? []).map((v) => v.entry ?? (v.ui === "iframe" ? "<no entry>" : null)).filter(Boolean)].filter((f) => !exists(`plugins/${id}/${f}`));
+		if (m.runtime === "wasm" && !exists(`plugins/${id}/${m.entry ?? "plugin.wasm"}`)) missing.push(`${m.entry ?? "plugin.wasm"} (pnpm fw plugin build ${id})`);
+		if (m.runtime === "sidecar" && !exists(`plugins/${id}/native/Cargo.toml`)) missing.push("native/Cargo.toml");
+		if (m.runtime === "sidecar" && exists(`plugins/${id}/native/Cargo.toml`) && !read(`plugins/${id}/native/Cargo.toml`).includes(`name = "fanwit-plugin-${id}"`)) missing.push(`binary named fanwit-plugin-${id}`);
+		ok(`plugin ${id}`, m.id === id && !missing.length, m.id !== id ? `id "${m.id}" differs from its folder` : missing.join(", "));
+	}
 	// Installer Kit (Section 16.15): pinned downloads; unsigned installers trip SmartScreen and Gatekeeper
 	if (exists("installer.toml")) {
 		const steps = parseToml(read("installer.toml")).step ?? [];
@@ -476,35 +491,163 @@ function layout() {
 }
 
 // ---------- plugins ----------
+// Templates for `fw plugin new`. One plugin.toml grammar for every kind; the runtime decides
+// where code runs (worker JS, WASM in a worker, or a native sidecar process).
+const PLUGIN_TPL = {
+	manifest({ id, kind, runtime, ui }) {
+		const c = camel(id);
+		const head = `id = "${id}"\nname = "${pascal(id).replace(/([a-z])([A-Z])/g, "$1 $2")}"\nversion = "0.1.0"\nauthor = ""\ndescription = ""\napp = ">=${identity().app.version}"\n`;
+		if (kind === "appearance") return `# Appearance plugin: data only, no code, no permissions.\n${head}category = "appearance"\nicon = "palette"\n\n[contributes]\nstyles = ["styles.css"]\n`;
+		const rt = runtime === "wasm" ? `runtime = "wasm"\nentry = "plugin.wasm"\n` : runtime === "sidecar" ? `runtime = "sidecar"\nentry = "native"\n` : `entry = "main.js"\n`;
+		const perms = runtime === "sidecar" ? `permissions = ["sidecar:${id}"]\n` : `permissions = []\n`;
+		const view =
+			ui === "widgets"
+				? `\n[[contributes.views]]\nid = "${c}.panel"\ntitle = "${pascal(id)}"\nicon = "puzzle"\nui = "widgets"\nregions = ["sidebar"]\n`
+				: ui === "iframe"
+					? `\n[[contributes.views]]\nid = "${c}.page"\ntitle = "${pascal(id)}"\nicon = "puzzle"\nui = "iframe"\nentry = "ui.html"\n`
+					: "";
+		return `${head}category = "feature"\n${rt}# starts on its first command or view; add "onStartupFinished" or "onEvent:<name>" if it must react earlier\nactivation = []\n${perms}${view}\n[[contributes.commands]]\nid = "${c}.hello"\ntitle = "Hello from ${pascal(id)}"\ncategory = "${pascal(id)}"\n`;
+	},
+	js({ id, ui }) {
+		const c = camel(id);
+		const widgets = [
+			"",
+			"\tlet clicks = 0;",
+			"\tconst draw = () =>",
+			`\t\tctx.ui.render("${c}.panel", {`,
+			'\t\t\ttype: "stack",',
+			"\t\t\tchildren: [",
+			'\t\t\t\t{ type: "text", text: `Clicked ${clicks} times`, size: "lg" },',
+			'\t\t\t\t{ type: "button", label: "Click", action: "click", variant: "primary" }',
+			"\t\t\t]",
+			"\t\t});",
+			`\tctx.ui.on("${c}.panel", (action) => {`,
+			'\t\tif (action === "click") clicks++;',
+			"\t\tdraw();",
+			"\t});",
+			"\tdraw();",
+			""
+		].join("\n");
+		return `// Runs in a Web Worker: no DOM, no IPC. ctx is a permission checked proxy to the app.\nimport { definePlugin } from "@fanwit/plugin-sdk";\n\nexport default definePlugin((ctx) => {\n\tctx.commands.handle("${c}.hello", () => ctx.notify.toast("Hello from ${id}"));\n${ui === "widgets" ? widgets : ""}});\n`;
+	},
+	rust({ id, ui }, sidecar) {
+		const c = camel(id);
+		const T = pascal(id);
+		const draw =
+			ui === "widgets"
+				? `\n        host.render("${c}.panel", json!({ "type": "stack", "children": [\n            { "type": "text", "text": "Hello from Rust", "size": "lg" },\n            { "type": "button", "label": "Say hello", "action": "hello", "variant": "primary" }\n        ]}));`
+				: "";
+		const uiFn = ui === "widgets" ? `\n\n    fn ui(&mut self, host: &mut Host, _view: &str, action: &str, _value: &Value) {\n        if action == "hello" {\n            host.toast("Hello from ${id}");\n        }\n    }` : "";
+		const tail = sidecar ? `fn main() {\n    fanwit_plugin::run_stdio::<${T}>();\n}` : `fanwit_plugin::export_wasm!(${T});`;
+		return `use fanwit_plugin::{json, Host, Plugin, Value};\n\n#[derive(Default)]\nstruct ${T};\n\nimpl Plugin for ${T} {\n    fn activate(&mut self, host: &mut Host, _settings: &Value) {\n        host.handle("${c}.hello");${draw}\n    }\n\n    fn invoke(&mut self, host: &mut Host, command: &str, _args: &Value) -> Result<Value, String> {\n        match command {\n            "${c}.hello" => {\n                host.toast("Hello from ${id}");\n                Ok(json!(null))\n            }\n            _ => Err(format!("unknown command {command}")),\n        }\n    }${uiFn}\n}\n\n${tail}\n`;
+	},
+	cargo(id, sidecar) {
+		const name = sidecar ? `fanwit-plugin-${id}` : id;
+		if (sidecar) return `[package]\nname = "${name}"\nversion = "0.1.0"\nedition = "2021"\npublish = false\n# a member of the app's cargo workspace, so the binary lands next to the app executable\nworkspace = "../../../src-tauri"\n\n[[bin]]\n# the app runs exactly fanwit-plugin-<plugin id>\nname = "${name}"\npath = "src/main.rs"\n\n[dependencies]\nfanwit-plugin = { path = "../../../packages/fanwit-plugin-rs" }\n`;
+		return `[package]\nname = "${name}"\nversion = "0.1.0"\nedition = "2021"\npublish = false\n\n# built on its own for wasm32: pnpm fw plugin build ${id} writes ../plugin.wasm\n[workspace]\n\n[lib]\ncrate-type = ["cdylib", "rlib"]\n\n[dependencies]\nfanwit-plugin = { path = "../../../packages/fanwit-plugin-rs" }\n\n[profile.release]\nopt-level = "z"\nlto = true\nstrip = true\npanic = "abort"\n`;
+	},
+	html(id) {
+		return `<!doctype html>\n<html>\n\t<head>\n\t\t<meta charset="utf-8" />\n\t\t<!-- window.fanwit is the plugin ctx; the app theme arrives as CSS variables -->\n\t\t<script src="_fw/ui.js"></script>\n\t\t<style>\n\t\t\tbody { margin: 0; padding: 16px; background: var(--background); color: var(--foreground); font: 13px var(--font-sans, system-ui); }\n\t\t\tbutton { background: var(--primary); color: var(--primary-foreground); border: 0; border-radius: 6px; padding: 6px 12px; }\n\t\t</style>\n\t</head>\n\t<body>\n\t\t<h1>${pascal(id)}</h1>\n\t\t<button id="hi">Say hello</button>\n\t\t<script src="ui.js"></script>\n\t</body>\n</html>\n`;
+	}
+};
+
+const pluginIds = () => (exists("plugins") ? fs.readdirSync(abs("plugins"), { withFileTypes: true }).filter((e) => e.isDirectory() && exists(`plugins/${e.name}/plugin.toml`)).map((e) => e.name) : []);
+const pluginManifest = (id) => parseToml(read(`plugins/${id}/plugin.toml`));
+const sidecarIds = () => pluginIds().filter((id) => pluginManifest(id).runtime === "sidecar");
+
+/** Build a bundled plugin's Rust half: WASM into plugin.wasm, or the sidecar binary. */
+function buildPlugin(id, release = false) {
+	const m = pluginManifest(id);
+	if (m.runtime === "wasm") {
+		const toml = `plugins/${id}/wasm/Cargo.toml`;
+		if (!exists(toml)) die(`plugins/${id}: runtime = "wasm" but no wasm/Cargo.toml`);
+		const crate = parseToml(read(toml)).package.name.replace(/-/g, "_");
+		run("cargo", ["build", "--manifest-path", toml, "--release", "--target", "wasm32-unknown-unknown"]);
+		if (process.exitCode) die("cargo failed (missing target? rustup target add wasm32-unknown-unknown)");
+		const entry = m.entry ?? "plugin.wasm";
+		changed.push(`update plugins/${id}/${entry}`);
+		if (!DRY) fs.copyFileSync(abs(`plugins/${id}/wasm/target/wasm32-unknown-unknown/release/${crate}.wasm`), abs(`plugins/${id}/${entry}`));
+	} else if (m.runtime === "sidecar") {
+		run("cargo", ["build", "--manifest-path", "src-tauri/Cargo.toml", "-p", `fanwit-plugin-${id}`, ...(release ? ["--release"] : [])]);
+		if (process.exitCode) die("cargo failed");
+	}
+}
+
+/** Release builds ship every sidecar next to the app executable (Tauri externalBin wants target triple names). */
+function sidecarBundleConfig() {
+	const ids = sidecarIds();
+	if (!ids.length) return null;
+	const triple = /host: (\S+)/.exec(execSync("rustc -vV").toString())[1];
+	const ext = process.platform === "win32" ? ".exe" : "";
+	const dir = "src-tauri/target/plugin-bin";
+	fs.mkdirSync(abs(dir), { recursive: true });
+	for (const id of ids) {
+		buildPlugin(id, true);
+		fs.copyFileSync(abs(`src-tauri/target/release/fanwit-plugin-${id}${ext}`), abs(`${dir}/fanwit-plugin-${id}-${triple}${ext}`));
+	}
+	const conf = `${dir}/tauri.plugins.conf.json`;
+	fs.writeFileSync(abs(conf), JSON.stringify({ bundle: { externalBin: ids.map((id) => `target/plugin-bin/fanwit-plugin-${id}`) } }, null, "\t"));
+	return conf;
+}
+
 async function plugin() {
 	const [, sub, id] = args;
 	if (sub === "new") {
-		if (!id || !/^[a-z0-9-]+$/.test(id)) die("fw plugin new <id> (lower case, dashes)", 2);
+		if (!id || !/^[a-z0-9-]+$/.test(id)) die("fw plugin new <id> [--kind feature|appearance] [--runtime js|wasm|sidecar] [--ui none|widgets|iframe]", 2);
+		const o = { id, kind: flag("kind", "feature"), runtime: flag("runtime", "js"), ui: flag("ui", "none") };
+		if (!["feature", "appearance"].includes(o.kind) || !["js", "wasm", "sidecar"].includes(o.runtime) || !["none", "widgets", "iframe"].includes(o.ui)) die("unknown --kind, --runtime or --ui", 2);
 		const dir = `plugins/${id}`;
-		write(`${dir}/plugin.toml`, `id = "${id}"\nname = "${pascal(id)}"\nversion = "0.1.0"\nauthor = ""\ndescription = ""\napp = ">=${identity().app.version}"\nentry = "main.js"\nisolation = "worker"\nactivation = ["onCommand:${camel(id)}.hello"]\npermissions = []\n\n[[contributes.commands]]\nid = "${camel(id)}.hello"\ntitle = "Hello from ${pascal(id)}"\n`);
-		write(`${dir}/main.js`, `import { definePlugin } from "@fanwit/plugin-sdk";\n\nexport default definePlugin((ctx) => {\n\tctx.commands.handle("${camel(id)}.hello", () => ctx.notify.toast("Hello from ${id}"));\n});\n`);
+		if (exists(dir)) die(`${dir} already exists`);
+		write(`${dir}/plugin.toml`, PLUGIN_TPL.manifest(o));
+		if (o.kind === "appearance") {
+			write(`${dir}/styles.css`, `/* Any CSS; it is sanitized (no remote @import or url()). Scope it to a layout preset or a view:\n   html[data-preset="vscode"] ...   [data-fw-view="notes.editor"] ...\n   Theme tokens are CSS variables: --background, --foreground, --primary, --border... */\nhtml[data-preset="vscode"] [data-fw-region="sidebar"] {\n\tbackground: color-mix(in oklch, var(--primary) 6%, var(--sidebar));\n}\n`);
+		} else if (o.runtime === "js") {
+			write(`${dir}/main.js`, PLUGIN_TPL.js(o));
+		} else {
+			const sidecar = o.runtime === "sidecar";
+			const crate = sidecar ? "native" : "wasm";
+			write(`${dir}/${crate}/Cargo.toml`, PLUGIN_TPL.cargo(id, sidecar));
+			write(`${dir}/${crate}/src/${sidecar ? "main" : "lib"}.rs`, PLUGIN_TPL.rust(o, sidecar));
+		}
+		if (o.kind === "feature" && o.ui === "iframe") {
+			write(`${dir}/ui.html`, PLUGIN_TPL.html(id));
+			write(`${dir}/ui.js`, `// Runs in a sandboxed frame (no app access, no network). Use any framework; ship plain files.\ndocument.getElementById("hi").addEventListener("click", () => fanwit.commands.run("${camel(id)}.hello"));\n`);
+		}
 		write(`${dir}/README.md`, `# ${pascal(id)}\n\nWhat this plugin does, and why it needs each permission.\n`);
 		report();
-		console.log(`Install it from the Plugin Manager (Install from folder) or copy it into the app data plugins folder.`);
+		const rust = o.kind === "feature" && o.runtime !== "js";
+		console.log(`plugins/${id} ships with the app as a built-in plugin (off until turned on under Plugins > Built-in).${rust ? `\nBuild its Rust half with \`pnpm fw plugin build ${id}\`.` : ""}\nTo publish it for other apps: \`pnpm fw plugin pack ${id}\`.`);
+	} else if (sub === "build") {
+		const ids = id ? [id] : pluginIds().filter((x) => ["wasm", "sidecar"].includes(pluginManifest(x).runtime));
+		for (const x of ids) {
+			if (!exists(`plugins/${x}/plugin.toml`)) die(`no plugins/${x}`);
+			buildPlugin(x, has("release"));
+		}
+		report();
 	} else if (sub === "pack") {
 		const dir = abs(`plugins/${id}`);
 		if (!fs.existsSync(dir)) die(`no plugins/${id}`);
 		const manifest = parseToml(fs.readFileSync(path.join(dir, "plugin.toml"), "utf8"));
+		if (manifest.runtime === "sidecar") die("sidecar plugins run only when they ship with the app; they cannot be packed for a registry");
 		const files = [];
 		const walk = (d) => {
 			for (const e of fs.readdirSync(d, { withFileTypes: true })) {
 				const p = path.join(d, e.name);
-				if (e.isDirectory()) walk(p);
-				else {
+				const r = path.relative(dir, p).replace(/\\/g, "/");
+				// the Rust sources and build output stay home; plugin.wasm is the artefact
+				if (e.isDirectory()) {
+					if (!["wasm", "native", "node_modules"].includes(r)) walk(p);
+				} else if (r !== "part.toml" && !r.endsWith(".e2e.ts")) {
 					const data = fs.readFileSync(p);
-					const r = path.relative(dir, p).replace(/\\/g, "/");
+					const out = `dist/plugins/${id}/${manifest.version}/${r}`;
 					files.push({ path: r, url: `${id}/${manifest.version}/${r}`, sha256: createHash("sha256").update(data).digest("hex") });
-					write(`dist/plugins/${id}/${manifest.version}/${r}`, data.toString("utf8"));
+					changed.push(`create ${out}`);
+					if (!DRY) (fs.mkdirSync(path.dirname(abs(out)), { recursive: true }), fs.writeFileSync(abs(out), data));
 				}
 			}
 		};
 		walk(dir);
-		const entry = { id, name: manifest.name, version: manifest.version, description: manifest.description, author: manifest.author, isolation: manifest.isolation ?? "worker", files };
+		const entry = { id, name: manifest.name, version: manifest.version, description: manifest.description, author: manifest.author, category: manifest.category, runtime: manifest.runtime ?? "js", isolation: manifest.isolation ?? "worker", files };
 		write(`dist/plugins/${id}/${manifest.version}/entry.json`, JSON.stringify(entry, null, 2) + "\n");
 		const regFile = "dist/plugins/registry.json";
 		const reg = exists(regFile) ? JSON.parse(read(regFile)) : { plugins: [] };
@@ -512,10 +655,12 @@ async function plugin() {
 		write(regFile, JSON.stringify(reg, null, 2) + "\n");
 		report();
 		console.log("Sign the entry (minisign) and host dist/plugins/ on any static host; list registry.json in app.config.ts plugins.registries.");
-	} else die("fw plugin <new <id>|pack <id>>", 2);
+	} else die("fw plugin <new <id> [--kind --runtime --ui] | build [id] [--release] | pack <id>>", 2);
 }
 
 // ---------- sdk ----------
+/** The widget tree types, copied from the app so the SDK never drifts. */
+const widgetTypes = () => read("src/fanwit/plugins/widgets.ts").split("export const WIDGET_LIMITS")[0].replace(/^\/\*\*[\s\S]*?\*\/\n/, "");
 function sdk() {
 	const ids = new Set();
 	const walk = (d) => {
@@ -531,7 +676,7 @@ function sdk() {
 	write("packages/plugin-sdk/index.js", "export const definePlugin = (fn) => fn;\n");
 	write(
 		"packages/plugin-sdk/index.d.ts",
-		`// GENERATED by \`pnpm fw sdk build\`. Types for plugins of ${identity().app.name}.\nexport type CommandId =\n${[...ids].sort().map((i) => `\t| "${i}"`).join("\n")}\n\t| (string & {});\n\nexport interface PluginContext {\n\tid: string;\n\tcommands: { handle(id: CommandId, fn: (args: any) => unknown): { dispose(): void }; run<R = unknown>(id: CommandId, args?: Record<string, unknown>): Promise<R> };\n\tnotify: { toast(text: string, kind?: "info" | "success" | "warning" | "error"): Promise<void>; send(spec: { title: string; body?: string; kind?: string; route?: string }): Promise<string> };\n\tsettings: { get<T = unknown>(key: string): T; set(key: string, value: unknown): Promise<void> };\n\tstorage: { get<T = unknown>(key: string): Promise<T | undefined>; set(key: string, value: unknown): Promise<void> };\n\tvault: { readText(path: string): Promise<string>; write(path: string, text: string): Promise<void>; list(dir?: string, o?: { recursive?: boolean; glob?: string }): Promise<{ name: string; path: string; dir: boolean }[]>; current(): Promise<{ name: string; readonly: boolean } | null> };\n\tstatusbar: { item(id: string): { text: string; tooltip: string } };\n\tevents: { on(name: string, fn: (payload: any) => void): { dispose(): void }; emit(name: string, payload?: unknown): Promise<void> };\n\tlog: { info(...a: unknown[]): void; warn(...a: unknown[]): void; error(...a: unknown[]): void };\n}\n\nexport declare function definePlugin(fn: (ctx: PluginContext) => void | Promise<void>): typeof fn;\n`
+		`// GENERATED by \`pnpm fw sdk build\`. Types for plugins of ${identity().app.name}.\nexport type CommandId =\n${[...ids].sort().map((i) => `\t| "${i}"`).join("\n")}\n\t| (string & {});\n\nexport interface PluginContext {\n\tid: string;\n\tcommands: { handle(id: CommandId, fn: (args: any) => unknown): { dispose(): void }; run<R = unknown>(id: CommandId, args?: Record<string, unknown>): Promise<R> };\n\tnotify: { toast(text: string, kind?: "info" | "success" | "warning" | "error"): Promise<void>; send(spec: { title: string; body?: string; kind?: string; route?: string }): Promise<string> };\n\tsettings: { get<T = unknown>(key: string): T; set(key: string, value: unknown): Promise<void> };\n\tstorage: { get<T = unknown>(key: string): Promise<T | undefined>; set(key: string, value: unknown): Promise<void> };\n\tvault: { readText(path: string): Promise<string>; write(path: string, text: string): Promise<void>; list(dir?: string, o?: { recursive?: boolean; glob?: string }): Promise<{ name: string; path: string; dir: boolean }[]>; current(): Promise<{ name: string; readonly: boolean } | null> };\n\tstatusbar: { item(id: string): { text: string; tooltip: string; command: string } };\n\t/** Widget views (ui = \"widgets\"): send a tree, hear what the user did. */\n\tui: { render(view: string, tree: Widget | null): Promise<void>; on(view: string, fn: (action: string, value: unknown) => void): { dispose(): void } };\n\tevents: { on(name: string, fn: (payload: any) => void): { dispose(): void }; emit(name: string, payload?: unknown): Promise<void> };\n\tlog: { info(...a: unknown[]): void; warn(...a: unknown[]): void; error(...a: unknown[]): void };\n}\n\nexport declare function definePlugin(fn: (ctx: PluginContext) => void | Promise<void>): typeof fn;\n\n/** In a plugin iframe page (ui = \"iframe\") after <script src=\"_fw/ui.js\">. */\ndeclare global {\n\tinterface Window {\n\t\tfanwit: PluginContext & { onReady(fn: (ctx: PluginContext) => void): void };\n\t}\n}\n\n${widgetTypes()}`
 	);
 	report();
 }
@@ -1419,7 +1564,9 @@ const HELP = `fw: Fanwit developer CLI
   fw doctor                           toolchains, capabilities, CSP, presets, host boundary
   fw schema                           JSON schemas for TOML files (+ .taplo.toml)
   fw layout validate <file> | preset <name> <workspace.toml>
-  fw plugin new <id> | pack <id>
+  fw plugin new <id> [--kind feature|appearance] [--runtime js|wasm|sidecar] [--ui none|widgets|iframe]
+  fw plugin build [id] [--release]    compile a plugin's Rust half (plugin.wasm or the sidecar binary)
+  fw plugin pack <id>                 registry entry with a SHA-256 per file
   fw sdk build                        typed plugin SDK for this app
   fw parts                            strippable parts (showcase apps, samples, bundled plugins) and their state
   fw strip <part...> | --showcase | --kind <k> | --all [--with-dependents]   move parts to .trash/
@@ -1460,11 +1607,16 @@ switch (cmd) {
 		report();
 		break;
 	case "dev":
+		// bundled sidecar plugins run from next to the app binary: build them first
+		if (!has("web")) for (const id of sidecarIds()) buildPlugin(id);
 		run("pnpm", has("web") ? ["dev", "--", "--open"] : ["tauri", "dev"]);
 		break;
 	case "build":
 		if (has("web") || has("all")) run("pnpm", ["build"]);
-		if (!has("web") || has("all")) run("pnpm", ["tauri", "build"]);
+		if (!has("web") || has("all")) {
+			const conf = sidecarBundleConfig();
+			run("pnpm", ["tauri", "build", ...(conf ? ["--config", conf] : [])]);
+		}
 		break;
 	case "doctor":
 		doctor();
