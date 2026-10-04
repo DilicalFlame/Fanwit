@@ -360,6 +360,7 @@ export function createBrowserHost(): Host {
 		dirs: { config: "/config", data: "/global", cache: "/cache", log: "/logs" },
 		windows,
 		fs,
+		plugins: { frames: "srcdoc" },
 		db: sqliteDb(),
 		notify: {
 			permission: async () => ("Notification" in window ? (Notification.permission as "granted" | "denied" | "default") : "denied"),

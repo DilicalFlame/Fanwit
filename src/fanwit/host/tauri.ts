@@ -2,7 +2,7 @@
  * TauriHost: desktop. File system, SQLite, windows and the CLI bridge are Fanwit's own Rust
  * commands (src-tauri/src/fanwit/*), which enforce the vault sandbox and namespacing.
  */
-import { invoke } from "@tauri-apps/api/core";
+import { Channel, invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWindow, ProgressBarStatus, UserAttentionType, Window as TauriWindow } from "@tauri-apps/api/window";
 import * as dialog from "@tauri-apps/plugin-dialog";
@@ -151,6 +151,19 @@ export async function createTauriHost(): Promise<Host> {
 		dirs,
 		windows: windowsApi(),
 		fs,
+		plugins: {
+			frames: "scheme",
+			serve: (id, files) => invoke("fw_plugin_serve", { id, files: Object.fromEntries(Object.entries(files).map(([k, v]) => [k, [...v]])) }),
+			unserve: (id) => invoke("fw_plugin_unserve", { id }),
+			// Windows (WebView2) serves custom schemes as http://<scheme>.localhost
+			url: (id, path) => `${platform === "windows" ? "http://fanwit-plugin.localhost" : "fanwit-plugin://localhost"}/${id}/${path}`,
+			async sidecar(id, onLine, onExit) {
+				const ch = new Channel<{ line?: string; exit?: number | null }>();
+				ch.onmessage = (m) => (m.line !== undefined ? onLine(m.line) : onExit(m.exit ?? null));
+				await invoke("fw_sidecar_spawn", { id, onEvent: ch });
+				return { send: (line) => invoke("fw_sidecar_send", { id, line }), kill: () => invoke("fw_sidecar_kill", { id }) };
+			}
+		},
 		db: {
 			open: (path) => invoke<number>("fw_db_open", { path }),
 			exec: (handle, sql, params = [], o = {}) => invoke("fw_db_exec", { handle, sql, params, owner: o.owner ?? null, readonly: !!o.readonly }),

@@ -6,7 +6,9 @@ pub mod cli;
 pub mod db;
 pub mod fs;
 pub mod install;
+pub mod plugin_scheme;
 pub mod sandbox;
+pub mod sidecar;
 pub mod toml;
 pub mod tray;
 pub mod windows;
@@ -29,6 +31,8 @@ pub struct State {
     pub windows: windows::WindowsState,
     pub cli: cli::CliState,
     pub pending_paths: Mutex<Vec<String>>,
+    pub plugin_files: plugin_scheme::PluginFiles,
+    pub sidecars: sidecar::Sidecars,
 }
 
 impl State {
@@ -41,6 +45,8 @@ impl State {
             windows: windows::WindowsState::default(),
             cli: cli::CliState::default(),
             pending_paths: Mutex::new(Vec::new()),
+            plugin_files: plugin_scheme::PluginFiles::default(),
+            sidecars: sidecar::Sidecars::default(),
         }
     }
 }

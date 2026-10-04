@@ -3,7 +3,6 @@ mod fanwit;
 mod gen_identity;
 mod utils;
 
-#[allow(unused_imports)]
 use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -28,6 +27,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_process::init())
         .manage(fanwit::State::new(launch))
+        .register_uri_scheme_protocol(fanwit::plugin_scheme::SCHEME, fanwit::plugin_scheme::handle)
         .invoke_handler(tauri::generate_handler![
             fanwit::app::fw_app_info,
             fanwit::app::fw_secret_get,
@@ -67,6 +67,11 @@ pub fn run() {
             fanwit::cli::fw_take_launch_paths,
             fanwit::install::fw_installer_lab_load,
             fanwit::install::fw_installer_lab_plan,
+            fanwit::plugin_scheme::fw_plugin_serve,
+            fanwit::plugin_scheme::fw_plugin_unserve,
+            fanwit::sidecar::fw_sidecar_spawn,
+            fanwit::sidecar::fw_sidecar_send,
+            fanwit::sidecar::fw_sidecar_kill,
         ])
         .setup(|app| {
             fanwit::app::setup(app).map_err(|e| e.into())
@@ -75,6 +80,9 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app, _event| {
+            if let tauri::RunEvent::Exit = _event {
+                _app.state::<fanwit::State>().sidecars.kill_all();
+            }
             // macOS: reopen the main window on dock click
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen { .. } = _event {
