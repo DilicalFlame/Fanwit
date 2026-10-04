@@ -91,6 +91,19 @@ impl Sandbox {
         Ok(c)
     }
 
+    /// Like `check`, but also inside remembered folders not yet activated this session: lets the
+    /// recent vault list and startup restore see whether a vault still exists before opening it.
+    pub fn check_known(&self, path: &str) -> Result<PathBuf> {
+        self.check(path).or_else(|e| {
+            let c = canon(Path::new(path));
+            if self.known.read().unwrap().iter().any(|k| c.starts_with(k)) {
+                Ok(c)
+            } else {
+                Err(e)
+            }
+        })
+    }
+
     /// Resolve and check a path coming from the webview.
     pub fn check(&self, path: &str) -> Result<PathBuf> {
         let c = canon(Path::new(path));
@@ -100,5 +113,24 @@ impl Sandbox {
         } else {
             Err(format!("Access denied: \"{}\" is outside the app and open vault folders.", path))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn remembered_folders_are_visible_to_exists_before_activation() {
+        let dir = std::env::temp_dir().join(format!("fw-sandbox-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let sb = Sandbox::default();
+        let p = dir.to_string_lossy().into_owned();
+        assert!(sb.check_known(&p).is_err());
+        sb.known.write().unwrap().push(canon(&dir));
+        assert!(sb.check(&p).is_err(), "still not active for reads and writes");
+        assert!(sb.check_known(&p).is_ok());
+        assert!(sb.check_known(&std::env::temp_dir().to_string_lossy()).is_err(), "parents stay hidden");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

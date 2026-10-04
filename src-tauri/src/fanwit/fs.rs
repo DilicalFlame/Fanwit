@@ -107,7 +107,7 @@ pub fn fw_fs_write(state: tauri::State<State>, path: String, data: Vec<u8>) -> R
 
 #[tauri::command]
 pub fn fw_fs_exists(state: tauri::State<State>, path: String) -> Result<bool> {
-    Ok(state.sandbox.check(&path)?.exists())
+    Ok(state.sandbox.check_known(&path)?.exists())
 }
 
 #[tauri::command]
