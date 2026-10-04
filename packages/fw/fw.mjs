@@ -329,7 +329,14 @@ function doctor() {
 		ok("WebView2", !!wv, wv ? wv.split(/\s+/).pop() : "not detected (installer bootstraps it)");
 	}
 	const conf = JSON.parse(read("src-tauri/tauri.conf.json"));
-	ok("CSP configured (D10)", !!conf.app?.security?.csp && conf.app.security.csp !== null);
+	// the plugin and CSS sandboxes rely on these: no remote origins, no eval or inline script
+	const cspRaw = conf.app?.security?.csp;
+	const csp = typeof cspRaw === "string" ? Object.fromEntries(cspRaw.split(";").map((d) => d.trim().split(/\s+/)).filter((d) => d[0]).map(([k, ...v]) => [k, v.join(" ")])) : (cspRaw ?? {});
+	const remote = Object.entries(csp).flatMap(([d, v]) => String(v).split(/\s+/).filter((t) => /^(\*|https?:$|wss?:|https?:\/\/(?![\w*-]+\.localhost$))/.test(t)).map((t) => `${d} ${t}`));
+	const unsafeScript = String(csp["script-src"] ?? "").match(/'unsafe-(eval|inline)'/g) ?? [];
+	ok("CSP configured (D10)", !!cspRaw && !remote.length && !unsafeScript.length, [...remote, ...unsafeScript.map((t) => `script-src ${t}`)].join(", "));
+	const webCsp = /http-equiv="Content-Security-Policy"[^>]*img-src[^>]*font-src/.test(read("src/app.html"));
+	ok("web CSP closes remote images and fonts", webCsp, webCsp ? "" : "src/app.html needs its CSP <meta>");
 	ok("isolation pattern", conf.app?.security?.pattern?.use === "isolation");
 	ok("withGlobalTauri off", conf.app?.withGlobalTauri === false);
 	const id = identity();

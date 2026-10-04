@@ -18,12 +18,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm test
-      - run: node packages/fw/fw.mjs doctor || true
+      # CSP, isolation, capabilities, pinned downloads: the guarantees the docs promise
+      - run: node packages/fw/fw.mjs doctor
       - run: node packages/fw/fw.mjs docs check
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
-      - run: pnpm audit --prod --audit-level high || true
+      - run: pnpm audit --prod --audit-level high
 
   rust:
     strategy:
@@ -43,5 +44,6 @@ jobs:
           workspaces: src-tauri
       - run: mkdir -p build
         shell: bash
-      - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      # --workspace: the installer engine, plugin SDK, TOML merge and native plugins too
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml --workspace --all-targets -- -D warnings
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --workspace

@@ -13,9 +13,12 @@ use tauri::ipc::Channel;
 
 const MAX_LINE: usize = 1 << 20;
 
+/// A running sidecar: the process and the pipe we write requests into.
+type Running = (Arc<Mutex<Child>>, ChildStdin);
+
 #[derive(Default)]
 pub struct Sidecars {
-    running: Mutex<HashMap<String, (Arc<Mutex<Child>>, ChildStdin)>>,
+    running: Mutex<HashMap<String, Running>>,
 }
 
 impl Sidecars {
