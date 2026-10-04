@@ -248,6 +248,10 @@ html[data-reading-tone="dark"] { --cm-keyword: #ff7b72; --cm-string: #a5d6ff; --
 .fw-doc-body .fw-play-line { font: 12px/1.5 var(--font-mono); white-space: pre-wrap; border-bottom: 1px dashed var(--border); padding: 0.15em 0; }
 .fw-doc-body .fw-play-line.error { color: var(--destructive, #c33); }
 .fw-doc-body .fw-play-line.muted { color: var(--muted-foreground); border: 0; font-family: var(--font-sans); }
+.fw-doc-body .fw-play-line.trace { color: var(--muted-foreground); }
+.fw-doc-body .fw-play-keys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3em 0.6em; margin-bottom: 0.6em; font-size: 0.9em; }
+.fw-doc-body .fw-play-label { font-weight: 600; color: var(--muted-foreground); }
+.fw-doc-body a.fw-play-btn { text-decoration: none; color: inherit; }
 @media (max-width: 700px) { .fw-doc-body .fw-play-main { grid-template-columns: 1fr; height: auto !important; } .fw-doc-body .fw-play-editor { height: 220px; border-right: 0; border-bottom: 1px solid var(--border); } }
 
 .fw-doc-body .fw-check { margin: 0 0 var(--doc-para, 1em); border: 1px solid var(--border); border-radius: 10px; padding: 0.8em 1em; font-family: var(--font-sans); }

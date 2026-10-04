@@ -7,6 +7,7 @@ import { keymap } from "@codemirror/view";
 import { indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
+import { rust } from "@codemirror/lang-rust";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 
@@ -42,14 +43,14 @@ export interface Editor {
 }
 
 /** An editor in `parent`; Ctrl/Cmd+Enter calls `run`. */
-export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" | "svelte"; run: () => void; change: (text: string) => void; label: string }): Editor {
+export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" | "svelte" | "rust"; run: () => void; change: (text: string) => void; label: string }): Editor {
 	const view = new EditorView({
 		parent,
 		doc: o.doc,
 		extensions: [
 			basicSetup,
 			keymap.of([{ key: "Mod-Enter", run: () => (o.run(), true) }, indentWithTab]),
-			o.lang === "svelte" ? html() : javascript(),
+			o.lang === "svelte" ? html() : o.lang === "rust" ? rust() : javascript(),
 			theme,
 			syntaxHighlighting(colours),
 			EditorView.updateListener.of((u) => u.docChanged && o.change(u.state.doc.toString())),

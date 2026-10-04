@@ -134,11 +134,44 @@ These work in any page without an import. Leave a blank line inside a component'
 | `<Diagram steps={[...]}>` | An SVG you step through: parts marked `data-step="2"` light up on step 2 |
 | `<LayoutPreview preset="vscode" editable />` | A layout drawn as a miniature window from its TOML; `editable` redraws it as you type |
 | `<LiveToml file="settings" />` | One of the app's TOML files as it is right now (`settings`, `keys`, `menus`, `workspace`) |
-| `<Playground mode="module">` | One code block becomes an editor. **module**: a module that joins the running app on Run and is removed on Stop. **svelte**: a component compiled in the browser and rendered beside the code |
+| `<Playground mode="module" id="...">` | One code block becomes an editor. **module**: a module that joins the running app on Run and is removed on Stop. **kernel**: the same module in a sandbox kernel, with its commands, context keys and a trace of every event and run. **svelte**: a component compiled in the browser and rendered beside the code. **rust**: Rust compiled and run on the Rust Playground. `id` keeps the reader's edits when the title changes |
 | `<Check question options answer>` | A question answered in place, with the explanation (its content) shown after |
 | `<Levels />` | A card per reading level with the reader's progress and where to continue |
 
-Playgrounds run code, so they run only in development builds, on the docs site, or with developer mode on. In a production manual they show the code read only.
+Module playgrounds put code into the running app, so they run only in development builds, on the docs site, or with developer mode on; in a production manual they show the code read only. The other three cannot touch the app and always run: a sandbox kernel lives only inside its playground, Svelte compiles in the page, and Rust compiles on [play.rust-lang.org](https://play.rust-lang.org), which needs the internet and has the standard library only.
+
+<Playground mode="rust" id="manual-rust-demo" title="Rust, run from the page" height={200}>
+
+```rust
+fn main() {
+    let layers = ["Platform", "Host", "Kernel", "Systems", "UI kit", "Features"];
+    for (i, name) in layers.iter().enumerate() {
+        println!("{} {}", i + 1, name);
+    }
+}
+```
+
+</Playground>
+
+<Playground mode="kernel" id="manual-kernel-demo" title="A module in a sandbox kernel" height={240}>
+
+```js
+export default defineModule({
+	id: "counter",
+	contributes: { commands: [{ id: "counter.add", title: "Add one" }] },
+	activate(ctx) {
+		let n = 0;
+		ctx.commands.handle("counter.add", () => {
+			n++;
+			ctx.context.set("counter.value", n);
+			ctx.events.emit("counter.changed", n);
+			return n;
+		});
+	}
+});
+```
+
+</Playground>
 
 Each one, live:
 
@@ -221,7 +254,7 @@ The search box (**/** or **Ctrl+K**) searches pages, sections, the API, commands
 | `#` | sections | opens the page at that heading |
 | `@` | API symbols and members | opens the reference |
 | `>` | commands | runs it |
-| `:` | settings | toggles a switch, or opens it in Settings |
+| `:` | settings | toggles a switch, or opens it in Settings (on the docs site: opens the settings reference) |
 | `!` | error codes | opens the page that explains it |
 
 Pages opened from search highlight the words you searched for. **Ctrl+Enter** opens a result in a new tab. In any window, `?` in the command palette searches the manual too.
