@@ -1,9 +1,10 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
+import { fanwitDocs } from './src/fanwit/manual/vite-plugin';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [fanwitDocs(), tailwindcss(), sveltekit()],
 	clearScreen: false,
 	optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
 	worker: { format: 'es' },

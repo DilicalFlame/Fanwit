@@ -11,14 +11,34 @@ export const KERNEL_KEY = "fanwit";
  */
 export const uiZoom = () => parseFloat(getComputedStyle(document.body).zoom) || 1;
 
-/** The window's kernel (set by the root layout and by mounted panes). */
+/**
+ * The window's kernel, inside a component (set by the root layout and by mounted panes). Views
+ * use it to run commands and read systems.
+ *
+ * @example
+ * ```svelte
+ * <script lang="ts">
+ *   import { getKernel } from "$fanwit";
+ *   const k = getKernel();
+ * </script>
+ * <button onclick={() => k.commands.run("notes.newDaily")}>Today</button>
+ * ```
+ */
 export function getKernel(): Kernel {
 	const k = getContext<Kernel>(KERNEL_KEY);
 	if (!k) throw new Error("getKernel() called outside a Fanwit window");
 	return k;
 }
 
-/** Dispose automatically when the component unmounts (Section 4.4 useDisposable). */
+/**
+ * Dispose automatically when the component unmounts: for listeners and registrations made by a
+ * view rather than a module.
+ *
+ * @example
+ * ```ts
+ * useDisposable(k.events.on("notes:saved", refresh));
+ * ```
+ */
 export function useDisposable<T extends Disposable>(d: T): T {
 	onDestroy(() => d.dispose());
 	return d;
@@ -41,6 +61,13 @@ export interface MenuActionOptions {
 /**
  * `<li use:menu={{ location: "explorer/item", target: { path } }}>`: opens a context menu on
  * right click, Shift+F10, the Menu key and long press. Works on any element (Section 7.6).
+ *
+ * @example
+ * ```svelte
+ * {#each files as f (f.path)}
+ *   <li use:menu={{ location: "explorer/item", target: { path: f.path } }}>{f.name}</li>
+ * {/each}
+ * ```
  */
 export function menu(node: HTMLElement, opts: MenuActionOptions) {
 	let o = opts;

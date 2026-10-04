@@ -310,12 +310,22 @@ export function activateCore(ctx: ModuleContext) {
 	startMacroRecorder(ctx);
 
 	// ----- manual -----
-	h("manual.open", ({ page }: { page?: string }) => {
+	// a window that shows the manual itself (the Manual window, the docs site) opens pages in place;
+	// elsewhere the Manual window opens, or comes to the front and follows along
+	const inManual = () => !!k.context.lookup(null)("manual.window");
+	h("manual.open", async ({ page }: { page?: string }) => {
 		// F1: the focused view's help page
 		const view = page ? undefined : layout.activePane ? layout.views.get(layout.doc.pane[layout.activePane]?.view) : undefined;
-		return windows.open("manual", { page: page ?? view?.help ?? "" });
+		const target = page ?? view?.help ?? "";
+		if (inManual()) return void k.events.emit("fw:manual-open" as never, { page: target } as never);
+		await windows.open("manual", { page: target });
+		k.events.emit("fw:manual-open" as never, { page: target } as never, { scope: "app" });
 	});
-	h("manual.search", ({ query }: { query: string }) => windows.open("manual", { search: query }));
+	h("manual.search", async ({ query }: { query: string }) => {
+		if (inManual()) return void k.events.emit("fw:manual-search" as never, { query } as never);
+		await windows.open("manual", { search: query });
+		k.events.emit("fw:manual-search" as never, { query } as never, { scope: "app" });
+	});
 	h("plugins.open", () => windows.open("plugins"));
 
 	// tray menu items arrive as command ids

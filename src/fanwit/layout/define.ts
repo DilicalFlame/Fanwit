@@ -21,6 +21,21 @@ export interface LayoutBuilder {
 
 const REGION_KEYS = ["size", "visible", "collapsible", "side"];
 
+/**
+ * Build a layout document in code instead of TOML: the result is the same model as
+ * `workspace.toml`, ready to contribute as a preset (`toToml`) or apply with a `replace` action.
+ * Node and pane ids are generated unless you pass `{ id }`.
+ *
+ * @example
+ * ```ts
+ * const doc = defineLayout((b) => {
+ *   const editor = b.tabs([b.pane("notes.editor", { path: "Welcome.md" })], { id: "center" });
+ *   const side = b.stack([b.pane("fanwit.explorer")], { size: "260px" });
+ *   b.window("main", { title: "Notes" }, { sidebar: side, main: editor });
+ * });
+ * ```
+ * @see manual://fanwit/guides/layout
+ */
 export function defineLayout(fn: (b: LayoutBuilder) => void | unknown[]): LayoutDoc {
 	const doc: LayoutDoc = { version: 1, window: {}, node: {}, pane: {} };
 	let n = 0;
@@ -56,6 +71,20 @@ export function defineLayout(fn: (b: LayoutBuilder) => void | unknown[]): Layout
 	return doc;
 }
 
+/**
+ * Declare a custom layout node type (beyond split, tabs, stack and grid), for example a carousel
+ * or a dashboard canvas. Contribute it with `contributes.layoutNodes`; layouts then use
+ * `type = "<your type>"` and the component renders the node.
+ *
+ * @example
+ * ```ts
+ * export const carousel = defineLayoutNode({
+ *   type: "carousel",
+ *   component: () => import("./Carousel.svelte"),
+ *   children: (node) => node.panes as string[]
+ * });
+ * ```
+ */
 export function defineLayoutNode(t: CustomNodeType): CustomNodeType {
 	return t;
 }

@@ -6,6 +6,7 @@
 	import Overlays from "$fanwit/workbench/Overlays.svelte";
 	import LayoutRoot from "$fanwit/workbench/layout/LayoutRoot.svelte";
 	import EmptyState from "$fanwit/workbench/EmptyState.svelte";
+	import Workbench from "$fanwit/workbench/Workbench.svelte";
 	import type { WindowKindSpec, WindowSelf } from "$fanwit/windows/windows.svelte";
 
 	/**
@@ -62,6 +63,10 @@
 	const css = $derived(spec?.shadow === "css");
 </script>
 
+{#if spec?.layout}
+	<!-- a kind with its own layout preset (the Manual): a full workbench on its own document -->
+	<Workbench windowId="main" />
+{:else}
 <div class="flex h-dvh flex-col {css ? 'p-3' : ''}">
 	<div class="flex min-h-0 flex-1 flex-col overflow-hidden bg-background {css ? 'rounded-xl border border-border shadow-2xl' : ''}">
 		{#if spec?.decorations !== "none" && spec?.decorations !== "native"}
@@ -79,3 +84,4 @@
 	</div>
 </div>
 <Overlays />
+{/if}

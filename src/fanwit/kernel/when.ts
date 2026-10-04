@@ -241,6 +241,19 @@ function contains(coll: unknown, v: unknown) {
 
 const cache = new Map<string, CompiledWhen>();
 
+/**
+ * Parse a when clause once (results are cached) into something you can evaluate many times, ask
+ * which context keys it reads, and ask why it is false. Syntax: `&&`, `||`, `!`, `==`, `!=`,
+ * `<`, `<=`, `>`, `>=`, `=~ /regex/`, `in`, `not in`, parentheses.
+ *
+ * @example
+ * ```ts
+ * const w = compileWhen("vault.open && resource.ext == 'md'");
+ * w.eval(k.context.lookup(null));    // true or false
+ * w.explain(k.context.lookup(null)); // "vault.open" when that part is false
+ * ```
+ * @see manual://fanwit/guides/context-keys
+ */
 export function compileWhen(source: WhenClause): CompiledWhen {
 	const hit = cache.get(source);
 	if (hit) return hit;
@@ -266,7 +279,15 @@ export function compileWhen(source: WhenClause): CompiledWhen {
 	return compiled;
 }
 
-/** Evaluate a clause; empty or undefined clauses are true. */
+/**
+ * Evaluate a clause once; empty or undefined clauses are true. For repeated checks, compile it
+ * with {@link compileWhen}.
+ *
+ * @example
+ * ```ts
+ * evalWhen("vault.open && !inputFocus", k.context.lookup(null));
+ * ```
+ */
 export function evalWhen(clause: WhenClause | undefined, lookup: Lookup): boolean {
 	if (!clause) return true;
 	return compileWhen(clause).eval(lookup);

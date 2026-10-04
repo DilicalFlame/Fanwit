@@ -21,9 +21,27 @@ export interface MenuLocation {
 	user?: boolean;
 }
 
+/**
+ * One entry in a menu location: usually a command (its title, icon, keys and `when` come from the
+ * command), optionally with arguments, a group and an order. `kind` picks a rich renderer
+ * (toggle, slider, color-swatches, ...). `${target.x}` in args reads the menu's target.
+ *
+ * @example
+ * ```ts
+ * contributes: {
+ *   menus: {
+ *     "explorer/item": [{ id: "notes.preview", command: "notes.openPreview", group: "navigation", order: 3, args: { path: "${target.path}" }, when: "resource.ext == 'md'" }]
+ *   }
+ * }
+ * ```
+ * @see manual://fanwit/guides/context-menus
+ */
 export interface MenuItem {
+	/** Unique in its location; patches and the menu editor refer to it. */
 	id: string;
+	/** Renderer: "action" by default, or a registered {@link MenuItemKind}. */
 	kind?: string;
+	/** Items group by this (navigation, edit, view, ..., danger last), separated by lines. */
 	group?: string;
 	order?: number;
 	command?: string;
@@ -61,9 +79,25 @@ export interface MenuPatch {
 
 export type KeyboardModel = "row" | "grid" | "slider" | "input" | "none";
 
+/**
+ * What a menu item kind's component receives. Call `emit` with values to run the item's command
+ * with them merged into its args; `preview: true` runs the item's preview command instead (live
+ * sliders), `keepOpen` keeps the menu open.
+ *
+ * @example
+ * ```svelte
+ * <script lang="ts">
+ *   import type { MenuKindProps } from "$fanwit";
+ *   let { item, props, emit }: MenuKindProps<{ label: string }> = $props();
+ * </script>
+ * <button onclick={() => emit({ rating: 5 })}>{props.label ?? item.label}</button>
+ * ```
+ */
 export interface MenuKindProps<P = Record<string, unknown>> {
 	item: ResolvedItem;
+	/** The item's `props`, validated against the kind's schema. */
 	props: P;
+	/** Current value: `props.valueFrom` names a context key (or `target.<field>`), else `props.value`. */
 	value?: unknown;
 	/** Emit a value: merged into the command args and run. */
 	emit(value: Record<string, unknown>, o?: { preview?: boolean; keepOpen?: boolean }): void;
@@ -72,15 +106,32 @@ export interface MenuKindProps<P = Record<string, unknown>> {
 	inert?: boolean;
 }
 
+/**
+ * A kind of menu entry beyond a plain row: a component plus the data the menu system needs to
+ * validate it, edit it in the Menu Editor, drive it from the keyboard and fall back gracefully in
+ * native OS menus. Register with `contributes.menuKinds`.
+ *
+ * @example
+ * ```ts
+ * contributes: { menuKinds: [rating] } // rating = defineMenuItemKind({ ... })
+ * // then, in a location: { id: "notes.rate", kind: "star-rating", command: "notes.rate" }
+ * ```
+ * @see manual://fanwit/guides/context-menus
+ */
 export interface MenuItemKind {
+	/** The name items use (`kind = "star-rating"`). */
 	kind: string;
 	title: string;
 	description?: string;
 	/** Props schema: drives validation and the editor's generated property form. */
 	props?: Record<string, ArgSpec>;
+	/** Values the component emits, merged into the command's args. */
 	emits?: Record<string, ArgSpec>;
+	/** How arrow keys move inside it: one row, a grid, a slider, a text input, or not at all. */
 	keyboard?: KeyboardModel;
+	/** ARIA role of the item. */
 	role?: string;
+	/** In native menus (which cannot host components): a submenu of choices, a plain action, or nothing. */
 	nativeFallback?: "submenu" | "action" | "hidden";
 	component: (() => Promise<{ default: Component<MenuKindProps<any>> }>) | Component<MenuKindProps<any>>; // eslint-disable-line @typescript-eslint/no-explicit-any
 	owner?: string;
@@ -118,6 +169,22 @@ export interface ResolveOptions {
 
 const GROUP_ORDER = ["navigation", "open", "clipboard", "edit", "style", "modify", "arrange", "view", "window", "share", "dev", "other", "danger"];
 
+/**
+ * Declare a menu item kind (it returns it unchanged, typed). `pnpm fw add menu-kind <id>` writes one.
+ *
+ * @example
+ * ```ts
+ * export const rating = defineMenuItemKind({
+ *   kind: "star-rating",
+ *   title: "Star rating",
+ *   component: () => import("./StarRating.svelte"),
+ *   keyboard: "grid",
+ *   role: "radiogroup",
+ *   nativeFallback: "submenu",
+ *   emits: { rating: { type: "number", min: 1, max: 5 } }
+ * });
+ * ```
+ */
 export function defineMenuItemKind(k: MenuItemKind): MenuItemKind {
 	return k;
 }

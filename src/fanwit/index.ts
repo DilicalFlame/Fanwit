@@ -1,5 +1,7 @@
 /**
  * The public Fanwit API (`$fanwit`). Everything an app module needs; see Appendix B.
+ *
+ * @module
  */
 export { defineModule, type ModuleDefinition, type Contributions } from "./kernel/module";
 export type { ModuleContext } from "./kernel/context-api";
@@ -20,4 +22,13 @@ export type { ViewContribution } from "./layout/views";
 export { sql } from "./data/db";
 export { defineAppConfig, type AppConfig } from "./config";
 export { getKernel, useDisposable, menu } from "./ui.svelte";
+/**
+ * An icon by name: any Lucide icon (loaded on first use), or one registered with
+ * `ctx.icons.register(name, svg)`. Size defaults to 16 px; colour follows the text.
+ *
+ * @example
+ * ```svelte
+ * <Icon name="calendar" size={14} class="text-muted-foreground" />
+ * ```
+ */
 export { default as Icon } from "./icons/Icon.svelte";

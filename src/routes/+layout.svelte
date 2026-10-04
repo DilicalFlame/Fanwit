@@ -2,6 +2,7 @@
 	import "./layout.css";
 	import { onMount, setContext, type Snippet } from "svelte";
 	import { page } from "$app/state";
+	import { asset } from "$app/paths";
 	import { boot } from "$fanwit/boot.svelte";
 	import { afterFirstPaint } from "$fanwit/startup.svelte";
 	import { KERNEL_KEY } from "$fanwit/ui.svelte";
@@ -30,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href="/favicon.svg" />
+	<link rel="icon" href={asset("/favicon.svg")} />
 </svelte:head>
 
 {#if kernel}

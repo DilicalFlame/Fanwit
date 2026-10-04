@@ -26,6 +26,19 @@ export interface KernelOptions {
 
 type ExtensionFactory = (k: Kernel, owner: string, subs: DisposableStore) => Record<string, unknown>;
 
+/**
+ * One per window: the host plus the core services every system and module builds on (commands,
+ * keys, context keys, events, services, modules, history). Systems attach under `k.sys`
+ * (layout, settings, windows, ...). Modules normally use their `ctx` instead, which tracks what they
+ * register; reach the kernel with `ctx.kernel` or, in a view, `getKernel()`.
+ *
+ * @example
+ * ```ts
+ * const k = getKernel();
+ * await k.commands.run("layout.splitRight");
+ * k.sys.layout.doc; // the live layout document
+ * ```
+ */
 export class Kernel {
 	readonly host: Host;
 	readonly windowKind: string;
@@ -109,13 +122,19 @@ export class Kernel {
 		const track = <T extends Disposable>(d: T) => subs.add(d);
 		const k = this;
 		const ctx = {
+			/** The module id: owner of everything registered through this ctx. */
 			id: owner,
+			/** The platform host (Tauri, browser, memory). Check `host.caps` instead of the platform. */
 			host: this.host,
+			/** The window kernel, for what ctx does not wrap. */
 			kernel: this,
+			/** A logger prefixed with the module id. */
 			log: logs.scoped(owner),
+			/** Disposables to dispose when the module deactivates. */
 			subscriptions: {
 				push: (...ds: Disposable[]) => ds.forEach((d) => subs.add(d))
 			},
+			/** Register, handle, run and intercept commands. */
 			commands: {
 				register: (def: CommandDefinition, handler: CommandHandler) => track(k.commands.register(def, handler, owner)),
 				handle: (id: string, handler: CommandHandler) => track(k.commands.handle(id, handler, owner)),
@@ -124,30 +143,36 @@ export class Kernel {
 				list: () => k.commands.list(),
 				get: (id: string) => k.commands.get(id)
 			},
+			/** Bind keys at runtime; read a command's current key label. */
 			keys: {
 				bind: (b: Keybinding) => track(k.keys.add(b, owner)),
 				label: (command: string) => k.keys.label(command)
 			},
+			/** Context keys: set, bind to an element, evaluate a when clause. */
 			context: {
 				set: (key: string, value: unknown) => k.context.set(key, value),
 				bind: (key: string, value: unknown) => track(k.context.bind(key, value)),
 				get: (key: string) => k.context.get(key),
 				evaluate: (when: string, el?: Element | null) => k.context.evaluate(when, el)
 			},
+			/** The typed event bus (scope app reaches every window). */
 			events: {
 				emit: <K extends EventName>(name: K, payload: EventPayload<K>, o?: { scope?: EventScope }) => k.events.emit(name, payload, o),
 				on: <K extends EventName>(name: K, fn: (p: EventPayload<K>) => void) => track(k.events.on(name, fn))
 			},
+			/** Provide and get shared services. */
 			services: {
 				provide: <K extends ServiceId>(id: K, factory: () => ServiceOf<K> | Promise<ServiceOf<K>>) => track(k.services.provide(id, factory, owner)),
 				get: <K extends ServiceId>(id: K) => k.services.get(id)
 			},
+			/** Undo and redo, and transactions that undo as one step. */
 			history: {
 				push: (rec: Parameters<HistoryService["push"]>[0]) => k.history.push(rec),
 				transaction: <T>(label: string, fn: () => T | Promise<T>) => k.history.transaction(label, fn),
 				undo: () => k.history.undo(),
 				redo: () => k.history.redo()
 			},
+			/** Shutdown hooks and lifecycle phases. */
 			lifecycle: {
 				onWillShutdown: (fn: Parameters<Lifecycle["onWillShutdown"]>[0]) => track(k.lifecycle.onWillShutdown(fn)),
 				when: (p: Parameters<Lifecycle["when"]>[0]) => k.lifecycle.when(p)

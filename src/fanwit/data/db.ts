@@ -15,7 +15,16 @@ export interface SqlQuery {
 	params: unknown[];
 }
 
-/** Tagged template: interpolations become parameters, never string concatenation. */
+/**
+ * Tagged template: interpolations become parameters, never string concatenation, so values can
+ * not inject SQL. Use it with `ctx.db.sql()`.
+ *
+ * @example
+ * ```ts
+ * const db = ctx.db.sql({ scope: "vault" });
+ * const rows = await db.query(sql`SELECT path FROM notes__links WHERE target = ${path}`);
+ * ```
+ */
 export function sql(strings: TemplateStringsArray, ...values: unknown[]): SqlQuery {
 	let text = strings[0];
 	const params: unknown[] = [];

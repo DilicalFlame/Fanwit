@@ -1,0 +1,56 @@
+#:schema https://fanwit.dev/schema/layout-1.json
+# The Manual window (and the docs site): an ordinary layout preset, so it can be rearranged,
+# split and restyled like any other. Pages open as tabs in the main area; drag one to an edge to
+# read two pages side by side. Saved to manual.layout.toml; "Reset layout" brings this back.
+version = 1
+preset = "manual"
+
+[window.main]
+kind = "manual"
+frame = "workbench"
+title = "Manual - ${app.name}"
+
+[window.main.regions]
+titlebar = { node = "bar", size = "44px" }
+sidebar = { node = "nav", size = "272px" }
+inspector = { node = "outline", size = "232px", visible = true }
+main = { node = "pages" }
+activity = { visible = false }
+panel = { visible = false }
+statusbar = { visible = false }
+
+[window.main.responsive]
+"< 1100px" = { inspector = "hidden" }        # the title bar opens them as drawers
+"< 760px" = { sidebar = "hidden", inspector = "hidden" }
+
+[node.bar]
+type = "tabs"
+strip = "hidden"
+panes = ["bar"]
+
+[node.nav]
+type = "tabs"
+strip = "hidden"
+panes = ["nav"]
+
+[node.outline]
+type = "tabs"
+strip = "hidden"
+panes = ["outline"]
+
+[node.pages]
+type = "tabs"
+panes = ["home"]
+active = "home"
+
+[pane.bar]
+view = "manual.titlebar"
+
+[pane.nav]
+view = "manual.nav"
+
+[pane.outline]
+view = "manual.outline"
+
+[pane.home]
+view = "manual.page"

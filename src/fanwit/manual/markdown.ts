@@ -53,8 +53,14 @@ export function render(md: string): { html: string; headings: Heading[] } {
 			i++;
 			continue;
 		}
-		if (/^\|/.test(line) && /^\|[\s:-|]+\|$/.test(lines[i + 1] ?? "")) {
-			const row = (l: string) => l.replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+		// the separator row is pipes, dashes, colons and spaces (dash last: "[\s:-|]" was a range that left it out)
+		if (/^\|/.test(line) && /^\|[\s:|-]+\|$/.test(lines[i + 1] ?? "")) {
+			// cells split on unescaped pipes; "\|" is a literal pipe inside a cell
+			const row = (l: string) =>
+				l
+					.replace(/^\||\|$/g, "")
+					.split(/(?<!\\)\|/)
+					.map((c) => c.trim().replace(/\\\|/g, "|"));
 			const head = row(line);
 			i += 2;
 			const rows: string[][] = [];

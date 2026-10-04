@@ -1,6 +1,23 @@
 import type { Component } from "svelte";
 
-/** A registered component type that panes instantiate (Section 8.5). */
+/**
+ * A registered component type that panes instantiate (Section 8.5). The component receives
+ * `{ paneId, props }`. `identity(props)` makes `openView` focus an existing pane instead of
+ * opening a second; `regions` says where it may live.
+ *
+ * @example
+ * ```ts
+ * views: [{
+ *   id: "notes.editor",
+ *   title: (p) => String(p.path).split("/").pop()!,
+ *   icon: "file-text",
+ *   component: () => import("./views/NoteEditor.svelte"),
+ *   identity: (p) => String(p.path),
+ *   opens: ["md"]
+ * }]
+ * ```
+ * @see manual://fanwit/guides/layout#views
+ */
 export interface ViewContribution {
 	id: string;
 	title: string | ((props: Record<string, unknown>) => string);

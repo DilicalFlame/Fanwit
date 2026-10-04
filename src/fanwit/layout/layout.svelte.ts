@@ -67,12 +67,14 @@ export class LayoutService {
 	readonly pool: PanePool;
 	/** Window id this kernel renders (main or an aux layout window). */
 	windowId = "main";
+	/** Which document this kernel edits: the shared workspace, or a window kind with its own layout. */
+	scope = "workspace";
 
 	constructor(private k: Kernel) {
 		this.pool = new PanePool(k, this);
-		k.events.on("fw:layout" as never, (m: { doc: LayoutDoc; from: string; file?: string }) => {
-			// windows on other vaults (per vault workspaces) keep their own layout
-			if (m.from === k.host.windows.label || m.file !== this.file?.path) return;
+		k.events.on("fw:layout" as never, (m: { doc: LayoutDoc; from: string; file?: string; scope?: string }) => {
+			// windows on other vaults (per vault workspaces) and windows with their own layout keep theirs
+			if (m.from === k.host.windows.label || m.file !== this.file?.path || m.scope !== this.scope) return;
 			this.setDoc(m.doc, false);
 		});
 	}
@@ -120,7 +122,7 @@ export class LayoutService {
 		validateLayout(v, text, { views: new Set(this.views.keys()), nodeTypes: new Set(this.nodeTypes.keys()), file: "workspace.toml" });
 
 	/** Load (or create from the app default) the workspace file in `dir`; null keeps it in memory. */
-	async load(dir: string | null, defaultText: string) {
+	async load(dir: string | null, defaultText: string, name = "workspace.toml") {
 		this.defaultText = defaultText;
 		this.file?.dispose();
 		this.file = null;
@@ -128,7 +130,7 @@ export class LayoutService {
 			this.setDoc(parse(defaultText) as unknown as LayoutDoc, false);
 			return;
 		}
-		const file = new TomlFile<LayoutDoc & Record<string, unknown>>(this.k.host, joinPath(dir, "workspace.toml"), {
+		const file = new TomlFile<LayoutDoc & Record<string, unknown>>(this.k.host, joinPath(dir, name), {
 			template: defaultText.startsWith("#:schema") ? defaultText : HEADER + defaultText.replace(/^#:schema[^\n]*\n/, ""),
 			validate: this.validate
 		});
@@ -167,7 +169,7 @@ export class LayoutService {
 	}
 
 	private broadcast() {
-		this.k.events.emit("fw:layout" as never, { doc: this.doc, from: this.k.host.windows.label, file: this.file?.path } as never, { scope: "app" });
+		this.k.events.emit("fw:layout" as never, { doc: this.doc, from: this.k.host.windows.label, file: this.file?.path, scope: this.scope } as never, { scope: "app" });
 	}
 
 	private log(e: Omit<ActionLogEntry, "time">) {

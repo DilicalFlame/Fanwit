@@ -79,6 +79,8 @@ async function needsOnboarding(k: Kernel) {
 
 /** Main window only: first launch flow and restoring state. */
 export async function mainStartup(k: Kernel) {
+	// the docs site has no vaults, crash reports or onboarding
+	if (import.meta.env.MODE === "docs") return;
 	const { vault, settings, windows, layout } = k.sys;
 	const params = new URLSearchParams(location.search);
 

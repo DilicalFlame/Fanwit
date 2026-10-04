@@ -1,7 +1,27 @@
+/**
+ * Something to undo later: a registration, a listener, a timer. Every `register`, `on`, `bind`
+ * and `add` in the API returns one. Push it to `ctx.subscriptions` and it is disposed when the
+ * module deactivates, or call `dispose()` yourself.
+ *
+ * @example
+ * ```ts
+ * const d = ctx.events.on("notes:saved", refresh);
+ * d.dispose(); // stop listening
+ * ```
+ */
 export interface Disposable {
 	dispose(): void;
 }
 
+/**
+ * Wrap a cleanup function as a {@link Disposable}. Disposing twice runs it once.
+ *
+ * @example
+ * ```ts
+ * const timer = setInterval(poll, 5000);
+ * ctx.subscriptions.push(toDisposable(() => clearInterval(timer)));
+ * ```
+ */
 export function toDisposable(fn: () => void): Disposable {
 	let done = false;
 	return {
@@ -13,7 +33,18 @@ export function toDisposable(fn: () => void): Disposable {
 	};
 }
 
-/** Collects disposables and disposes them together, newest first. */
+/**
+ * Collects disposables and disposes them together, newest first. Adding to a store that is
+ * already disposed disposes the item at once.
+ *
+ * @example
+ * ```ts
+ * const store = new DisposableStore();
+ * store.add(ctx.events.on("a", onA));
+ * store.add(ctx.events.on("b", onB));
+ * store.dispose(); // both listeners gone
+ * ```
+ */
 export class DisposableStore implements Disposable {
 	private items: Disposable[] = [];
 	private disposed = false;

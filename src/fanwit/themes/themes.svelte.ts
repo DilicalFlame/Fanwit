@@ -35,7 +35,7 @@ export const THEME_CACHE = { css: "fw:theme-css", dark: "fw:theme-dark", bg: "fw
 
 export function parseTheme(text: string): ThemeDef {
 	const t = parse(text) as unknown as ThemeDef;
-	if (!t.meta?.id) throw new FanwitError("THEME_INVALID", { message: "Theme file has no [meta] id.", hint: 'Add [meta] with id = "my-theme".', docs: "manual://themes#file" });
+	if (!t.meta?.id) throw new FanwitError("THEME_INVALID", { message: "Theme file has no [meta] id.", hint: 'Add [meta] with id = "my-theme".', docs: "manual://themes#the-theme-file" });
 	return t;
 }
 

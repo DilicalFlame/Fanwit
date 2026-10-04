@@ -10,6 +10,21 @@ export interface FanwitErrorInit {
 	cause?: unknown;
 }
 
+/**
+ * The error every FaNWiT API throws, and the one to throw from your own code: a stable `code`
+ * (also the CLI exit code's source), a message, a `hint` that says what to do, and a `docs` link.
+ * `ctx.notify.error(e)` shows the hint and an "Open docs" action.
+ *
+ * @example
+ * ```ts
+ * throw new FanwitError("NOTES_NOT_FOUND", {
+ *   message: `No note at ${path}.`,
+ *   hint: "Create it first, or pick another file.",
+ *   docs: "manual://fanwit/guides/vaults"
+ * });
+ * ```
+ * @see manual://fanwit/reference/errors
+ */
 export class FanwitError extends Error {
 	readonly code: string;
 	readonly hint?: string;
@@ -30,6 +45,16 @@ export class FanwitError extends Error {
 	}
 }
 
+/**
+ * True for a {@link FanwitError}, including one that crossed a worker or window boundary (where
+ * `instanceof` fails but the name survives).
+ *
+ * @example
+ * ```ts
+ * try { await ctx.commands.run("vault.open", { path }); }
+ * catch (e) { if (isFanwitError(e) && e.code === "CANCELLED") return; throw e; }
+ * ```
+ */
 export function isFanwitError(e: unknown): e is FanwitError {
 	return e instanceof FanwitError || (typeof e === "object" && e !== null && (e as { name?: string }).name === "FanwitError");
 }

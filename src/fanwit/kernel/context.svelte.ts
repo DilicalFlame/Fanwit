@@ -123,7 +123,15 @@ export class ContextKeyService {
 	}
 }
 
-/** `<div use:ctxkeys={{ focusedView: "notes.list" }}>`: scoped context keys for a subtree. */
+/**
+ * Svelte action: context keys that hold inside one element. When clauses evaluated for anything
+ * inside it (keys pressed there, menus opened there) see these values.
+ *
+ * @example
+ * ```svelte
+ * <ul use:ctxkeys={{ "notes.listFocused": true, "selection.count": selected.length }}>...</ul>
+ * ```
+ */
 export function ctxkeys(node: Element, keys: Record<string, unknown>) {
 	const el = node as Scoped;
 	el.__fwctx = keys;

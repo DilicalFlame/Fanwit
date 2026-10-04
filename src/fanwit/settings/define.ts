@@ -49,6 +49,20 @@ export interface SettingsContribution {
 
 type Builder = Omit<SettingDef, "key">;
 
+/**
+ * Setting builders: `s.<type>(default, meta)`. The type and metadata drive validation, the
+ * Settings window's widget, the generated reference and `settings.toml`. `s.secret` lives in the
+ * OS keychain instead of TOML.
+ *
+ * @example
+ * ```ts
+ * defineSettings("notes", {
+ *   "editor.fontSize": s.number(15, { title: "Editor font size", min: 10, max: 32, widget: "slider", unit: "px" }),
+ *   "editor.wrap": s.enum("soft", ["off", "soft", "bounded"], { title: "Line wrapping" }),
+ *   "sync.token": s.secret({ title: "Sync token" })
+ * });
+ * ```
+ */
 export const s = {
 	string: (def = "", meta: SettingMeta = {}): Builder => ({ type: "string", default: def, ...meta }),
 	number: (def = 0, meta: SettingMeta = {}): Builder => ({ type: "number", default: def, ...meta }),
@@ -63,6 +77,22 @@ export const s = {
 	secret: (meta: SettingMeta = {}): Builder => ({ type: "secret", default: "", secret: true, scope: ["global"], ...meta })
 };
 
+/**
+ * Declare a module's settings under a namespace: keys become `<ns>.<key>`. Contribute the result
+ * as `contributes.settings`; read with `ctx.settings.get(key)` (reactive in views), write with
+ * `ctx.settings.set(key, value, { scope })`. `pnpm fw add setting <ns>.<key>` adds one.
+ *
+ * @example
+ * ```ts
+ * contributes: {
+ *   settings: defineSettings("notes", {
+ *     "daily.folder": s.path("Daily", { title: "Daily notes folder", kind: "folder", scope: ["vault", "global"] })
+ *   })
+ * }
+ * // later: ctx.settings.get<string>("notes.daily.folder")
+ * ```
+ * @see manual://fanwit/guides/settings
+ */
 export function defineSettings(ns: string, defs: Record<string, Builder>): SettingsContribution {
 	return {
 		ns,

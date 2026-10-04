@@ -16,11 +16,31 @@ export type FocusPolicy = "none" | "takeover" | "lock";
 export type BlockedEffect = "bell" | "shake" | "flash" | "attention";
 export type WebPresentation = "virtual" | "modal" | "popup" | "tab" | "pip";
 
+/**
+ * A kind of window, described by intent: its base (aux, child, sheet, palette, panel), focus
+ * policy, size and instance rule. The host decides the presentation: a native window on the
+ * desktop; a virtual window, modal, tab or picture-in-picture on the web (`web`). Register with
+ * `contributes.windows`; open with `ctx.windows.open(kind, props)`.
+ *
+ * @example
+ * ```ts
+ * contributes: {
+ *   windows: [{ kind: "export", base: "child", view: "notes.export", title: "Export", size: [520, 420], focus: "lock" }]
+ * }
+ * const result = await (await ctx.windows.open("export", { path })).result;
+ * ```
+ * @see manual://fanwit/guides/windows
+ */
 export interface WindowKindSpec {
 	kind: string;
 	base: WindowBase;
 	/** Root view rendered in the window (a registered view id), or "layout" for a layout tree. */
 	view?: string;
+	/**
+	 * A layout preset id: the window runs its own workbench with this preset as its document,
+	 * saved to `<data>/<kind>.layout.toml` instead of the workspace (the Manual window does this).
+	 */
+	layout?: string;
 	title?: string | ((props: Record<string, unknown>) => string);
 	size?: [number, number];
 	minSize?: [number, number];
@@ -107,7 +127,19 @@ export function provideWindowSelf(self: WindowSelf) {
 	setContext(SELF_KEY, self);
 }
 
-/** Inside a window's view: its label, props and close(value) that resolves the opener's promise. */
+/**
+ * Inside a window's view: its label, props and `close(value)`, which resolves the opener's
+ * `result` promise.
+ *
+ * @example
+ * ```svelte
+ * <script lang="ts">
+ *   import { useWindow } from "$fanwit";
+ *   const win = useWindow<{ format: string }>();
+ * </script>
+ * <button onclick={() => win.close({ format: "pdf" })}>Export as PDF</button>
+ * ```
+ */
 export function useWindow<R = unknown>(): WindowSelf<R> {
 	const self = getContext<WindowSelf<R> | undefined>(SELF_KEY);
 	if (!self) throw new FanwitError("WINDOW_CONTEXT", { message: "useWindow() must be called inside a window view." });
@@ -173,7 +205,8 @@ export class WindowService {
 		const title = this.title(spec, props);
 
 		if (!this.k.host.caps.nativeWindows) {
-			const web = o.web ?? spec.web ?? "virtual";
+			// a window with its own layout needs its own kernel: a browser tab or popup
+			const web = spec.layout && o.web !== "popup" ? "tab" : (o.web ?? spec.web ?? "virtual");
 			if (web === "pip" && "documentPictureInPicture" in window && this.viewHost) return this.openPip<R>(spec, props, title);
 			return this.openVirtual<R>(spec, props, title, web === "pip" ? "virtual" : web);
 		}
@@ -308,7 +341,9 @@ export class WindowService {
 			if (this.k.sys.vault.current) q.set("vault", this.k.sys.vault.current.path);
 			if (Object.keys(props).length) q.set("props", JSON.stringify(props));
 			q.set("spec", JSON.stringify({ ...spec, owner: undefined }));
-			const opened = window.open(`/w/${route}?${q}`, web === "popup" ? vwin.id : "_blank", web === "popup" ? `width=${w},height=${h}` : undefined);
+			// single instance layout windows reuse their tab (it navigates to the new props)
+			const target = web === "popup" ? vwin.id : spec.layout && spec.instance === "single" ? `fw-${spec.kind}` : "_blank";
+			const opened = window.open(`/w/${route}?${q}`, target, web === "popup" ? `width=${w},height=${h}` : undefined);
 			if (!opened) throw new FanwitError("WINDOW_BLOCKED", { message: "The browser blocked the new window.", hint: "Allow pop-ups for this site, or use the virtual or modal presentation." });
 			// close(value) in the new tab arrives as fw:window-result; closing it without one resolves undefined
 			this.pending.set(vwin.id, resolve);
@@ -376,7 +411,15 @@ function slug(s: string) {
 	return s.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase().slice(0, 40);
 }
 
-/** Typed helper for declaring kinds in code: defineWindowKind({ kind: "app.export", base: "child" }). */
+/**
+ * Declare a window kind in code (it returns it unchanged, typed), for kinds registered at runtime
+ * rather than contributed. `pnpm fw add window <kind> --base child` writes a contributed one.
+ *
+ * @example
+ * ```ts
+ * const exportKind = defineWindowKind({ kind: "app.export", base: "child", view: "app.export", size: [520, 420] });
+ * ```
+ */
 export function defineWindowKind(spec: WindowKindSpec): WindowKindSpec {
 	return spec;
 }

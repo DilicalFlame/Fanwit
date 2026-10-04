@@ -146,7 +146,16 @@ export function validateArgs(id: string, schema: ArgSchema | undefined, args: Re
 	return out;
 }
 
-/** Valibot pipe helper to attach ArgSpec metadata: v.pipe(v.string(), argMeta({ type: "path", kind: "file" })) */
+/**
+ * Attach palette and CLI metadata to a Valibot schema, for commands that validate their args with
+ * Valibot instead of a plain {@link ArgSpec} map.
+ *
+ * @example
+ * ```ts
+ * import * as v from "valibot";
+ * args: v.object({ file: v.pipe(v.string(), argMeta({ type: "path", kind: "file", title: "File to import" })) })
+ * ```
+ */
 export function argMeta(meta: Partial<ArgSpec>) {
 	return v.metadata(meta as Record<string, unknown>);
 }

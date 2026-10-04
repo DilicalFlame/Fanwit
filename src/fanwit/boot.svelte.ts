@@ -3,7 +3,7 @@
  * user's TOML files, render, then activate lazy work after the first paint.
  */
 import { parse } from "smol-toml";
-import config from "$appconfig";
+import appConfig from "$appconfig";
 import { pickHost } from "./host";
 import { joinPath, type Host } from "./host/types";
 import { Kernel } from "./kernel/kernel.svelte";
@@ -36,11 +36,27 @@ import ViewHost from "./workbench/ViewHost.svelte";
 import WindowView from "./workbench/WindowView.svelte";
 import { DockDrag } from "./workbench/layout/dnd.svelte";
 import { setActiveKernel } from "./ui.svelte";
+import type { AppConfig } from "./config";
+
+/**
+ * `vite --mode docs` (fw docs serve/build): the docs site is this app on the web host with only
+ * the manual, its layout preset in the main window and nothing persisted (Section 21.6.1).
+ */
+const config: AppConfig =
+	import.meta.env.MODE === "docs"
+		? {
+				...appConfig,
+				layout: { default: "manual" },
+				data: { ...appConfig.data, mode: "global", layout: { persist: "none" } },
+				features: { labs: false, devtools: false, manual: true, plugins: false, tray: false, onboarding: false, samples: false }
+			}
+		: appConfig;
 
 declare module "./kernel/kernel.svelte" {
 	interface KernelSystems {
 		storage: StorageService;
 		db: DbService;
+		/** The open vault: its files, index and lifecycle. */
 		vault: VaultService;
 		settings: SettingsService;
 		themes: ThemeService;
@@ -59,21 +75,36 @@ declare module "./kernel/kernel.svelte" {
 		info: Awaited<ReturnType<Host["app"]>>;
 	}
 	interface ContextExtensions {
+		/** The layout: open views, dispatch actions, apply presets, read the live document. */
 		layout: ReturnType<typeof layoutFacade>;
+		/** Windows by kind: open, popovers, flyouts, overlays, dialogs. */
 		windows: ReturnType<typeof windowsFacade>;
+		/** Toasts, notifications, progress and errors shown with their hint. */
 		notify: ReturnType<typeof notifyFacade>;
+		/** Switch and list themes. */
 		themes: { set(id: string, o?: { mode?: ModeSetting }): Promise<void>; list(): ThemeDef[]; current(): { id: string; mode: string } };
+		/** Read (reactive), write and inspect settings; listen for changes. */
 		settings: { get<T = unknown>(key: string): T; set(key: string, v: unknown, o?: { scope?: "global" | "vault" | "window" }): Promise<void>; inspect(key: string): ReturnType<SettingsService["inspect"]>; onDidChange(fn: (keys: string[]) => void): Disposable };
 		vault: VaultService;
+		/** Key value storage for this module (memory, session, window, global or vault scope), and TOML files. */
 		storage: { get<T>(key: string, o?: { scope?: Scope }): Promise<T | undefined>; set(key: string, v: unknown, o?: { scope?: Scope }): Promise<void>; delete(key: string, o?: { scope?: Scope }): Promise<void>; toml<T extends Record<string, unknown>>(file: string, o?: { scope?: "global" | "vault" }): Promise<TomlFile<T>>; onDidChange: StorageService["onDidChange"]["on"] };
+		/** A reactive value saved under a key; `.value` reads and writes it. */
 		persisted<T>(key: string, initial: T, o?: { scope?: Scope }): { value: T; readonly loaded: boolean };
+		/** SQLite: a module scoped database and document collections. */
 		db: { sql(o?: { scope?: "global" | "vault" }): ReturnType<DbService["sql"]>; collection<T extends Record<string, unknown>>(name: string, o?: { scope?: "global" | "vault" }): ReturnType<ReturnType<DbService["sql"]>["collection"]> };
+		/** Patch menus, contribute items at runtime, show a menu, provide dynamic items. */
 		menus: { patch(location: string, p: Omit<MenuPatch, "location">): void; contribute(location: string, items: MenuItem[]): Disposable; show(location: string, x: number, y: number, o?: { target?: unknown }): void; registerProvider(id: string, p: Parameters<MenuService["registerProvider"]>[1]): Disposable };
+		/** Status bar items. */
 		statusbar: { item(id: string): ReturnType<StatusService["item"]>; add(spec: StatusItemSpec): ReturnType<StatusService["add"]> };
+		/** Background jobs with progress and cancel, shown in the Jobs panel. */
 		jobs: { run: JobService["run"] };
+		/** Translations and locale aware dates and numbers. */
 		i18n: { t: I18nService["t"]; formatDate: I18nService["formatDate"]; formatNumber: I18nService["formatNumber"]; add(locale: string, m: Record<string, string>): Disposable };
+		/** Register SVG icons by name. */
 		icons: { register(name: string, svg: string): Disposable };
+		/** Command palette providers (a prefix and its items), and opening the palette. */
 		palette: { register(p: PaletteProvider): Disposable; open(prefix?: string): void };
+		/** The `sql` tagged template for parameterised queries. */
 		sql: typeof sql;
 	}
 }
@@ -386,16 +417,23 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	logBridge(k);
 
 	// ----- layout: per vault or global workspace -----
-	const presetId = config.layout?.default ?? "vscode";
+	// a window kind with its own layout (the Manual) keeps its own document, not the workspace
+	const own = windows.kinds.get(o.windowKind)?.layout;
+	const presetId = own ?? config.layout?.default ?? "vscode";
 	const defaultText = layout.presets.get(presetId)?.text ?? presetVscode;
 	const persist = config.data?.layout?.persist ?? "global";
-	await layout.load(persist === "none" ? null : host.dirs.data, defaultText);
-	vault.onDidOpen.on(async (v) => {
-		if (persist === "vault") await layout.load(v.configDir, defaultText);
-	});
-	vault.onDidClose.on(async () => {
-		if (persist === "vault") await layout.load(host.dirs.data, defaultText);
-	});
+	if (own) {
+		layout.scope = o.windowKind;
+		await layout.load(persist === "none" ? null : host.dirs.data, defaultText, `${o.windowKind}.layout.toml`);
+	} else {
+		await layout.load(persist === "none" ? null : host.dirs.data, defaultText);
+		vault.onDidOpen.on(async (v) => {
+			if (persist === "vault") await layout.load(v.configDir, defaultText);
+		});
+		vault.onDidClose.on(async () => {
+			if (persist === "vault") await layout.load(host.dirs.data, defaultText);
+		});
+	}
 	await vault.loadRecent();
 	// child windows share the opener's vault (and with it the per vault workspace)
 	const shared = o.windowKind !== "main" ? new URLSearchParams(location.search).get("vault") : null;
@@ -406,6 +444,10 @@ async function doBoot(o: BootOptions): Promise<Kernel> {
 	if (import.meta.env.DEV) (window as unknown as { __fanwit: Kernel }).__fanwit = k;
 	k.keys.attach(document);
 	k.context.trackDom();
+	// onStartup: before first paint (core, and plugins with the startup permission). Sticky, so
+	// modules registered later still activate. Nothing fired it before, so the core module only
+	// activated when one of its commands or views happened to be used (never, in some windows).
+	await k.modules.fire("onStartup", true);
 	log.info(`kernel ready in ${Math.round(performance.now() - t0)} ms (${host.kind}, ${host.platform}, window ${host.windows.label})`);
 	k.lifecycle.mark("kernel");
 	return k;

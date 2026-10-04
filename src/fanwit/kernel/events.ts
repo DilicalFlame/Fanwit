@@ -6,6 +6,19 @@
 import { Emitter, toDisposable, type Disposable } from "./disposable";
 import type { Host } from "../host/types";
 
+/**
+ * The typed event map. Add your events by declaration merging; `ctx.events.emit` and
+ * `ctx.events.on` then check names and payloads. Scope `"app"` reaches every window.
+ *
+ * @example
+ * ```ts
+ * declare module "$fanwit" {
+ *   interface Events { "notes:saved": { path: string } }
+ * }
+ * ctx.events.emit("notes:saved", { path }, { scope: "app" });
+ * ctx.events.on("notes:saved", ({ path }) => refresh(path));
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Events {}
 

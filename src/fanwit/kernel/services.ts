@@ -7,6 +7,19 @@
 import { toDisposable, type Disposable } from "./disposable";
 import { FanwitError } from "./errors";
 
+/**
+ * The typed service map: lazy singletons modules share by id. Declare them here by declaration
+ * merging; a module that lists the id in `contributes.services` is activated on first `get`.
+ *
+ * @example
+ * ```ts
+ * declare module "$fanwit" {
+ *   interface Services { "notes.index": NotesIndex }
+ * }
+ * ctx.services.provide("notes.index", () => new NotesIndex(ctx));
+ * const index = await ctx.services.get("notes.index");
+ * ```
+ */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Services {}
 

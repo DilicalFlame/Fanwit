@@ -7,6 +7,15 @@ import type { ModuleContext } from "./context-api";
 /**
  * Contribution points. Systems register a handler per key (commands, keybindings, menus, ...).
  * Extend by declaration merging when you add a point.
+ *
+ * @example
+ * ```ts
+ * declare module "$fanwit" {
+ *   interface Contributions { snippets: { id: string; body: string }[] }
+ * }
+ * // the handler receives each module's list and returns what undoes it
+ * k.modules.definePoint("snippets", (owner, list) => registerSnippets(owner, list as Snippet[]));
+ * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Contributions {}
@@ -14,12 +23,29 @@ export interface Contributions {}
 export type ActivateFn = (ctx: ModuleContext) => void | Promise<void>;
 export type ActivateLoader = () => Promise<{ default: ActivateFn } | ActivateFn>;
 
+/**
+ * A feature: what it contributes (data, read at boot without running code) and an `activate`
+ * that loads the first time one of its activation events fires. Commands, views, windows and
+ * services in `contributes` add their own events (`onCommand:<id>`, `onView:<id>`, ...).
+ *
+ * @example
+ * ```ts
+ * export default defineModule({
+ *   id: "notes",
+ *   contributes: { commands: [{ id: "notes.newDaily", title: "Open today's daily note" }] },
+ *   activate: () => import("./activate")
+ * });
+ * ```
+ * @see manual://fanwit/guides/modules
+ */
 export interface ModuleDefinition {
+	/** Unique; also the prefix of the module's command ids and storage keys. */
 	id: string;
 	title?: string;
 	description?: string;
-	/** Core modules may use onStartup; everyone else should prefer lazy events. */
+	/** Extra events that activate the module. Core modules may use onStartup; everyone else should prefer lazy events. */
 	activationEvents?: string[];
+	/** Contribution points (commands, views, menus, settings, ...): data the app reads at boot. */
 	contributes?: Partial<Contributions> & Record<string, unknown>;
 	/** Either the activate function itself or a loader (`() => import("./activate")`). */
 	activate?: ActivateFn | ActivateLoader;
@@ -27,6 +53,23 @@ export interface ModuleDefinition {
 	tier?: "core" | "module" | "plugin";
 }
 
+/**
+ * Declare a module. It only types the definition (it returns it unchanged); the app finds modules
+ * by glob (`src/app/modules/<id>/module.ts`), so default-export it. `pnpm fw add module <id>` writes one.
+ *
+ * @example
+ * ```ts
+ * import { defineModule } from "$fanwit";
+ *
+ * export default defineModule({
+ *   id: "hello",
+ *   contributes: { commands: [{ id: "hello.greet", title: "Greet", args: { name: { type: "string" } } }] },
+ *   activate(ctx) {
+ *     ctx.commands.handle("hello.greet", ({ name }) => ctx.notify.toast(`Hello, ${name}`));
+ *   }
+ * });
+ * ```
+ */
 export function defineModule<const M extends ModuleDefinition>(m: M): M {
 	return m;
 }
