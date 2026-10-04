@@ -20,10 +20,10 @@ The same font size can come from many places: the module's default, the app's ow
   val/.style={font=\small\ttfamily,anchor=west}]
 \node[layer,fill=fwPaper,draw=fwSlate] at (0,0) {\textbf{default}\quad the declaration};
 \node[layer,fill=fwPaper,draw=fwSlate] at (0,10) {\textbf{app}\quad app.config.ts};
-\node[layer,fwwarm] at (0,20) {\textbf{global}\quad settings.toml};
-\node[layer,fwcore] at (0,30) {\textbf{vault}\quad .fanwit/settings.toml};
+\node[layer,fill=fwWarmSoft,draw=fwWarm] at (0,20) {\textbf{global}\quad settings.toml};
+\node[layer,fill=fwBrandSoft,draw=fwBrand] at (0,30) {\textbf{vault}\quad .fanwit/settings.toml};
 \node[layer,fill=fwPaper,draw=fwSlate] at (0,40) {\textbf{window}\quad this window only};
-\node[layer,fill=fwPaper,draw=fwSlate] at (0,50) {\textbf{cli}\quad --set, environment};
+\node[layer,fill=fwPaper,draw=fwSlate] at (0,50) {\textbf{cli}\quad \texttt{-{}-set}, environment};
 \node[val,text=fwSlate] at (31,0) {15};
 \node[val,text=fwSlate] at (31,10) {13};
 \node[val,text=fwSlate] at (31,20) {14};
