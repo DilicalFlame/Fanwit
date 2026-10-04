@@ -14,10 +14,13 @@
 	let live = $state<(number | string)[] | null>(null);
 	const sizes = $derived(live ?? n.sizes ?? n.children.map(() => 1));
 
+	const weight = (s: number | string | undefined) => (typeof s === "number" ? s : Number(s ?? 1) || 1);
+	/** Sum of the weighted children: grow factors below 1 in total would leave the rest of the split empty. */
+	const weights = $derived(sizes.filter((s) => !(typeof s === "string" && s.endsWith("px"))).reduce<number>((t, s) => t + weight(s), 0) || 1);
+
 	function flex(s: number | string | undefined) {
 		if (typeof s === "string" && s.endsWith("px")) return `0 0 ${s}`;
-		const w = typeof s === "number" ? s : Number(s ?? 1) || 1;
-		return `${w} 1 0px`;
+		return `${weight(s) / weights} 1 0px`;
 	}
 
 	function measure(): number[] {

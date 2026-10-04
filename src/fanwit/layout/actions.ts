@@ -145,8 +145,14 @@ function tidy(doc: LayoutDoc) {
 			}
 		}
 	}
-	// a split that only holds one child becomes that child when it is a region root
+	// a split that only holds one child becomes that child when it is a window or region root
 	for (const w of Object.values(doc.window)) {
+		const root = w.root ? doc.node[w.root] : null;
+		if (root?.type === "split" && (root as SplitNode).children.length === 1) {
+			const child = (root as SplitNode).children[0];
+			delete doc.node[w.root!];
+			w.root = child;
+		}
 		for (const st of Object.values(w.regions ?? {})) {
 			const n = st?.node ? doc.node[st.node] : null;
 			if (n?.type === "split" && (n as SplitNode).children.length === 1) {
