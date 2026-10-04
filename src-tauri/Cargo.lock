@@ -1230,6 +1230,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fanwit-plugin"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "fanwit-setup"
 version = "0.1.0"
 dependencies = [

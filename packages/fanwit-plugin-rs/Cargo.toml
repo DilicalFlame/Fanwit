@@ -1,0 +1,10 @@
+[package]
+name = "fanwit-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "Write Fanwit plugins in Rust, as WebAssembly (runs in a worker) or a native sidecar."
+license = "MIT"
+workspace = "../../src-tauri"
+
+[dependencies]
+serde_json = "1.0"

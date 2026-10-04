@@ -10,7 +10,8 @@ rust-version = "1.89"
 default-run = "fanwit"
 
 [workspace]
-members = [".", "install", "setup"]
+# the Rust plugin SDK and bundled native plugins (plugins/<id>/native); a glob that matches nothing is fine
+members = [".", "install", "setup", "../packages/fanwit-plugin-rs", "../plugins/*/native"]
 default-members = [".", "install"]
 
 [lib]
