@@ -162,6 +162,18 @@ pub fn merge_text(existing: &str, value: &Value) -> Result<String, String> {
         existing.parse().unwrap_or_else(|_| DocumentMut::new())
     };
     let Value::Object(o) = value else { return Err("TOML root must be a table".into()) };
+    // a file of comments only (a template's header) parses as trailing text, after which new
+    // keys would be inserted above it: keep the text first and add the keys after it instead
+    if doc.as_table().is_empty() && !existing.trim().is_empty() {
+        let mut fresh = DocumentMut::new();
+        merge_table(fresh.as_table_mut(), o, 1);
+        let added = fresh.to_string();
+        if added.is_empty() {
+            return Ok(existing.to_string());
+        }
+        let sep = if existing.ends_with('\n') { "" } else { "\n" };
+        return Ok(format!("{existing}{sep}{added}"));
+    }
     merge_table(doc.as_table_mut(), o, 1);
     Ok(doc.to_string())
 }
@@ -224,6 +236,14 @@ mod tests {
         assert!(out.contains("size = \"300px\""));
         assert!(out.contains("[node.docs]"));
         assert!(out.contains("sizes = [0.5, 0.5]"));
+    }
+
+    #[test]
+    fn a_header_comment_stays_above_the_first_keys() {
+        let out = merge_text("# User keybindings.\n", &json!({ "bind": [{ "key": "mod+t", "command": "theme.select" }] })).unwrap();
+        assert!(out.starts_with("# User keybindings.\n"), "{out}");
+        assert!(out.contains("[[bind]]"));
+        assert_eq!(merge_text("# only a comment\n", &json!({})).unwrap(), "# only a comment\n");
     }
 
     #[test]
