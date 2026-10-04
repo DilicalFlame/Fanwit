@@ -195,7 +195,7 @@ export interface AppInfo {
 	safeMode: boolean;
 	headless: boolean;
 	devtools: boolean;
-	/** Desktop: this process id (vault locks record it). */
+	/** Desktop: this process id. */
 	pid?: number;
 }
 
@@ -218,8 +218,12 @@ export interface Host {
 	/** Files dropped from the OS onto the window: host paths (desktop) or upload:// keys (web). */
 	onFileDrop(cb: (paths: string[]) => void): Disposable;
 	app(): Promise<AppInfo>;
-	/** Desktop: whether a process is still running; undefined where unknowable. */
-	processAlive?(pid: number): Promise<boolean>;
+	/**
+	 * Take a vault's lock file for this window: "window" names another window of this app that has
+	 * the vault open, "busy" another app instance (browser: another tab). Released on exit or crash.
+	 */
+	lockVault?(lockPath: string): Promise<{ status: "ok" | "busy" } | { status: "window"; label: string }>;
+	unlockVault?(lockPath: string): Promise<void>;
 	openExternal(url: string): Promise<void>;
 	reveal(path: string): Promise<void>;
 	exit(code?: number): Promise<void>;

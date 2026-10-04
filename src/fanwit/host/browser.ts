@@ -335,6 +335,7 @@ export function createBrowserHost(): Host {
 		else if (document.fullscreenElement) await document.exitFullscreen();
 	};
 
+	const vaultLocks = new Map<string, () => void>();
 	return {
 		kind: "browser",
 		platform: detectPlatform(),
@@ -407,6 +408,20 @@ export function createBrowserHost(): Host {
 		},
 		openExternal: async (url) => void window.open(url, "_blank", "noopener"),
 		reveal: async () => {},
+		// a Web Lock per vault: held until unlock, released by the browser when the tab goes away
+		lockVault: (path) =>
+			new Promise((resolve) => {
+				if (vaultLocks.has(path) || !navigator.locks) return resolve({ status: "ok" });
+				void navigator.locks.request(`${identity.slug}-vault:${path}`, { ifAvailable: true }, (lock) => {
+					if (!lock) return resolve({ status: "busy" });
+					resolve({ status: "ok" });
+					return new Promise<void>((release) => vaultLocks.set(path, release));
+				});
+			}),
+		unlockVault: async (path) => {
+			vaultLocks.get(path)?.();
+			vaultLocks.delete(path);
+		},
 		exit: async () => window.close(),
 		relaunch: async () => location.reload()
 	};

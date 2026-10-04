@@ -47,28 +47,6 @@ pub fn fw_app_info<R: Runtime>(app: AppHandle<R>, state: tauri::State<State>) ->
     }
 }
 
-/// Whether a process is still running (a vault lock whose owner died is stale).
-#[tauri::command]
-pub fn fw_process_alive(pid: u32) -> bool {
-    #[cfg(windows)]
-    unsafe {
-        use windows_sys::Win32::Foundation::{CloseHandle, STILL_ACTIVE};
-        use windows_sys::Win32::System::Threading::{GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
-        let h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
-        if h.is_null() {
-            return false;
-        }
-        let mut code = 0u32;
-        let ok = GetExitCodeProcess(h, &mut code) != 0;
-        CloseHandle(h);
-        ok && code == STILL_ACTIVE as u32
-    }
-    #[cfg(not(windows))]
-    {
-        std::process::Command::new("kill").args(["-0", &pid.to_string()]).status().map(|s| s.success()).unwrap_or(true)
-    }
-}
-
 fn os_version() -> String {
     #[cfg(windows)]
     {

@@ -70,8 +70,9 @@ export class LayoutService {
 
 	constructor(private k: Kernel) {
 		this.pool = new PanePool(k, this);
-		k.events.on("fw:layout" as never, (m: { doc: LayoutDoc; from: string }) => {
-			if (m.from === k.host.windows.label) return;
+		k.events.on("fw:layout" as never, (m: { doc: LayoutDoc; from: string; file?: string }) => {
+			// windows on other vaults (per vault workspaces) keep their own layout
+			if (m.from === k.host.windows.label || m.file !== this.file?.path) return;
 			this.setDoc(m.doc, false);
 		});
 	}
@@ -165,7 +166,7 @@ export class LayoutService {
 	}
 
 	private broadcast() {
-		this.k.events.emit("fw:layout" as never, { doc: this.doc, from: this.k.host.windows.label } as never, { scope: "app" });
+		this.k.events.emit("fw:layout" as never, { doc: this.doc, from: this.k.host.windows.label, file: this.file?.path } as never, { scope: "app" });
 	}
 
 	private log(e: Omit<ActionLogEntry, "time">) {

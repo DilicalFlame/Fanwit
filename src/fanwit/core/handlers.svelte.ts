@@ -104,7 +104,8 @@ export function activateCore(ctx: ModuleContext) {
 
 	// ----- windows -----
 	h("window.new", async () => {
-		if (k.host.caps.nativeWindows) await vault.openInNewWindow(vault.current?.path ?? "");
+		// an empty window: a vault lives in one window, so this one's would just come back here
+		if (k.host.caps.nativeWindows) await vault.openInNewWindow("");
 		else window.open(location.href, "_blank");
 	});
 	h("window.close", async () => {

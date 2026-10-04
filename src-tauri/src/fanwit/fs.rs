@@ -17,6 +17,77 @@ use tauri::{AppHandle, Emitter, Manager, Runtime};
 pub struct FsState {
     next: AtomicU32,
     watchers: Mutex<HashMap<u32, Debouncer<notify::RecommendedWatcher, RecommendedCache>>>,
+    vaults: VaultLocks,
+}
+
+#[derive(Serialize, Debug, PartialEq)]
+#[serde(tag = "status", rename_all = "lowercase")]
+pub enum VaultLock {
+    /// This window owns the vault now.
+    Ok,
+    /// Another window of this app has it open: focus that one instead.
+    Window { label: String },
+    /// Another process holds it (a second copy of the app, possibly another build).
+    Busy,
+}
+
+/// Vault ownership (Section 12.3): an OS file lock on `<vault>/.appname/lock`, which the OS
+/// releases when the process exits or crashes, so a lock is never stale. Inside this process
+/// each vault belongs to one window.
+#[derive(Default)]
+pub struct VaultLocks(Mutex<HashMap<std::path::PathBuf, (std::fs::File, String)>>);
+
+impl VaultLocks {
+    /// `alive` says whether a window label still exists: a closed window's claim is taken over.
+    pub fn claim(&self, lock: &Path, window: &str, alive: impl Fn(&str) -> bool) -> Result<VaultLock> {
+        let mut map = self.0.lock().unwrap();
+        if let Some((_, owner)) = map.get_mut(lock) {
+            if owner != window && alive(owner) {
+                return Ok(VaultLock::Window { label: owner.clone() });
+            }
+            *owner = window.to_string();
+            return Ok(VaultLock::Ok);
+        }
+        let mut f = std::fs::OpenOptions::new().create(true).truncate(false).write(true).open(lock).map_err(err)?;
+        match f.try_lock() {
+            Ok(()) => {}
+            Err(std::fs::TryLockError::WouldBlock) => return Ok(VaultLock::Busy),
+            Err(std::fs::TryLockError::Error(e)) => return Err(err(e)),
+        }
+        // for people looking at the folder; the OS lock is what counts
+        let _ = f.set_len(0).and_then(|_| write!(f, "{{\"pid\":{}}}", std::process::id()));
+        map.insert(lock.to_path_buf(), (f, window.to_string()));
+        Ok(VaultLock::Ok)
+    }
+
+    pub fn release(&self, lock: &Path, window: &str) {
+        let mut map = self.0.lock().unwrap();
+        if map.get(lock).is_some_and(|(_, owner)| owner == window) {
+            map.remove(lock); // dropping the file releases the OS lock
+            let _ = std::fs::remove_file(lock);
+        }
+    }
+}
+
+#[tauri::command]
+pub fn fw_vault_lock<R: Runtime>(app: AppHandle<R>, window: tauri::WebviewWindow<R>, state: tauri::State<State>, path: String) -> Result<VaultLock> {
+    let p = state.sandbox.check(&path)?;
+    let r = state.fs.vaults.claim(&p, window.label(), |l| app.get_webview_window(l).is_some())?;
+    // bring the window that has it to the front (set_focus alone skips minimized windows)
+    if let VaultLock::Window { label } = &r {
+        if let Some(w) = app.get_webview_window(label) {
+            let _ = w.unminimize();
+            let _ = w.show();
+            let _ = w.set_focus();
+        }
+    }
+    Ok(r)
+}
+
+#[tauri::command]
+pub fn fw_vault_unlock<R: Runtime>(window: tauri::WebviewWindow<R>, state: tauri::State<State>, path: String) -> Result<()> {
+    state.fs.vaults.release(&state.sandbox.check(&path)?, window.label());
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -259,4 +330,29 @@ pub fn fw_dirs<R: Runtime>(app: AppHandle<R>) -> Result<Dirs> {
         log: to_front(&app_dir(&app, Dir::Log)?),
         home: app.path().home_dir().ok().map(|h| to_front(&h)),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn vault_locks_one_window_per_vault_and_one_process() {
+        let dir = std::env::temp_dir().join(format!("fw-vault-lock-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let lock = dir.join("lock");
+        let locks = VaultLocks::default();
+        assert_eq!(locks.claim(&lock, "main", |_| true).unwrap(), VaultLock::Ok);
+        assert_eq!(locks.claim(&lock, "main", |_| true).unwrap(), VaultLock::Ok, "a reload keeps it");
+        assert_eq!(locks.claim(&lock, "main-2", |_| true).unwrap(), VaultLock::Window { label: "main".into() });
+        assert_eq!(locks.claim(&lock, "main-2", |_| false).unwrap(), VaultLock::Ok, "a closed window's claim is taken over");
+        locks.release(&lock, "main"); // not the owner any more: no effect
+        // another process (simulated by a second table) cannot take it while held
+        let other = VaultLocks::default();
+        assert_eq!(other.claim(&lock, "main", |_| true).unwrap(), VaultLock::Busy);
+        locks.release(&lock, "main-2");
+        assert_eq!(other.claim(&lock, "main", |_| true).unwrap(), VaultLock::Ok);
+        other.release(&lock, "main");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

@@ -30,7 +30,6 @@ pub fn run() {
         .manage(fanwit::State::new(launch))
         .invoke_handler(tauri::generate_handler![
             fanwit::app::fw_app_info,
-            fanwit::app::fw_process_alive,
             fanwit::app::fw_secret_get,
             fanwit::app::fw_secret_set,
             fanwit::fs::fw_dirs,
@@ -46,6 +45,8 @@ pub fn run() {
             fanwit::fs::fw_fs_rename,
             fanwit::fs::fw_fs_trash,
             fanwit::fs::fw_fs_allow_root,
+            fanwit::fs::fw_vault_lock,
+            fanwit::fs::fw_vault_unlock,
             fanwit::fs::fw_fs_pick_folder,
             fanwit::fs::fw_fs_watch,
             fanwit::fs::fw_fs_unwatch,

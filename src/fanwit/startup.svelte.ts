@@ -4,6 +4,7 @@
  * then activate lazy work in an idle callback.
  */
 import type { Kernel } from "./kernel/kernel.svelte";
+import type { FanwitError } from "./kernel/errors";
 import { joinPath } from "./host/types";
 import { logs } from "./kernel/logger";
 import { handleDeepLink } from "./core/handlers.svelte";
@@ -92,13 +93,17 @@ export async function mainStartup(k: Kernel) {
 	// vault: explicit ?vault=, launch paths, or the last one
 	const launch = k.host.kind === "tauri" ? await k.host.invoke<string[]>("fw_take_launch_paths").catch(() => []) : [];
 	const explicit = params.get("vault");
+	// further main windows (window.new, open in new window) start empty or with their own vault
+	const first = k.host.windows.label === "main";
 	try {
 		if (explicit) await vault.open(explicit);
-		else if (!launch.length && settings.get("general.startup.restoreVault") && vault.recentList[0]) {
+		else if (first && !launch.length && settings.get("general.startup.restoreVault") && vault.recentList[0]) {
 			const last = vault.recentList[0];
 			if (await k.host.fs.exists(last.path).catch(() => false)) await vault.open(last.path);
 		}
 	} catch (e) {
+		// a window opened just for a vault another window has: that window came to the front instead
+		if (explicit && !first && (e as FanwitError).code === "CANCELLED") return void k.host.windows.destroy();
 		logs.scoped("vault").warn("could not restore the last vault:", (e as Error).message);
 	}
 	if (launch.length) void k.commands.run("app.openPaths", { paths: launch }, { source: "uri" }).catch((e: unknown) => k.sys.notify.error(e));

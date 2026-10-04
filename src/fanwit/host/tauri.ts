@@ -231,7 +231,8 @@ export async function createTauriHost(): Promise<Host> {
 			});
 		},
 		app: async () => (info ??= await invoke<AppInfo>("fw_app_info")),
-		processAlive: (pid) => invoke<boolean>("fw_process_alive", { pid }),
+		lockVault: (path) => invoke("fw_vault_lock", { path }),
+		unlockVault: (path) => invoke("fw_vault_unlock", { path }),
 		openExternal: async (url) => {
 			const o = await import("@tauri-apps/plugin-opener");
 			await o.openUrl(url);
