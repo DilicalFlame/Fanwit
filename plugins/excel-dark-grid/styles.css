@@ -1,0 +1,6 @@
+/* The sheet only; ribbon and title bar keep Excel green */
+html[data-preset="excel"] [role="grid"] { background: #0d1117 !important; color: #c9d1d9 !important; }
+html[data-preset="excel"] [role="grid"] th { background: #161b22 !important; color: #7ee787 !important; border-color: #30363d !important; }
+html[data-preset="excel"] [role="grid"] td { border-color: #1f6f3f !important; }
+html[data-preset="excel"] [role="grid"] td[class*="outline-[#107c41]"] { outline-color: #39d353 !important; box-shadow: 0 0 10px #39d35366; }
+html[data-preset="excel"] [role="grid"] input[data-editor] { background: #0d1117 !important; color: #fff; }

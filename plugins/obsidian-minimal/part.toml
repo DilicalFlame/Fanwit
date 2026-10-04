@@ -1,0 +1,4 @@
+id = "plugin-obsidian-minimal"
+title = "Obsidian Minimal"
+kind = "plugin"
+requires = ["showcase-obsidian"]

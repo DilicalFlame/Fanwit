@@ -1,0 +1,11 @@
+# Appearance plugin: data only (no code, no permissions). Its CSS applies while it is on.
+id = "discord-compact"
+name = "Discord Compact"
+version = "1.0.0"
+author = "Fanwit"
+description = "Compact message density for the Discord showcase: smaller avatars, tighter rows."
+category = "appearance"
+icon = "palette"
+
+[contributes]
+styles = ["styles.css"]

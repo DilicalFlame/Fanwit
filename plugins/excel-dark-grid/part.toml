@@ -1,0 +1,4 @@
+id = "plugin-excel-dark-grid"
+title = "Excel Dark Grid"
+kind = "plugin"
+requires = ["showcase-excel"]

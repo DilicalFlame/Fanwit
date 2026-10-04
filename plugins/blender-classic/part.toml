@@ -1,0 +1,4 @@
+id = "plugin-blender-classic"
+title = "Blender Classic"
+kind = "plugin"
+requires = ["showcase-blender"]

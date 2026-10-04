@@ -1,0 +1,11 @@
+# Appearance plugin: data only (no code, no permissions). Its CSS applies while it is on.
+id = "obsidian-minimal"
+name = "Obsidian Minimal"
+version = "1.0.0"
+author = "Fanwit"
+description = "Inspired by the Minimal theme: quiet chrome, centred readable notes, no borders."
+category = "appearance"
+icon = "palette"
+
+[contributes]
+styles = ["styles.css"]

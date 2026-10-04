@@ -4,6 +4,8 @@ name = "Nord-ish"
 version = "1.0.0"
 author = "Kiran"
 description = "A cool, arctic theme for light and dark mode."
+category = "appearance"
+icon = "palette"
 
 [contributes]
 themes = ["themes/nord-ish/theme.toml"]

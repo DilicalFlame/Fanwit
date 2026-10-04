@@ -1,0 +1,43 @@
+/* Only while the VS Code preset is active. The chrome is drawn from theme tokens, so making the
+   tokens translucent lets a gradient behind the whole frame show through every bar. */
+html[data-preset="vscode"] [data-fw-frame] {
+	background:
+		radial-gradient(900px 600px at 0% 0%, oklch(0.72 0.17 285 / 0.45), transparent 65%),
+		radial-gradient(800px 600px at 100% 100%, oklch(0.75 0.15 195 / 0.4), transparent 65%),
+		radial-gradient(600px 400px at 70% 10%, oklch(0.8 0.12 340 / 0.25), transparent 70%),
+		var(--background) !important;
+}
+html[data-preset="vscode"]:root:root {
+	--sidebar: oklch(1 0 0 / 0.5);
+	--activity: oklch(1 0 0 / 0.35);
+	--titlebar: oklch(1 0 0 / 0.45);
+	--statusbar: oklch(1 0 0 / 0.4);
+	--panel: oklch(1 0 0 / 0.55);
+	--tab: transparent;
+	--tab-active: oklch(1 0 0 / 0.7);
+}
+html[data-preset="vscode"].dark:root:root {
+	--sidebar: oklch(0.2 0.02 275 / 0.55);
+	--activity: oklch(0.17 0.02 275 / 0.45);
+	--titlebar: oklch(0.18 0.02 275 / 0.5);
+	--statusbar: oklch(0.18 0.02 275 / 0.5);
+	--panel: oklch(0.2 0.02 275 / 0.6);
+	--tab-active: oklch(0.24 0.02 275 / 0.7);
+}
+/* views paint var(--background); inside the main area it becomes frosted glass too */
+html[data-preset="vscode"] [data-fw-region="main"] {
+	--background: oklch(1 0 0 / 0.62);
+	backdrop-filter: blur(10px);
+}
+html[data-preset="vscode"].dark [data-fw-region="main"] {
+	--background: oklch(0.16 0.02 275 / 0.6);
+}
+html[data-preset="vscode"] [data-fw-region="sidebar"],
+html[data-preset="vscode"] [data-fw-region="panel"],
+html[data-preset="vscode"] [data-fw-region="statusbar"],
+html[data-preset="vscode"] [data-fw-region="titlebar"] {
+	backdrop-filter: blur(18px) saturate(1.5);
+}
+html[data-preset="vscode"] [data-fw-tab][aria-selected="true"] {
+	box-shadow: inset 0 -2px 0 var(--primary), 0 6px 18px -8px var(--primary);
+}
