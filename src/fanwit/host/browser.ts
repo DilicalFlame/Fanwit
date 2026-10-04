@@ -244,6 +244,20 @@ export function setDialogPresenter(p: DialogPresenter | null) {
 	presenter = p;
 }
 
+/**
+ * Plugin and snippet CSS (style[data-fw-css], see injectCss) can restyle anything in the page, so
+ * an in-page question could be relabelled or hidden. It is switched off while the user decides.
+ */
+async function withoutPluginCss<T>(fn: () => Promise<T>): Promise<T> {
+	const sheets = [...document.querySelectorAll<HTMLStyleElement>("style[data-fw-css]")].filter((s) => !s.disabled);
+	for (const s of sheets) s.disabled = true;
+	try {
+		return await fn();
+	} finally {
+		for (const s of sheets) s.disabled = false;
+	}
+}
+
 /** SQLite WASM in a dedicated worker; the same calls as the desktop IPC bridge. */
 function sqliteDb(): Host["db"] {
 	let worker: Worker | null = null;
@@ -281,7 +295,7 @@ function detectPlatform(): Platform {
 export function createBrowserHost(): Host {
 	const fs = new BrowserFs();
 	const dialog: HostDialog = {
-		ask: (m, o = {}) => (presenter ? presenter.ask(m, o) : Promise.resolve(window.confirm(m))),
+		ask: (m, o = {}) => (presenter ? withoutPluginCss(() => presenter!.ask(m, o)) : Promise.resolve(window.confirm(m))),
 		message: (m, o = {}) => (presenter ? presenter.message(m, o) : Promise.resolve(window.alert(m))),
 		open: (o = {}) =>
 			new Promise((resolve) => {

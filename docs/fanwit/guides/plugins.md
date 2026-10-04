@@ -232,7 +232,7 @@ WebAssembly plugins need `rustup target add wasm32-unknown-unknown`. The built `
 
 ## Isolation and trust
 
-- **Data only** (no `entry`): themes, styles, presets and keymaps. Always safe.
+- **Data only** (no `entry`): themes, styles, presets and keymaps. No code runs, but CSS is not harmless: it can restyle, hide or relabel anything in the window. The Content Security Policy (`tauri.conf.json`, and a `<meta>` in `src/app.html` for the web) stops CSS from loading remote images or fonts, so it cannot send data anywhere; the sanitizer that strips `@import` and remote `url()` is a convenience, not the boundary. In-page questions (web) switch plugin and snippet CSS off while they are open, and desktop questions are native dialogs. Install appearance plugins from people you trust, as you would a code plugin.
 - **Worker** (js or wasm): a real boundary. Every ctx call is checked against the plugin's permissions.
 - **Sidecar**: a native process, built-in only, asked for once.
 - **None**: the same realm as the app, with full UI power. Its permissions are a contract, not a sandbox.

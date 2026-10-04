@@ -4,6 +4,9 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="color-scheme" content="light dark" />
+		<!-- The channels plugin CSS could load remote content through (beacons, tracking pixels), closed
+		     on the web as tauri.conf.json closes them on the desktop. The CSS sanitizer is not the boundary. -->
+		<meta http-equiv="Content-Security-Policy" content="img-src 'self' asset: http://asset.localhost data: blob:; font-src 'self' data:; media-src 'self' asset: http://asset.localhost data: blob:" />
 		<script>
 			// Apply the last theme before the first frame so windows never flash (Section 11.3).
 			try {
