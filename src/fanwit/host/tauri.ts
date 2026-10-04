@@ -75,6 +75,7 @@ function windowsApi(): HostWindows {
 		},
 		setAlwaysOnTop: (on) => self.setAlwaysOnTop(on),
 		list: () => invoke<string[]>("fw_win_list"),
+		at: () => invoke<{ label: string; x: number; y: number } | null>("fw_win_at"),
 		feedback: (label, effects) => invoke("fw_win_feedback", { label, effects }),
 		onCloseRequested(cb) {
 			let un: (() => void) | undefined;

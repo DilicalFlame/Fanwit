@@ -59,6 +59,7 @@ pub fn run() {
             fanwit::windows::fw_win_open,
             fanwit::windows::fw_win_feedback,
             fanwit::windows::fw_win_list,
+            fanwit::windows::fw_win_at,
             fanwit::windows::fw_win_system_menu,
             fanwit::cli::fw_cli_ready,
             fanwit::cli::fw_cli_send,

@@ -402,6 +402,38 @@ pub fn fw_win_list<R: Runtime>(app: AppHandle<R>) -> Vec<String> {
     app.webview_windows().keys().cloned().collect()
 }
 
+#[derive(Serialize)]
+pub struct WindowHit {
+    label: String,
+    /// Cursor in the window's client area, CSS pixels.
+    x: f64,
+    y: f64,
+}
+
+/// The visible layout window (main or popped out) under the cursor, other than the caller:
+/// where a tab dragged out of one window lands.
+// ponytail: first match wins; overlapping windows ignore z-order (needs a per OS z-order query).
+#[tauri::command]
+pub fn fw_win_at<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Option<WindowHit> {
+    let cursor = app.cursor_position().ok()?;
+    app.webview_windows().into_iter().find_map(|(label, w)| {
+        if label == window.label() || !(label.starts_with("main") || label.starts_with("aux-")) {
+            return None;
+        }
+        if !w.is_visible().unwrap_or(false) || w.is_minimized().unwrap_or(true) {
+            return None;
+        }
+        let pos = w.inner_position().ok()?;
+        let size = w.inner_size().ok()?;
+        let (x, y) = (cursor.x - pos.x as f64, cursor.y - pos.y as f64);
+        if x < 0.0 || y < 0.0 || x >= size.width as f64 || y >= size.height as f64 {
+            return None;
+        }
+        let scale = w.scale_factor().unwrap_or(1.0);
+        Some(WindowHit { label, x: x / scale, y: y / scale })
+    })
+}
+
 /// Right click on the custom title bar opens the native system menu (Windows).
 #[tauri::command]
 pub fn fw_win_system_menu<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {

@@ -110,8 +110,26 @@ function detach(doc: LayoutDoc, pane: string): string | null {
 	return p.parent;
 }
 
-/** Collapse empty tab sets and single child splits, except region roots. */
+/** Panes anywhere under a node. */
+function panesUnder(doc: LayoutDoc, id: string): string[] {
+	const n = doc.node[id];
+	if (!n) return doc.pane[id] ? [id] : [];
+	return n.type === "split" ? (n as SplitNode).children.flatMap((c) => panesUnder(doc, c)) : nodePanes(n);
+}
+
+/** Collapse empty tab sets and single child splits, except region roots; drop pop out windows left with no panes. */
 function tidy(doc: LayoutDoc) {
+	for (const [wid, w] of Object.entries(doc.window)) {
+		if (wid === "main" || w.kind !== "aux" || !w.root || panesUnder(doc, w.root).length) continue;
+		if (Object.values(doc.float ?? {}).some((f) => f.window === wid)) continue;
+		const drop = (id: string) => {
+			const n = doc.node[id];
+			if (n?.type === "split") (n as SplitNode).children.forEach(drop);
+			delete doc.node[id];
+		};
+		drop(w.root);
+		delete doc.window[wid];
+	}
 	const protectedIds = new Set<string>();
 	for (const w of Object.values(doc.window)) {
 		if (w.root) protectedIds.add(w.root);

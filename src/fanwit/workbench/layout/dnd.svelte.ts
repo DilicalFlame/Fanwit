@@ -1,13 +1,15 @@
 /**
  * Docking drags (Section 8.11) with pointer events inside a window: drop on a tab strip
  * (insert at index), the centre of a tab set (add as tab), its four edges (split), empty space
- * with Shift (float), and outside the window (pop out, desktop). Esc cancels. A 4 px threshold
- * keeps clicks from being misread.
+ * with Shift (float), onto another app window (dock there), and outside every window (pop out,
+ * desktop). Esc cancels. A 4 px threshold keeps clicks from being misread.
  */
 import type { Kernel } from "../../kernel/kernel.svelte";
 import { haptic } from "../../motion/motion";
 
 export type Zone = "center" | "left" | "right" | "top" | "bottom" | "strip";
+
+type Over = NonNullable<DragState["over"]>;
 
 export interface DragState {
 	pane: string;
@@ -22,7 +24,21 @@ export interface DragState {
 export class DockDrag {
 	state = $state<DragState | null>(null);
 
-	constructor(private k: Kernel) {}
+	constructor(private k: Kernel) {
+		// a tab dragged out of another window and released over this one
+		k.events.on("fw:dock-drop" as never, (m: { to: string; pane: string; x: number; y: number }) => {
+			if (m.to !== k.host.windows.label || !k.sys.layout.doc.pane[m.pane]) return; // another window, or another vault
+			this.drop(m.pane, this.hit(m.x, m.y) ?? this.fallback())
+				.then(() => k.host.windows.focus())
+				.catch((err) => k.sys.notify.error(err));
+		});
+	}
+
+	/** Off any tab set: the focused tab set, else the main area's first. */
+	private fallback(): Over | null {
+		const set = document.querySelector<HTMLElement>("[data-fw-tabset].fw-focused") ?? document.querySelector<HTMLElement>('[data-fw-region="main"] [data-fw-tabset]');
+		return set ? { node: set.dataset.fwTabset!, zone: "center", rect: new DOMRect(), preview: { x: 0, y: 0, w: 0, h: 0 } } : null;
+	}
 
 	/** Call from pointerdown on a tab or stack header. */
 	begin(e: PointerEvent, pane: string, title: string) {
@@ -73,9 +89,12 @@ export class DockDrag {
 		s.y = e.clientY;
 		s.float = e.shiftKey;
 		s.outside = e.clientX < 0 || e.clientY < 0 || e.clientX > window.innerWidth || e.clientY > window.innerHeight;
-		s.over = null;
-		if (s.float || s.outside) return;
-		const under = document.elementFromPoint(e.clientX, e.clientY);
+		s.over = s.float || s.outside ? null : this.hit(e.clientX, e.clientY);
+	}
+
+	/** Drop target under a client point: a tab strip slot, or a tab set's centre or edge. */
+	private hit(x: number, y: number): Over | null {
+		const under = document.elementFromPoint(x, y);
 		const strip = under?.closest("[data-fw-strip]") as HTMLElement | null;
 		if (strip) {
 			const node = strip.dataset.fwStrip!;
@@ -83,31 +102,30 @@ export class DockDrag {
 			let index = tabs.length;
 			for (let i = 0; i < tabs.length; i++) {
 				const r = tabs[i].getBoundingClientRect();
-				if (e.clientX < r.left + r.width / 2) {
+				if (x < r.left + r.width / 2) {
 					index = i;
 					break;
 				}
 			}
 			const rect = strip.getBoundingClientRect();
 			const ref = tabs[index]?.getBoundingClientRect();
-			const x = ref ? ref.left : tabs.length ? tabs[tabs.length - 1].getBoundingClientRect().right : rect.left;
-			s.over = { node, zone: "strip", index, rect, preview: { x: x - 1, y: rect.top + 4, w: 2, h: rect.height - 8 } };
-			return;
+			const left = ref ? ref.left : tabs.length ? tabs[tabs.length - 1].getBoundingClientRect().right : rect.left;
+			return { node, zone: "strip", index, rect, preview: { x: left - 1, y: rect.top + 4, w: 2, h: rect.height - 8 } };
 		}
 		const set = under?.closest("[data-fw-tabset]") as HTMLElement | null;
-		if (!set) return;
+		if (!set) return null;
 		const node = set.dataset.fwTabset!;
 		const r = set.getBoundingClientRect();
 		const compass = this.k.sys.settings.get("layout.dockIndicator") === "compass";
-		const fx = (e.clientX - r.left) / r.width;
-		const fy = (e.clientY - r.top) / r.height;
+		const fx = (x - r.left) / r.width;
+		const fy = (y - r.top) / r.height;
 		let zone: Zone = "center";
 		if (compass) {
 			// compass targets: five buttons around the centre
 			const cx = r.left + r.width / 2;
 			const cy = r.top + r.height / 2;
-			const dx = e.clientX - cx;
-			const dy = e.clientY - cy;
+			const dx = x - cx;
+			const dy = y - cy;
 			if (Math.abs(dx) < 22 && Math.abs(dy) < 22) zone = "center";
 			else if (Math.abs(dy) < 22 && dx < -22 && dx > -80) zone = "left";
 			else if (Math.abs(dy) < 22 && dx > 22 && dx < 80) zone = "right";
@@ -121,14 +139,14 @@ export class DockDrag {
 			if (min < edge) zone = (Object.entries(d).find(([, v]) => v === min)![0] as Zone) ?? "center";
 		}
 		const locked = (this.k.sys.layout.doc.node[node] as { locked?: boolean })?.locked;
-		if (locked) return;
+		if (locked) return null;
 		const preview =
 			zone === "left" ? { x: r.left, y: r.top, w: r.width / 2, h: r.height } :
 			zone === "right" ? { x: r.left + r.width / 2, y: r.top, w: r.width / 2, h: r.height } :
 			zone === "top" ? { x: r.left, y: r.top, w: r.width, h: r.height / 2 } :
 			zone === "bottom" ? { x: r.left, y: r.top + r.height / 2, w: r.width, h: r.height / 2 } :
 			{ x: r.left, y: r.top, w: r.width, h: r.height };
-		s.over = { node, zone, rect: r, preview };
+		return { node, zone, rect: r, preview };
 	}
 
 	private async commit(e: PointerEvent) {
@@ -138,21 +156,27 @@ export class DockDrag {
 		const layout = this.k.sys.layout;
 		try {
 			if (s.outside && this.k.host.caps.nativeWindows) {
-				await layout.dispatch({ type: "popOut", pane: s.pane });
+				const other = await this.k.host.windows.at?.().catch(() => null);
+				if (other) this.k.events.emit("fw:dock-drop" as never, { to: other.label, pane: s.pane, x: other.x, y: other.y } as never, { scope: "app" });
+				else await layout.dispatch({ type: "popOut", pane: s.pane });
 				return;
 			}
 			if (s.float || s.outside) {
 				await layout.dispatch({ type: "float", pane: s.pane, rect: [Math.max(0, e.clientX - 140), Math.max(0, e.clientY - 16), 320, 360] });
 				return;
 			}
-			const o = s.over;
-			if (!o) return;
-			haptic("select");
-			if (o.zone === "strip") await layout.dispatch({ type: "movePane", pane: s.pane, to: { node: o.node, index: o.index } });
-			else if (o.zone === "center") await layout.dispatch({ type: "movePane", pane: s.pane, to: { node: o.node } });
-			else await layout.dispatch({ type: "movePane", pane: s.pane, to: { edge: o.node, side: o.zone } });
+			await this.drop(s.pane, s.over);
 		} catch (err) {
 			this.k.sys.notify.error(err);
 		}
+	}
+
+	private async drop(pane: string, o: Over | null) {
+		if (!o) return;
+		haptic("select");
+		const layout = this.k.sys.layout;
+		if (o.zone === "strip") await layout.dispatch({ type: "movePane", pane, to: { node: o.node, index: o.index } });
+		else if (o.zone === "center") await layout.dispatch({ type: "movePane", pane, to: { node: o.node } });
+		else await layout.dispatch({ type: "movePane", pane, to: { edge: o.node, side: o.zone } });
 	}
 }

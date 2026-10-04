@@ -135,6 +135,8 @@ export interface HostWindows {
 	setTitle(title: string): Promise<void>;
 	setAlwaysOnTop(on: boolean): Promise<void>;
 	list(): Promise<string[]>;
+	/** Another layout window under the cursor and the cursor in its CSS pixels (native windows only). */
+	at?(): Promise<{ label: string; x: number; y: number } | null>;
 	feedback(label: string, effects: ("bell" | "shake" | "attention")[]): Promise<void>;
 	/** Called before the window closes; returning false vetoes. */
 	onCloseRequested(cb: () => Promise<boolean> | boolean): Disposable;

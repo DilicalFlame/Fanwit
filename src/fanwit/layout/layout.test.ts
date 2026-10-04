@@ -65,6 +65,19 @@ test("splitting a popped out window's only tab leaves a single tab set, not a ha
 	expect(validateLayout(d as never)).toEqual([]);
 });
 
+test("moving a pop out window's last tab back into the main window removes that window", () => {
+	let d = reduce(base(), { type: "openView", view: "notes.editor", props: { path: "a.md" } }, ctx).doc;
+	const pid = Object.keys(d.pane).find((p) => d.pane[p].view === "notes.editor")!;
+	d = reduce(d, { type: "popOut", pane: pid }, ctx).doc;
+	const aux = Object.keys(d.window).find((w) => w !== "main")!;
+	const auxRoot = d.window[aux].root!;
+	d = reduce(d, { type: "movePane", pane: pid, to: { node: "center", index: 0 } }, ctx).doc;
+	expect(d.window[aux]).toBeUndefined();
+	expect(d.node[auxRoot]).toBeUndefined();
+	expect((d.node.center as TabsNode).panes[0]).toBe(pid);
+	expect(validateLayout(d as never)).toEqual([]);
+});
+
 test("validation reports dangling refs, duplicates and cycles with lines", () => {
 	const text = `version = 1\n[window.main]\nkind = "main"\n[window.main.regions]\nmain = { node = "a" }\n[node.a]\ntype = "split"\ndir = "row"\nchildren = ["b", "missing"]\n[node.b]\ntype = "split"\ndir = "row"\nchildren = ["a"]\n[node.t1]\ntype = "tabs"\npanes = ["p"]\n[node.t2]\ntype = "tabs"\npanes = ["p"]\n[pane.p]\nview = "nope"\n`;
 	const diags = validateLayout(parse(text), text, { views: new Set(["fanwit.welcome"]) });
