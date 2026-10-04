@@ -49,6 +49,8 @@ export function createEditor(parent: HTMLElement, o: { doc: string; lang: "js" |
 		doc: o.doc,
 		extensions: [
 			basicSetup,
+			// the editor shares the width with the output: wrap instead of hiding the end of lines
+			EditorView.lineWrapping,
 			keymap.of([{ key: "Mod-Enter", run: () => (o.run(), true) }, indentWithTab]),
 			o.lang === "svelte" ? html() : o.lang === "rust" ? rust() : javascript(),
 			theme,
