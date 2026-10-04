@@ -1,13 +1,15 @@
 /** Built in settings categories (Section 13.5). */
 import { defineSettings, s } from "../settings/define";
+import { catalogs } from "../i18n/catalogs";
 
 export const coreSettings = [
 	defineSettings("general", {
-		language: s.enum("en", ["en", "hi", "de", "ja", "ar", "pseudo"], {
+		// only languages with a catalog; catalogs.test.ts keeps each one complete
+		language: s.enum("en", ["en", ...Object.keys(catalogs), "pseudo"], {
 			title: "Language",
 			description: "Interface language. `pseudo` expands and accents text to test layouts.",
 			category: "General",
-			labels: { en: "English", hi: "हिन्दी", de: "Deutsch", ja: "日本語", ar: "العربية", pseudo: "Pseudo locale" }
+			labels: { en: "English", hi: "हिन्दी", de: "Deutsch", pseudo: "Pseudo locale" }
 		}),
 		"startup.restoreVault": s.boolean(true, { title: "Reopen the last vault on start", category: "General" }),
 		"startup.showWelcome": s.boolean(true, { title: "Show the welcome tab on start", category: "General" }),

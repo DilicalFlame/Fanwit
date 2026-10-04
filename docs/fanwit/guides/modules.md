@@ -89,6 +89,12 @@ Contributing a command adds `onCommand:<id>` to the module's events. Until it fi
 
 </Check>
 
+## Translations
+
+Command titles and categories are translated by key: `command.<id>` and `category.<name>`. Contribute a catalog per locale with `contributes.i18n` (`{ de: { "command.notes.new": "Neue Notiz" } }`), or add one at runtime with `ctx.i18n.add`. Messages use ICU syntax for parameters, plurals and select, and anything missing falls back to English.
+
+The core catalogs live in `src/fanwit/i18n/catalogs.ts`. Every locale there appears in the Language setting, so `catalogs.test.ts` fails unless it covers every core command title and category. Add a language by adding a complete catalog. The `pseudo` locale accents and lengthens every string, so you can spot text that is not translated or does not fit. View text (buttons and labels inside views) is still English unless the view calls `ctx.i18n.t`.
+
 ## Pitfalls
 
 - **Work at import time.** Code at the top level of `module.ts` runs at boot for every user. Keep `module.ts` to the definition, and put the work in `activate`.

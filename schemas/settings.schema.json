@@ -46,10 +46,8 @@
         "language": {
           "enum": [
             "en",
-            "hi",
             "de",
-            "ja",
-            "ar",
+            "hi",
             "pseudo"
           ],
           "description": "Language. Interface language. `pseudo` expands and accents text to test layouts.",
