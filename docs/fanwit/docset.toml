@@ -4,8 +4,28 @@ icon = "book-open"
 version = "fanwit"            # the template version in .fanwit/lock.toml
 ship = "dev"                  # "dev": dev builds only; "prod": production builds too
 web = true                    # part of the static docs site (fw docs build)
-sections = ["Getting started", "Concepts", "Guides", "Recipes", "Operations", "Glossary", "API", "Rust", "CLI", "Registries", "TOML files", "Installer"]
+sections = ["Home", "Start here", "Web basics", "Svelte basics", "Rust basics", "Tauri basics", "Rebuild FaNWiT", "Getting started", "Concepts", "Guides", "Recipes", "Operations", "Internals", "Glossary", "API", "Rust", "CLI", "Registries", "TOML files", "Installer"]
 api = "src/fanwit/index.ts"   # exports become the API reference (TypeDoc)
 schemas = "schemas"           # *.schema.json become the TOML reference
 reference = ["commands", "settings", "keybindings", "views", "window-kinds", "menu-locations", "context-keys", "errors", "glossary", "fw-cli", "rust-commands"]
 rust = "src-tauri/src"        # its Tauri commands become the Rust reference
+
+# Reading levels: the title bar switches between them, and each shows only its sections (a
+# section no level lists, like Home, shows at every level). Reference pages have no level.
+[[levels]]
+id = "beginner"
+title = "Beginner"
+summary = "No Svelte, no Rust, no desktop apps yet? Start here: the web and Svelte, Rust and Tauri basics, then FaNWiT rebuilt from an empty folder, one working step at a time."
+sections = ["Start here", "Web basics", "Svelte basics", "Rust basics", "Tauri basics", "Rebuild FaNWiT"]
+
+[[levels]]
+id = "intermediate"
+title = "Intermediate"
+summary = "You can read Svelte and TypeScript: how each part of FaNWiT works and how to build your app with it."
+sections = ["Getting started", "Concepts", "Guides", "Recipes", "Operations"]
+
+[[levels]]
+id = "expert"
+title = "Expert"
+summary = "Inside the kernel, the Rust core, plugin isolation, the installer, performance and security: what to know before changing FaNWiT itself."
+sections = ["Internals"]

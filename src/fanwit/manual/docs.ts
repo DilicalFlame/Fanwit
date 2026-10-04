@@ -160,6 +160,9 @@ export function catalog(api: Record<string, ApiSymbol[]> = {}): DocPage[] {
 	return list;
 }
 
+/** The level that owns a section (docset.toml [[levels]]); undefined: every level shows it. */
+export const levelOf = (set: Docset | undefined, section: string): string | undefined => set?.levels.find((l) => l.sections.includes(section))?.id;
+
 /** Navigation order: docset sections, then `order`, then title. */
 export function ordered(list: DocPage[], set: Docset | undefined): DocPage[] {
 	const at = (s: string) => {

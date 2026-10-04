@@ -1,6 +1,6 @@
 ---
 title: Installer Kit
-section: Guides
+section: Internals
 order: 19
 ---
 # Installer Kit

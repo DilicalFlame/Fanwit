@@ -5,7 +5,7 @@
  */
 import type { Kernel } from "../kernel/kernel.svelte";
 import { loadApi, buildMode, siteVersion, paths } from "virtual:fw-docs";
-import { docsets, catalog, ordered, resolve, type ApiSymbol, type DocPage, type Heading } from "./docs";
+import { docsets, catalog, levelOf, ordered, resolve, type ApiSymbol, type DocPage, type Heading } from "./docs";
 
 export type DocKind = "manual" | "reference";
 
@@ -25,6 +25,8 @@ export class ManualState {
 	/** FaNWiT's docs when present (development), else the app's. */
 	set = $state(docsets.find((s) => s.id === "fanwit")?.id ?? docsets[0]?.id ?? "");
 	kind = $state<DocKind>("manual");
+	/** The chosen reading level (docset.toml [[levels]]); remembered across sessions. */
+	level = $state("");
 	api = $state.raw<Record<string, ApiSymbol[]>>({});
 	apiState = $state<"idle" | "loading" | "ready" | "error">("idle");
 	outline = $state.raw<Outline | null>(null);
@@ -42,6 +44,8 @@ export class ManualState {
 
 	readonly pages = $derived(catalog(this.api));
 	readonly docset = $derived(docsets.find((s) => s.id === this.set));
+	/** The level the navigation shows: the chosen one, else the docset's first. */
+	readonly activeLevel = $derived(this.docset?.levels.some((l) => l.id === this.level) ? this.level : this.docset?.levels[0]?.id);
 	/**
 	 * The page pane the outline follows: the focused one, else the shown tab of the first tab set
 	 * holding pages (two pages side by side: the one you last clicked).
@@ -57,13 +61,17 @@ export class ManualState {
 		}
 		return undefined;
 	});
-	/** Navigation for the current docset and kind. */
-	readonly nav = $derived(ordered(this.pages.filter((p) => p.set === this.set && p.kind === this.kind), this.docset));
+	/** Navigation for the current docset, kind and level. */
+	readonly nav = $derived(ordered(this.pages.filter((p) => p.set === this.set && p.kind === this.kind && (p.kind === "reference" || this.atLevel(p, this.activeLevel))), this.docset));
 
 	constructor(readonly k: Kernel) {
 		void k.sys.storage
 			.get<string[]>("fanwit.manual", "read")
 			.then((r) => Array.isArray(r) && (this.read = new Set([...r, ...this.read])))
+			.catch(() => {});
+		void k.sys.storage
+			.get<string>("fanwit.manual", "level")
+			.then((l) => typeof l === "string" && !this.level && (this.level = l))
 			.catch(() => {});
 		// the API reference (TypeDoc) loads when Reference is first shown, so its pages are listed
 		$effect.root(() => {
@@ -73,12 +81,26 @@ export class ManualState {
 		});
 	}
 
+	/** A page shows at a level when its section belongs to that level, or to none. */
+	atLevel(p: DocPage, level: string | undefined): boolean {
+		const own = levelOf(docsets.find((s) => s.id === p.set), p.section);
+		return !own || own === level;
+	}
+
+	/** Show a level's pages in the navigation (and remember the choice). */
+	setLevel(level: string) {
+		this.kind = "manual";
+		this.level = level;
+		void this.k.sys.storage.set("fanwit.manual", "level", level).catch(() => {});
+	}
+
 	find(key: string): DocPage | undefined {
 		return this.pages.find((p) => p.key === key);
 	}
 
-	/** First page of a docset's manual. */
+	/** A docset's home: its index page, else the first page of its manual. */
 	home(set = this.set): string | undefined {
+		if (this.find(`${set}/index`)) return `${set}/index`;
 		const s = docsets.find((d) => d.id === set);
 		return ordered(this.pages.filter((p) => p.set === set && p.kind === "manual"), s)[0]?.key ?? this.pages.find((p) => p.set === set)?.key;
 	}
@@ -87,7 +109,9 @@ export class ManualState {
 	neighbours(key: string): { prev?: DocPage; next?: DocPage } {
 		const p = this.find(key);
 		if (!p) return {};
-		const list = ordered(this.pages.filter((x) => x.set === p.set && x.kind === p.kind), docsets.find((s) => s.id === p.set));
+		// within the page's level: Beginner pages lead to Beginner pages
+		const level = levelOf(docsets.find((s) => s.id === p.set), p.section) ?? this.activeLevel;
+		const list = ordered(this.pages.filter((x) => x.set === p.set && x.kind === p.kind && (x.kind === "reference" || this.atLevel(x, level))), docsets.find((s) => s.id === p.set));
 		const i = list.findIndex((x) => x.key === key);
 		return { prev: list[i - 1], next: list[i + 1] };
 	}
@@ -135,6 +159,13 @@ export class ManualState {
 			return false;
 		}
 		if (o.terms?.length) this.highlight = { key: r.key, terms: o.terms };
+		// the navigation follows: a link to a Beginner page shows the Beginner contents
+		const page = this.find(r.key);
+		if (page) {
+			this.kind = page.kind;
+			const level = levelOf(docsets.find((s) => s.id === page.set), page.section);
+			if (level && level !== this.activeLevel) this.setLevel(level);
+		}
 		const doc = this.k.sys.layout.doc;
 		// already showing it (the start tab has no page prop: it shows the docset's home)
 		const home = this.home();

@@ -15,3 +15,4 @@ export { default as LayoutPreview } from "./LayoutPreview.svelte";
 export { default as LiveToml } from "./LiveToml.svelte";
 export { default as Playground } from "./Playground.svelte";
 export { default as Check } from "./Check.svelte";
+export { default as Levels } from "./Levels.svelte";

@@ -1,6 +1,6 @@
 ---
 title: Kernel
-section: Guides
+section: Internals
 order: 15
 summary: One small core per window, and the shared tools every module builds on.
 ---

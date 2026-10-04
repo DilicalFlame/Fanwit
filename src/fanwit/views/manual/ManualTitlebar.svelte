@@ -9,7 +9,8 @@
 	import { siteVersion } from "virtual:fw-docs";
 
 	/**
-	 * The Manual's title bar: docset and Manual/Reference chips (switch what the navigation shows),
+	 * The Manual's title bar: docset chips, the level switch (Beginner, Intermediate, Expert, or
+	 * Manual for a docset without levels, then Reference: what the navigation shows),
 	 * the unified search, the version, reading settings and the outline toggle.
 	 */
 	const k = getKernel();
@@ -17,6 +18,14 @@
 	let width = $state(1200);
 	const narrow = $derived(width < 760);
 	$effect(() => void st.loadVersions(base));
+	const levels = $derived(st.docset?.levels ?? []);
+	const choices = $derived([...(levels.length ? levels.map((l) => [l.id, l.title, l.summary ?? ""]) : [["manual", "Manual", ""]]), ["reference", "Reference", "Every command, setting, API and file format"]]);
+	const chosen = $derived(st.kind === "reference" ? "reference" : levels.length ? st.activeLevel : "manual");
+	function choose(id: string) {
+		if (id === "reference") st.kind = "reference";
+		else if (id === "manual") st.kind = "manual";
+		else st.setLevel(id);
+	}
 
 	// narrow windows hide the side regions (manual.toml); these open them as drawers instead
 	function contents() {
@@ -42,11 +51,17 @@
 			{/each}
 		</div>
 	{/if}
-	<div class="flex rounded-full bg-muted p-0.5 text-xs" role="radiogroup" aria-label="Manual or reference">
-		{#each [["manual", "Manual"], ["reference", "Reference"]] as const as [kind, label] (kind)}
-			<button class="rounded-full px-3 py-0.5 transition-colors {st.kind === kind ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}" role="radio" aria-checked={st.kind === kind} onclick={() => (st.kind = kind)}>{label}</button>
-		{/each}
-	</div>
+	{#if narrow}
+		<select class="rounded-full border border-border bg-muted px-2 py-0.5 text-xs" aria-label={levels.length ? "Level" : "Manual or reference"} value={chosen} onchange={(e) => choose(e.currentTarget.value)}>
+			{#each choices as [id, label] (id)}<option value={id}>{label}</option>{/each}
+		</select>
+	{:else}
+		<div class="flex shrink-0 rounded-full bg-muted p-0.5 text-xs" role="radiogroup" aria-label={levels.length ? "Level" : "Manual or reference"}>
+			{#each choices as [id, label, hint] (id)}
+				<button class="rounded-full px-3 py-0.5 transition-colors {chosen === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}" role="radio" aria-checked={chosen === id} title={hint || undefined} onclick={() => choose(id)}>{label}</button>
+			{/each}
+		</div>
+	{/if}
 	<div class="flex min-w-0 flex-1 justify-center" data-tauri-drag-region><SearchBox /></div>
 	{#if st.versions && !narrow}
 		<select class="rounded border border-border bg-transparent px-1 font-mono text-[11px] text-muted-foreground" aria-label="Documentation version" value={siteVersion} onchange={(e) => st.switchVersion(e.currentTarget.value)}>

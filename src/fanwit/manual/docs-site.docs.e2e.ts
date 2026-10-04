@@ -40,3 +40,14 @@ test("closing every page offers the home page, not the command palette", async (
 	await page.getByRole("button", { name: "Open the home page" }).click();
 	await expect(page.locator("[data-fw-view] h1:visible").first()).toBeVisible();
 });
+
+test("levels filter the contents, and opening a page shows its level", async ({ page }) => {
+	await open(page);
+	const nav = page.getByRole("navigation", { name: "Manual contents" });
+	await page.getByRole("radio", { name: "Beginner" }).click();
+	await expect(nav.getByRole("button", { name: "Start here", exact: true }).last()).toBeVisible();
+	await expect(nav.getByRole("button", { name: "Commands", exact: true })).toHaveCount(0);
+	await page.goto("/?page=fanwit/guides/kernel");
+	await expect(page.getByRole("radio", { name: "Expert" })).toHaveAttribute("aria-checked", "true");
+	await expect(nav.getByRole("button", { name: "Kernel", exact: true })).toBeVisible();
+});

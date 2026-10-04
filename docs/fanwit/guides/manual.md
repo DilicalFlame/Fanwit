@@ -26,7 +26,7 @@ A **docset** is a folder under `docs/` with a `docset.toml`. FaNWiT ships two:
 | FaNWiT | `docs/fanwit` | you, while building | `dev`: development builds only |
 | Your app | `docs/app` | your users | `prod`: production builds too |
 
-The chips in the title bar switch between docsets, and between **Manual** (guides, explanations, tutorials) and **Reference** (generated pages and lookup tables). Search covers the current docset; tick **All docsets** to widen it.
+The chips in the title bar switch between docsets, and between **Manual** (guides, explanations, tutorials) and **Reference** (generated pages and lookup tables). A docset with reading levels shows its levels instead of Manual: this one has **Beginner**, **Intermediate** and **Expert**. Search covers the current docset; tick **All docsets** to widen it.
 
 `ship = "dev"` docsets are never imported by a production build, so the FaNWiT manual costs your users nothing. `web = true` adds a docset to the static docs site.
 
@@ -42,6 +42,20 @@ reference = ["commands", "keybindings", "settings"]
 ```
 
 Add another docset with `pnpm fw docs new user-guide`.
+
+### Reading levels
+
+A docset can be written for more than one reader. Each `[[levels]]` entry owns some of its sections; the title bar switches between levels, the contents show only that level's sections (plus sections no level lists, like a home page), and prev and next links stay within the level. Opening a page from a link or search switches to its level. A written `index.md` is the docset's home; `<Levels />` on it draws a card per level with the reader's progress.
+
+```toml
+[[levels]]
+id = "beginner"
+title = "Beginner"
+summary = "No Svelte or Rust yet? Start here."
+sections = ["Start here", "Svelte basics", "Rust basics"]
+```
+
+On Beginner pages, *why* and *under the hood* callouts stay open whatever the reading settings say.
 
 ## Writing a page
 
@@ -110,7 +124,7 @@ These work in any page without an import. Leave a blank line inside a component'
 
 | Component | What it is for |
 |---|---|
-| `<Callout kind="why">` | The reason behind a design. Kinds: `why`, `tip`, `note`, `warn`, `under-the-hood`. *Why* and *under the hood* fold away when the reader picks **Expert** |
+| `<Callout kind="why">` | The reason behind a design. Kinds: `why`, `tip`, `note`, `warn`, `under-the-hood`, `learn-more` (links to a tool's official docs). *Why* and *under the hood* fold away when the reader picks **Expert** |
 | `<Steps>` | An ordered list drawn as numbered steps |
 | `<Tabs labels="TS, TOML">` | One block per label, shown one at a time. Tabs with the same labels switch together |
 | `<FileTree>` | A nested list drawn as folders and files |
@@ -122,6 +136,7 @@ These work in any page without an import. Leave a blank line inside a component'
 | `<LiveToml file="settings" />` | One of the app's TOML files as it is right now (`settings`, `keys`, `menus`, `workspace`) |
 | `<Playground mode="module">` | One code block becomes an editor. **module**: a module that joins the running app on Run and is removed on Stop. **svelte**: a component compiled in the browser and rendered beside the code |
 | `<Check question options answer>` | A question answered in place, with the explanation (its content) shown after |
+| `<Levels />` | A card per reading level with the reader's progress and where to continue |
 
 Playgrounds run code, so they run only in development builds, on the docs site, or with developer mode on. In a production manual they show the code read only.
 

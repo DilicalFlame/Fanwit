@@ -126,6 +126,7 @@ html[data-reading-tone="dark"] .fw-doc-body .shiki span { color: var(--shiki-dar
 .fw-doc-body .fw-callout[data-kind="tip"] { --c: oklch(0.62 0.14 155); }
 .fw-doc-body .fw-callout[data-kind="warn"] { --c: oklch(0.7 0.16 70); }
 .fw-doc-body .fw-callout[data-kind="under-the-hood"] { --c: var(--muted-foreground); }
+.fw-doc-body .fw-callout[data-kind="learn-more"] { --c: oklch(0.6 0.13 240); }
 .fw-doc-body .fw-callout :is(summary, .fw-callout-title) { display: flex; align-items: center; gap: 0.45em; font: 600 0.82em var(--font-sans); letter-spacing: 0.02em; text-transform: uppercase; color: var(--c); cursor: default; }
 .fw-doc-body .fw-callout summary { cursor: pointer; list-style: none; }
 .fw-doc-body .fw-callout summary::-webkit-details-marker { display: none; }

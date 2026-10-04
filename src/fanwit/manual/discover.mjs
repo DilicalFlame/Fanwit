@@ -23,12 +23,21 @@ export const REGISTRY_PAGES = ["commands", "settings", "menu-locations", "views"
  * @property {"dev" | "prod"} ship  `dev`: development builds only; `prod`: production builds too
  * @property {boolean} web  part of the static docs site (`fw docs build`)
  * @property {string[]} sections  section order in the navigation
+ * @property {Level[]} levels  reading levels ([[levels]]), each owning some sections; empty: no levels
  * @property {string} [api]  TypeScript entry whose exports become the API reference
  * @property {string} [schemas]  folder of JSON schemas that become the TOML reference
  * @property {string} [rust]  folder of Rust sources whose Tauri commands become the Rust reference
  * @property {string[]} reference  registry pages (REGISTRY_PAGES)
  * @property {string} [edit]  "Edit this page" URL prefix
  * @property {string} dir  folder, relative to the repo root (posix)
+ */
+
+/**
+ * @typedef {object} Level
+ * @property {string} id  e.g. beginner
+ * @property {string} title
+ * @property {string} [summary]
+ * @property {string[]} sections  sections shown at this level; a section no level lists shows at every level
  */
 
 /**
@@ -81,6 +90,9 @@ export function docsets(root) {
 				ship: /** @type {"dev" | "prod"} */ (t.ship === "prod" ? "prod" : "dev"),
 				web: t.web !== false,
 				sections: Array.isArray(t.sections) ? t.sections.map(String) : [],
+				levels: Array.isArray(t.levels)
+					? t.levels.map((/** @type {Record<string, any>} */ l) => ({ id: String(l.id), title: String(l.title ?? l.id), summary: l.summary ? String(l.summary) : undefined, sections: Array.isArray(l.sections) ? l.sections.map(String) : [] }))
+					: [],
 				api: t.api ? String(t.api) : undefined,
 				schemas: t.schemas ? String(t.schemas) : undefined,
 				rust: t.rust ? String(t.rust) : undefined,
