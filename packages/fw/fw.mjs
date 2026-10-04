@@ -972,6 +972,13 @@ async function docs() {
 			}
 			for (const m of p.body.matchAll(/pnpm fw ([a-z][\w-]*)/g)) if (!cliCommands.has(m[1])) problems.push(`${file}: \`pnpm fw ${m[1]}\` is not a fw command`);
 		}
+		// a brace inside a quoted attribute of a component is a Svelte expression, not text: it breaks
+		// the page (title="... {} ...") or silently interpolates. Code fences and inline code are fine.
+		for (const p of pages) {
+			const prose = p.body.replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[ \t]*$/gm, "").replace(/`[^`\n]*`/g, "");
+			for (const m of prose.matchAll(/<(?!Source\b)[A-Z]\w*\s[^>]*?\b(\w+)="([^"]*[{}][^"]*)"/g))
+				problems.push(`${p.meta.file.slice(1)}: attribute ${m[1]}="${m[2].slice(0, 40)}" has a brace, which Svelte reads as code; write &#123; and &#125; for literal braces`);
+		}
 		// TikZ diagrams: rendered once and committed (docs/_diagrams), so CI needs no TeX. Render the
 		// missing ones here; an edited diagram leaves its old SVG behind, which is removed
 		const tikz = await import(pathToFileURL(abs("src/fanwit/manual/tikz.mjs")).href);
