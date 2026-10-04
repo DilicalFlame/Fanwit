@@ -224,11 +224,7 @@ const GEN = {
 		write(`${dir}/module.ts`, `import { defineModule } from "$fanwit";\n\nexport default defineModule({\n\tid: "${camel(id)}",\n\ttitle: "${pascal(id)}",\n\tcontributes: {\n\t\tcommands: [{ id: "${camel(id)}.hello", title: "Say hello", category: "${pascal(id)}" }]\n\t},\n\tactivate: () => import("./activate")\n});\n`);
 		write(`${dir}/activate.ts`, `import type { ModuleContext } from "$fanwit";\n\nexport default function activate(ctx: ModuleContext) {\n\tctx.commands.handle("${camel(id)}.hello", () => ctx.notify.toast("Hello from ${id}"));\n}\n`);
 		write(`${dir}/${id}.test.ts`, `import { expect, test } from "vitest";\nimport { createTestKernel } from "$fanwit/testing";\nimport mod from "./module";\n\ntest("${id} registers its commands", async () => {\n\tconst k = await createTestKernel({ modules: [mod] });\n\texpect(k.commands.get("${camel(id)}.hello")).toBeTruthy();\n});\n`);
-		const idx = read("src/app/modules/index.ts");
-		if (!idx.includes(`./${id}/module`)) {
-			const v = camel(id);
-			write("src/app/modules/index.ts", idx.replace(/(import type[^\n]*\n)/, `$1import ${v} from "./${id}/module";\n`).replace(/appModules: ModuleDefinition\[\] = \[([^\]]*)\]/, (_, l) => `appModules: ModuleDefinition[] = [${l ? l + ", " : ""}${v}]`));
-		}
+		// src/app/modules/index.ts finds every */module.ts by glob: nothing to register
 		write(`docs/guides/${id}.md`, `---\ntitle: ${pascal(id)}\nsection: Guides\n---\n# ${pascal(id)}\n\nDescribe what the ${id} module does.\n`);
 	},
 	command(idArg) {
@@ -363,7 +359,7 @@ function doctor() {
 		}
 	};
 	scanViews("src");
-	// every presets/ folder: the core's and those modules ship (src/app/modules/showcase/presets)
+	// every presets/ folder: the core's and those modules ship (src/app/showcase/<part>/presets)
 	const presetDirs = [];
 	const findPresets = (d) => {
 		for (const e of fs.readdirSync(abs(d), { withFileTypes: true })) if (e.isDirectory()) (e.name === "presets" ? presetDirs.push(`${d}/${e.name}`) : findPresets(`${d}/${e.name}`));

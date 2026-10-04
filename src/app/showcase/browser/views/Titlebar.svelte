@@ -1,6 +1,6 @@
 <script lang="ts">
 	import WindowControls from "$fanwit/workbench/WindowControls.svelte";
-	import TitlebarTabs from "../shared/TitlebarTabs.svelte";
+	import TitlebarTabs from "../../_shared/TitlebarTabs.svelte";
 
 	/** Chrome style: the page tabs live in the title bar; the address bar sits below. */
 </script>

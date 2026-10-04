@@ -1,0 +1,4 @@
+id = "showcase-terminal"
+title = "Terminal showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

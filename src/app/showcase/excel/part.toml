@@ -1,0 +1,4 @@
+id = "showcase-excel"
+title = "Excel showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

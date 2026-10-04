@@ -1,0 +1,4 @@
+id = "showcase-browser"
+title = "Web browser showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

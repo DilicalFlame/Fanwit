@@ -1,0 +1,4 @@
+id = "showcase-blender"
+title = "Blender showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

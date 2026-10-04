@@ -98,8 +98,11 @@ test("documents round trip through TOML with defaults omitted", () => {
 
 test("every shipped preset parses and validates", async () => {
 	const { readdirSync, readFileSync } = await import("node:fs");
-	for (const dir of ["src/fanwit/layout/presets", "src/app/modules/showcase/presets"]) for (const f of readdirSync(dir)) {
-		const text = readFileSync(`${dir}/${f}`, "utf8");
+	// every presets/ folder under src, so stripped showcase parts simply drop out
+	const files = (readdirSync("src", { recursive: true }) as string[]).map((f) => f.replace(/\\/g, "/")).filter((f) => /(^|\/)presets\/[^/]+\.toml$/.test(f));
+	expect(files.length).toBeGreaterThan(0);
+	for (const f of files) {
+		const text = readFileSync(`src/${f}`, "utf8");
 		const errors = validateLayout(parse(text), text).filter((d) => d.severity === "error");
 		expect(errors, f).toEqual([]);
 	}

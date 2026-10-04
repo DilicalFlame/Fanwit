@@ -1,7 +1,11 @@
 import type { ModuleDefinition } from "$fanwit";
-import hello from "./hello/module";
-import notes from "./notes/module";
-import showcase from "./showcase/module";
 
-/** Your compile time modules. `pnpm fw add module <id>` appends here. */
-export const appModules: ModuleDefinition[] = [hello, notes, showcase];
+/**
+ * Your compile time modules: every `modules/<id>/module.ts` and `showcase/<part>/module.ts`.
+ * Found by glob so `pnpm fw add module` and `pnpm fw strip` never edit this file.
+ */
+const found = {
+	...import.meta.glob<ModuleDefinition>("./*/module.ts", { eager: true, import: "default" }),
+	...import.meta.glob<ModuleDefinition>("../showcase/*/module.ts", { eager: true, import: "default" })
+};
+export const appModules: ModuleDefinition[] = Object.values(found);

@@ -1,0 +1,4 @@
+id = "showcase-notion"
+title = "Notion showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

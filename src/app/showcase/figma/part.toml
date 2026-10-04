@@ -1,0 +1,4 @@
+id = "showcase-figma"
+title = "Figma showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

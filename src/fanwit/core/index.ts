@@ -127,7 +127,7 @@ export const coreModule = defineModule({
 			{ id: "system", title: "System", description: "Updates, crashes and vault problems" },
 			{ id: "jobs", title: "Background jobs" }
 		],
-		// the app's default; more showcases (Figma, Blender, Discord...) live in src/app/modules/showcase
+		// the app's default; more showcases (Figma, Blender, Discord...) live in src/app/showcase
 		layoutPresets: [preset("vscode", "VS Code", presetVscode, "Activity bar, switchable sidebars, tabbed editor groups, bottom panel")],
 
 		contextKeys: [

@@ -1,0 +1,4 @@
+id = "showcase-dashboard"
+title = "Dashboard showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

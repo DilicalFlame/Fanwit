@@ -1,0 +1,4 @@
+id = "showcase-photoshop"
+title = "Photoshop showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

@@ -1,0 +1,4 @@
+id = "showcase-discord"
+title = "Discord showcase"
+kind = "showcase"
+requires = ["showcase-shared"]

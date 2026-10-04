@@ -1,0 +1,4 @@
+id = "showcase-obsidian"
+title = "Obsidian showcase"
+kind = "showcase"
+requires = ["showcase-shared"]
