@@ -218,7 +218,8 @@ export class PluginService {
 			if (!dir) continue;
 			const enabled = new Set(await this.readList(scope));
 			const entries = await this.k.host.fs.list(dir).catch(() => []);
-			for (const e of entries.filter((x) => x.dir)) {
+			// .staging-* and .previous-* are installs in flight (or left by a crash): never plugins
+			for (const e of entries.filter((x) => x.dir && !x.name.startsWith("."))) {
 				try {
 					const manifest = parseManifest(await this.k.host.fs.readText(joinPath(e.path, "plugin.toml")), `${e.name}/plugin.toml`);
 					const readme = await this.k.host.fs.readText(joinPath(e.path, "README.md")).catch(() => undefined);
@@ -588,12 +589,34 @@ export class PluginService {
 		if (manifest.runtime === "sidecar") throw new FanwitError("PLUGIN_SIDECAR", { message: `${manifest.name} is a native sidecar plugin; those run only when they ship with the app.` });
 		const dir = this.dir(scope);
 		if (!dir) throw new FanwitError("STORAGE_NO_VAULT", { message: "Open a vault to install vault plugins." });
+		const bad = Object.keys(files).find((p) => /[\\:]/.test(p) || p.split("/").some((seg) => !seg || seg === "." || seg === ".."));
+		if (bad) throw new FanwitError("PLUGIN_INVALID", { message: `${manifest.name} contains an unsafe file path "${bad}"; nothing was installed.` });
+		// all or nothing: write a staging folder, then swap it in; the previous copy comes back on failure
+		const fs = this.k.host.fs;
 		const target = joinPath(dir, manifest.id);
-		for (const [path, data] of Object.entries(files)) {
-			if (path.includes("..")) continue;
-			if (typeof data === "string") await this.k.host.fs.writeText(joinPath(target, path), data);
-			else await this.k.host.fs.write(joinPath(target, path), data);
+		const tag = Math.random().toString(36).slice(2, 8);
+		const staging = joinPath(dir, `.staging-${manifest.id}-${tag}`);
+		const backup = joinPath(dir, `.previous-${manifest.id}-${tag}`);
+		try {
+			for (const [path, data] of Object.entries(files)) {
+				if (typeof data === "string") await fs.writeText(joinPath(staging, path), data);
+				else await fs.write(joinPath(staging, path), data);
+			}
+		} catch (e) {
+			await fs.remove(staging, { recursive: true }).catch(() => {});
+			throw new FanwitError("PLUGIN_INSTALL", { message: `${manifest.name} could not be written: ${(e as Error).message}. Nothing was installed.` });
 		}
+		const had = await fs.exists(target);
+		if (had) await fs.rename(target, backup);
+		try {
+			await fs.rename(staging, target);
+		} catch (e) {
+			await fs.remove(target, { recursive: true }).catch(() => {});
+			if (had) await fs.rename(backup, target).catch(() => {});
+			await fs.remove(staging, { recursive: true }).catch(() => {});
+			throw new FanwitError("PLUGIN_INSTALL", { message: `${manifest.name} could not be installed: ${(e as Error).message}. The previous version was kept.` });
+		}
+		if (had) await fs.remove(backup, { recursive: true }).catch(() => {});
 		await this.scan();
 		this.changed();
 		return manifest;
