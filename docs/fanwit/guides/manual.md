@@ -15,7 +15,7 @@ Documentation kept on a separate website drifts. The site describes last month's
 - **It can't go stale where it matters.** The command, setting, keybinding and view references are generated from the live registries. The API reference is generated from the source by TypeDoc. Each time you look, you see what the running build actually contains.
 - **It can act.** A code block marked `fanwit-run` gets a **Run** button that executes a real command, so a guide can say "try it" and mean it.
 - **It is one source with several outputs.** The same Markdown renders in this window, on the docs site (`fw docs build`), and later as `llms.txt` for AI assistants.
-- **It is checked.** `fw docs check` fails CI on broken links and missing anchors, on public API without a doc comment and an `@example`, on learning paths that list missing pages, and on guides that never say why.
+- **It is checked.** `fw docs check` fails CI on broken links and missing anchors, on public API without a doc comment and an `@example`, on learning paths that list missing pages, on guides that never say why, and on drift: a repo path in backticks that no longer exists, or a `pnpm fw` command the CLI does not have.
 
 ## Two docsets, one window
 

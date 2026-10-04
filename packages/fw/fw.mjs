@@ -960,6 +960,18 @@ async function docs() {
 		for (const s of sets) for (const p of d.pathsOf(ROOT, s)) for (const key of p.pages) if (!keys.has(key)) problems.push(`${s.dir}/paths.toml: path "${p.id}" lists "${key.slice(s.id.length + 1)}", which is not a page`);
 		// guides explain why before how: a <Callout kind="why"> or a "Why ..." heading
 		for (const p of pages) if (p.meta.section === "Guides" && p.meta.kind === "manual" && !/<Callout kind="why"|^#{2,4}\s+Why\b/m.test(p.body)) problems.push(`${p.meta.file.slice(1)}: a guide needs a <Callout kind="why"> (or a "Why ..." heading) explaining why the feature works this way`);
+		// docs must not outlive the code: repo paths they name exist, `pnpm fw <cmd>` is a real command
+		const cliCommands = new Set([...read("packages/fw/fw.mjs").matchAll(/^\tcase "([\w-]+)":/gm)].map((m) => m[1]));
+		for (const p of pages) {
+			const file = p.meta.file.slice(1);
+			for (const m of p.body.matchAll(/`((?:src|src-tauri|src-setup|packages|plugins|e2e|schemas|installer)\/[^`\s]+)`/g)) {
+				const ref = m[1].replace(/[#:].*$/, "").replace(/\/$/, "");
+				if (/[*<>{}$]/.test(ref)) continue; // patterns and placeholders
+				// build output and generated files (git ignored) appear only after a build
+				if (!exists(ref) && spawnSync("git", ["check-ignore", "-q", ref], { cwd: ROOT }).status !== 0) problems.push(`${file}: names \`${m[1]}\`, which does not exist`);
+			}
+			for (const m of p.body.matchAll(/pnpm fw ([a-z][\w-]*)/g)) if (!cliCommands.has(m[1])) problems.push(`${file}: \`pnpm fw ${m[1]}\` is not a fw command`);
+		}
 		// M10: every public symbol has a doc comment and an @example (Section 21.6.1)
 		for (const s of sets.filter((x) => x.api)) {
 			const { extractApi } = await import(pathToFileURL(abs("src/fanwit/manual/api.mjs")).href);
