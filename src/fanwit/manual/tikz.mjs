@@ -23,12 +23,15 @@ export const DIAGRAMS = "docs/_diagrams";
 const STY = "docs/_tex/fanwit-diagrams.sty";
 const FENCE = /^```tikz([^\n]*)\n([\s\S]*?)^```[ \t]*$/gm;
 
+/** Git may check text out with CRLF on Windows: keys must not depend on it. */
+const lf = (/** @type {string} */ s) => s.replace(/\r\n/g, "\n");
+
 /**
  * Cache key: the package and the source, so a style change re-renders every diagram.
  * @param {string} source @param {string} [root]
  */
 export function diagramKey(source, root = ROOT) {
-	return createHash("sha1").update(fs.readFileSync(path.join(root, STY), "utf8")).update("\0").update(source.trim()).digest("hex").slice(0, 16);
+	return createHash("sha1").update(lf(fs.readFileSync(path.join(root, STY), "utf8"))).update("\0").update(lf(source).trim()).digest("hex").slice(0, 16);
 }
 
 /**
