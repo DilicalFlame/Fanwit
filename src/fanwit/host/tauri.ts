@@ -146,6 +146,7 @@ export async function createTauriHost(): Promise<Host> {
 			tray: true,
 			menubar: platform === "macos" ? "native" : "custom",
 			multiInstance: true,
+			osTrash: true,
 			sql: true
 		},
 		dirs,

@@ -42,6 +42,19 @@ Writes are debounced (about 150 ms) and preserve comments and formatting: every 
 
 <LayoutPreview preset="manual" height={240} />
 
+Where the web cannot do what the desktop does, the difference is a capability you can check, not a silent change in behaviour:
+
+| Desktop | Web | Check |
+|---|---|---|
+| Native windows | In-page virtual windows | `caps.nativeWindows` |
+| Files anywhere you allow | A picked folder (File System Access) or browser storage (OPFS) | `caps.fileSystem` |
+| Delete moves to the OS trash | Delete moves to the vault's `.trash` folder | `caps.osTrash` |
+| Global shortcuts, tray, native menu bar | None, none, an in-page menu bar | `caps.globalShortcuts`, `caps.tray`, `caps.menubar` |
+| OS notifications with actions | Basic notifications, if permitted | `caps.osNotifications` |
+| Native dialogs | In-page dialogs (plugin CSS is switched off while one is open) | none needed |
+
+Renaming a folder on the web copies it and then deletes the original, because browsers have no move yet, so it is not atomic.
+
 ## Hackable by default, safe by design
 
 **The problem:** apps either lock users out of their own tools, or let plugins do anything.

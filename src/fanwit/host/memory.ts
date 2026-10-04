@@ -186,6 +186,7 @@ export function createMemoryHost(o: { files?: Record<string, string>; platform?:
 			tray: false,
 			menubar: "custom",
 			multiInstance: false,
+			osTrash: false,
 			sql: false
 		},
 		dirs: { config: "/config", data: "/global", cache: "/cache", log: "/logs" },

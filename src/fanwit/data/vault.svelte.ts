@@ -264,7 +264,7 @@ export class VaultService {
 	}
 
 	private async loadIgnore(root: string) {
-		this.ignore = [/^node_modules(\/|$)/, /^\.git(\/|$)/];
+		this.ignore = [/^node_modules(\/|$)/, /^\.git(\/|$)/, /^\.trash(\/|$)/];
 		try {
 			const text = await this.k.host.fs.readText(joinPath(root, `.${identity.slug}ignore`));
 			for (const line of text.split(/\r?\n/)) {
@@ -297,6 +297,11 @@ export class VaultService {
 		return a.startsWith(root) ? a.slice(root.length).replace(/^\/+/, "") : a;
 	}
 
+	/** Where fs.trash puts things: the OS trash, or the vault's .trash folder (setting, or no OS trash). */
+	trashMode(): "os" | "vault" {
+		return this.k.host.caps.osTrash && this.k.sys.settings.get<string>("vault.trash") !== "vault" ? "os" : "vault";
+	}
+
 	/** File system sandboxed to the vault root. */
 	readonly fs = {
 		read: (p: string) => this.k.host.fs.read(this.abs(p)),
@@ -320,9 +325,11 @@ export class VaultService {
 			this.k.events.emit("vault:renamed" as never, { from, to } as never);
 		},
 		trash: async (p: string) => {
-			const mode = this.k.sys.settings.get<string>("vault.trash");
-			if (mode === "vault") await this.k.host.fs.rename(this.abs(p), this.abs(`.trash/${basename(p)}`));
-			else await this.k.host.fs.trash(this.abs(p));
+			// no OS trash (web): "move to trash" must not mean "delete", so use the vault's own
+			if (this.trashMode() === "os") return this.k.host.fs.trash(this.abs(p));
+			let target = `.trash/${basename(p)}`;
+			for (let n = 2; await this.k.host.fs.exists(this.abs(target)); n++) target = `.trash/${basename(p).replace(/(\.[^.]*)?$/, ` ${n}$1`)}`;
+			await this.k.host.fs.rename(this.abs(p), this.abs(target));
 		},
 		watch: async (glob: string, cb: (e: FsEvent) => void): Promise<Disposable> => {
 			const re = globToRegExp(glob);

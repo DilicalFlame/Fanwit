@@ -84,7 +84,7 @@ export const explorerModule = defineModule({
 			return { undo: () => vault.fs.rename(target, path), redo: () => vault.fs.rename(path, target), label: `Rename ${path}` };
 		});
 		h("explorer.delete", async ({ path }: { path: string }) => {
-			const ok = await k.sys.dialog.ask(`Move "${path}" to the ${k.sys.settings.get("vault.trash") === "vault" ? "vault's .trash folder" : "trash"}?`, { title: "Delete", okLabel: "Move to trash", kind: "warning" });
+			const ok = await k.sys.dialog.ask(`Move "${path}" to the ${vault.trashMode() === "vault" ? "vault's .trash folder" : "trash"}?`, { title: "Delete", okLabel: "Move to trash", kind: "warning" });
 			if (!ok) return;
 			for (const [id, p] of Object.entries(layout.doc.pane)) if (typeof p.props?.path === "string" && (p.props.path === path || (p.props.path as string).startsWith(path + "/"))) await layout.dispatch({ type: "closePane", pane: id });
 			await vault.fs.trash(path);

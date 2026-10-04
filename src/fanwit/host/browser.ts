@@ -446,6 +446,7 @@ export function createBrowserHost(): Host {
 			tray: false,
 			menubar: "custom",
 			multiInstance: false,
+			osTrash: false,
 			// sync access handles exist only inside workers; OPFS plus Worker support is the signal
 			sql: typeof Worker !== "undefined" && typeof navigator.storage?.getDirectory === "function"
 		},

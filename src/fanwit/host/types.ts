@@ -19,6 +19,8 @@ export interface HostCapabilities {
 	menubar: "native" | "custom";
 	multiInstance: boolean;
 	sql: boolean;
+	/** fs.trash moves to the OS trash. Without it, trash() deletes, so the vault uses its own .trash folder. */
+	osTrash: boolean;
 }
 
 export interface FsEntry {
