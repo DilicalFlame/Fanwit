@@ -77,6 +77,8 @@ pub struct OpenOpts {
     always_on_top: Option<bool>,
     skip_taskbar: Option<bool>,
     decorations: Option<bool>,
+    // macOS windows are never transparent (see the cfg in `open`), but the option still parses
+    #[cfg_attr(target_os = "macos", allow(dead_code))]
     transparent: Option<bool>,
     shadow: Option<bool>,
     resizable: Option<bool>,
