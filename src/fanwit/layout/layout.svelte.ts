@@ -156,6 +156,8 @@ export class LayoutService {
 	}
 
 	private setDoc(d: LayoutDoc, persist: boolean) {
+		// a file may leave out tables it has nothing in (no panes yet)
+		d = { ...d, window: d.window ?? {}, node: d.node ?? {}, pane: d.pane ?? {} };
 		this.doc = d;
 		if (this.activeTabset && !d.node[this.activeTabset]) this.activeTabset = undefined;
 		if (this.activePane && !d.pane[this.activePane]) this.activePane = undefined;
