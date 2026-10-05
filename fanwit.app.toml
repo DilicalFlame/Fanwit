@@ -4,7 +4,7 @@ name = "Fanwit"                          # display name: window titles, installe
 slug = "fanwit"                          # crate, package, log file, vault folder (.fanwit)
 identifier = "com.dilicalflame.fanwit"
 scheme = "fanwit"                        # deep links: fanwit://
-version = "0.0.1"
+version = "1.0.0"
 
 [developer]
 name = "dilicalflame"

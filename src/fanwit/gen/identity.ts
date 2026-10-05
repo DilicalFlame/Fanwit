@@ -4,7 +4,7 @@ export const identity = {
 	slug: "fanwit",
 	identifier: "com.dilicalflame.fanwit",
 	scheme: "fanwit",
-	version: "0.0.1",
+	version: "1.0.0",
 	developer: "dilicalflame",
 	vaultFolder: ".fanwit"
 } as const;

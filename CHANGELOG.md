@@ -1,0 +1,161 @@
+# Changelog
+
+## 1.0.0 (2026-10-05)
+
+### Features
+- docs check catches braces in component attributes
+- <Source> shows real repository files in pages
+- multi-file Svelte, JavaScript and TypeScript playgrounds
+- diagrams open large and come alive
+- labs that check themselves
+- Rust and sandbox kernel playgrounds
+- Beginner, Intermediate and Expert levels
+- TikZ diagrams in manual pages, compiled once and cached
+- docs check fails when docs name paths or commands that are gone
+- complete the German and Hindi catalogs, offer only real languages
+- generate the settings schema from definitions, close the others
+- docs check resolves links, anchors and paths through shared discovery
+- compile the manual with mdsvex from docsets, with search and API reference
+- System Info, a native Rust sidecar with a widgets panel
+- Text Stats, a Rust plugin compiled to WebAssembly
+- Pomodoro and Sketch Pad show both kinds of plugin UI
+- word count follows the note in front, with a status menu
+- appearance plugins for the showcase layouts
+- scaffold, build and bundle plugins of every kind
+- plugin page scheme and native plugin sidecars
+- Rust SDK for WebAssembly and sidecar plugins
+- Obsidian style plugin browser
+- one protocol host for every runtime, zero cost until used
+- hooks for styling and extending the workbench from outside
+- strip and restore template parts through a .trash folder
+- every app look-alike has its own title bar
+- layouts can draw their own title bar
+- ten app look-alikes as layout presets
+- vscode is the core preset; bottom tab strips; splits keep their strip
+- Window Lab shows which options apply, web pop outs work, kinds documented
+- developer mode adds the developer tools to every menu
+- one window per vault; opening it again focuses that window
+- drop a tab dragged out of one window onto another window's tab sets
+- serve the manual on the web with pnpm docs
+- run install phases on first launch and add the Installer Lab
+- add the branded Setup app
+- add fw installer commands
+- declare the app's installation in installer.toml
+- add the fanwit-install engine
+- GSAP entrances, press feedback, haptics
+- back to the Islands style default dark palette
+- Nord based default dark palette
+- Islands style default dark palette
+- user scripts in .fanwit/scripts run as worker isolated plugins
+- hold-mod keyboard overlay trigger; README limitations brought up to date
+- indexers with SQL query, notes backlinks, inspector follows active document
+- profiles, autostart, OS file drop, print, configuration export/import, network key
+- translate command titles and categories, German and Hindi catalogs
+- window.list command
+- SQLite WASM for the web host, quiet hours, Picture-in-Picture panels, Windows system menu
+- developer CLI - rename, version, generators, doctor, schema, plugins, sdk, strip, upgrade
+- complete workbench views, labs, devtools, manual, plugins and sample app
+- storage, settings, themes, notifications and the layout model
+- fanwit core in Rust - sandboxed fs, TOML merge, SQLite, windows, CLI bridge
+- modules, commands pipeline, undo history and shortcuts manager
+- host abstraction, kernel primitives and design tokens
+
+### Fixes
+- load the app icon through the base path
+- build the web app with the Pages base path
+- resolve paths component by component so .. after a missing folder is checked correctly
+- allow the macOS-unused transparent option, stop one OS cancelling the rest
+- docs check recognises ignored build directories that do not exist yet
+- --help never runs the command
+- module playgrounds on the docs site run in a sandbox kernel
+- Escape cancels a shortcut recording at any point
+- Start in safe mode really starts in safe mode, for one session
+- undoing a rename moves open tabs back too
+- the web build reports denied plugin reads as PERMISSION_DENIED too
+- denied plugin reads and batches report PERMISSION_DENIED
+- argMeta type checks inside v.pipe, as its example shows
+- a template's header comment stays above the first keys
+- code blocks keep every backslash
+- diagram cache keys ignore CRLF line endings
+- the docs site is the manual, not the app
+- a command that is not registered has no key or menu item
+- closable = false holds for every way of closing a tab
+- translate the whole frame, not just command titles
+- web delete moves to the vault's .trash instead of deleting
+- clear every Svelte warning and fail the check on new ones
+- install all or nothing through a staging folder
+- do not treat data-only CSS as a security boundary
+- web TOML writes keep comments with the desktop's toml_edit merge
+- verify Ed25519 registry signatures against trusted keys
+- reload a note only when its path or vault changes
+- do not log a dismissed prompt as an unhandled rejection
+- Window Lab options take effect
+- split a lone tab by dragging it to its own edge, and show the drop hint across windows
+- reopen the last vault on start and open recent vaults without the folder picker
+- splitting a tab inside a popped out window no longer leaves half of it empty
+- tab menu commands act on the right clicked tab, not the focused one
+- style checked controls from bits-ui's data-state
+- allow Tauri's isolation iframe in the CSP
+- the theme wins over the base palette in every window
+- stale vault locks from closed or killed runs; onboarding previews use the theme
+- a reload reopens the vault instead of finding it locked by itself
+- only the main window opens vaults; main stays hidden through a cold dev start
+- startup safety net only shows main when its kernel never booted
+- keep the main window hidden until first run onboarding closes
+- apply() runs untracked so effects calling it do not loop
+- popped out windows keep their vault, float cards clamp to the layer, menus open at their anchor
+- remember paths typed on the command line and resolve them against cwd
+
+### Performance
+- keep the file watcher out of cargo's target dir
+- measure the budgets in CI instead of only logging them
+- announce OPFS changes instead of polling, observe picked folders
+
+### Documentation
+- link the online docs from the readme
+- Rebuild, the Installer Kit setup and shipping
+- Rebuild, the Installer Kit engine
+- Rebuild, schemas, tests and CI
+- Rebuild, the fw developer CLI
+- Rebuild, your app: modules and showcases
+- Rebuild, the manual's reading app
+- Rebuild, the manual from Markdown to pages
+- Rebuild, plugins
+- Rebuild, labs and developer tools
+- Rebuild, settings, keys, menus and themes editors
+- Rebuild, panels and system views
+- show the remaining kernel, route and Rust utility files in full
+- Rebuild, plugin files and sidecars
+- Rebuild, the command line from Rust
+- Rebuild, native windows and the tray
+- Rebuild, the sandbox and the file system
+- Rebuild, the Rust project
+- Rebuild, booting the app
+- Rebuild, overlays
+- Rebuild, the frame
+- Rebuild, drawing the layout
+- Rebuild, UI helpers and small components
+- Rebuild, the core handlers
+- Rebuild, the core module's declarations and the CLI
+- Rebuild, palette, status bar, icons and app config
+- Rebuild, windows and menus
+- Rebuild, the layout model and the layout service
+- Rebuild, motion, design tokens and themes
+- settings layers figure, aligned and with --set
+- Rebuild, settings and vaults
+- Rebuild, storage, live TOML files and the database
+- Rebuild, notifications, jobs and translations
+- Rebuild, the kernel and modules
+- Rebuild, the keyboard and events, lifecycle, services
+- Rebuild, commands as data and the pipeline
+- Rebuild foundations, the host to context keys
+- Rebuild FaNWiT, the plan and the project
+- Rust and Tauri basics
+- Web, Svelte and SvelteKit basics
+- illustrated, animated diagrams for the first pages
+- Beginner, Svelte basics: your first component
+- move framework docs into the fanwit docset and add the app docset
+- plugins guide for runtimes, plugin UI, menus and performance
+- add the Installer Kit guide and reference
+- manual, README (D2), AGENTS.md, CI workflows and editor setup
+

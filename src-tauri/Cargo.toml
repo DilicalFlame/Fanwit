@@ -1,6 +1,6 @@
 [package]
 name = "fanwit"
-version = "0.0.1"
+version = "1.0.0"
 description = "A Tauri App"
 authors = ["dilicalflame"]
 license = ""
