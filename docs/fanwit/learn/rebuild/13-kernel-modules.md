@@ -50,6 +50,8 @@ Everything under `contributes` is data the app reads at boot. `activate` is eith
 
 <Source path="src/fanwit/kernel/module.ts" from="export function implicitEvents" />
 
+<Source path="src/fanwit/kernel/module.ts" />
+
 A module is activated by **events**: strings like `onCommand:notes.save`, `onView:notes.editor`, `onStartup`, `onVault`. It does not have to list the obvious ones: declaring a command implies `onCommand:<id>`, declaring a view implies `onView:<id>`. Patterns with `*` match families of events (`onVaultFile:*.md`).
 
 ## The module registry
@@ -114,6 +116,8 @@ Systems built later add their own parts to `ctx` (`ctx.layout`, `ctx.notify`, `c
 ### The ctx type
 
 <Source path="src/fanwit/kernel/context-api.ts" from="export interface ModuleContext" />
+
+<Source path="src/fanwit/kernel/context-api.ts" />
 
 `ModuleContext` is not written by hand: it **is** whatever `createContext` returns, `ReturnType<Kernel["createContext"]>`. Add a method to the factory and every module sees it, with its type, immediately. This is the one place the four files need each other: the kernel uses `ModuleDefinition`, modules use `ModuleContext`, and `ModuleContext` is defined by the kernel. TypeScript is fine with that because these are type-only imports.
 

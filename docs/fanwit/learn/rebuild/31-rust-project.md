@@ -122,7 +122,7 @@ Tauri runs commands on several threads at once, and `State` is shared by all of 
 3. **The panic hook** is installed.
 4. **Windows**: saved state is loaded and the main window is created.
 5. **The CLI socket server** starts (chapter 35).
-6. **Pending installer phases** run (chapter 37).
+6. **Pending installer phases** run (in "Rebuild: tools and shipping").
 7. **The tray** is created, unless the app started headless.
 8. **Deep link schemes** are registered with the OS.
 
@@ -147,6 +147,8 @@ In `fw_secret_set`, `Some(v) if !v.is_empty() => ...` is a match arm with a **gu
 <Source path="src-tauri/src/utils/logger.rs" />
 
 <Source path="src-tauri/src/constants.rs" />
+
+<Source path="src-tauri/src/utils.rs" />
 
 One log, three outputs:
 

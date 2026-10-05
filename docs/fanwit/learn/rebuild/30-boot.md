@@ -110,6 +110,10 @@ The root layout boots the kernel once, then renders the route. If boot throws, i
 
 `/` is the main window: the workbench, plus `mainStartup` once it is on screen.
 
+<Source path="src/routes/w/[kind]/+page.ts" />
+
+`prerender = false` for this route: its pages depend on the query string, so there is nothing to render ahead of time.
+
 <Source path="src/routes/w/[kind]/+page.svelte" from="<script lang=" />
 
 `/w/<kind>` is every other window (chapter 21 builds these URLs). It reads the kind, label, opener and props from the URL, and renders:
