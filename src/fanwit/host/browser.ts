@@ -4,6 +4,7 @@
  */
 import { mergeToml } from "./toml-merge";
 import { Emitter, toDisposable, type Disposable } from "../kernel/disposable";
+import { toFanwitError } from "../kernel/errors";
 import { consoleLog, stubWindows } from "./memory";
 import type { FsEntry, FsEvent, FsStat, Host, HostDialog, HostEvents, HostFs, Platform } from "./types";
 import { basename } from "./types";
@@ -348,7 +349,7 @@ function sqliteDb(): Host["db"] {
 				const p = pending.get(e.data.id);
 				pending.delete(e.data.id);
 				if (e.data.ok) p?.resolve(e.data.value);
-				else p?.reject(new Error(e.data.error));
+				else p?.reject(toFanwitError(e.data.error));
 			};
 		}
 		const id = ++seq;

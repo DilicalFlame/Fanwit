@@ -45,7 +45,7 @@ function withOwner<T>(sqlite3: any, db: Db, owner: string | null | undefined, fn
 		return fn();
 	} catch (e) {
 		const m = String((e as Error).message ?? e);
-		throw new Error(m.includes("not authorized") ? `PERMISSION_DENIED: ${m}. Plugins may only use tables prefixed with their id.` : m);
+		throw new Error(m.includes("not authorized") || m.includes("is prohibited") ? `PERMISSION_DENIED: ${m}. Plugins may only use tables prefixed with their id.` : m);
 	} finally {
 		sqlite3.capi.sqlite3_set_authorizer(db.pointer, 0, 0);
 	}
