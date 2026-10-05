@@ -93,6 +93,8 @@ A plugin view is either **widgets** or an **iframe**.
 
 **Widgets** are a JSON tree the plugin sends with `ui.render(view, tree)`. The app draws it with its own components (`WidgetNode.svelte`), so it is themed, keyboard reachable and accessible for free, and the plugin's code never touches the DOM. Buttons, inputs, toggles and list items send actions back as `ui` messages. Trees are limited to 2,000 nodes and 256 KB.
 
+<Source path="src/fanwit/plugins/widgets.ts" />
+
 <Source path="src/fanwit/plugins/WidgetNode.svelte" />
 
 An **iframe** view is the plugin's own HTML page, for UI that widgets cannot express (the Sketch Pad's canvas). It is loaded from the `fanwit-plugin:` scheme with its strict content security policy (chapter 36), or inlined as `srcdoc` on hosts without the scheme. The frame is **cross origin and sandboxed**: it cannot reach the app's page, and talks to its plugin only through a `MessagePort` the app hands it, under the same permissions. The app also sends the theme's CSS variables, so the page can match the app's look:
