@@ -133,4 +133,18 @@ mod tests {
         assert!(sb.check_known(&std::env::temp_dir().to_string_lossy()).is_err(), "parents stay hidden");
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    #[test]
+    fn dot_dot_cannot_climb_out_of_a_root_even_through_missing_folders() {
+        let root = std::env::temp_dir().join(format!("fw-sandbox-dots-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let sb = Sandbox::default();
+        sb.app_roots.write().unwrap().push(canon(&root));
+        let s = |p: std::path::PathBuf| p.to_string_lossy().into_owned();
+        assert!(sb.check(&s(root.join("notes/a.md"))).is_ok(), "a file that does not exist yet, inside");
+        assert!(sb.check(&s(root.join("..").join("secret.txt"))).is_err());
+        assert!(sb.check(&s(root.join("missing/../../secret.txt"))).is_err(), ".. after a missing folder");
+        assert!(sb.check(&s(root.join("missing/../ok.txt"))).is_ok(), ".. that stays inside");
+        let _ = std::fs::remove_dir_all(&root);
+    }
 }
