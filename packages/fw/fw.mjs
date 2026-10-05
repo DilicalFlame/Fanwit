@@ -999,7 +999,7 @@ async function docs() {
 			for (const t of src.sourceTags(p.body)) {
 				const r = src.readSource(t.attrs, ROOT);
 				if ("error" in r) problems.push(`${p.meta.file.slice(1)}: <Source>: ${r.error}`);
-				else if (p.meta.id.startsWith("learn/") && !t.attrs.from) shown.add(t.attrs.path);
+				else if (p.meta.id.startsWith("learn/") && r.first === 1 && r.last === r.total) shown.add(t.attrs.path);
 			}
 		// how much of the code the Rebuild chapters walk through (whole files only)
 		if (shown.size) {
