@@ -1,0 +1,1 @@
+import{G as h}from"./BPm9pYOL.js";import{b as t}from"./j-tb9ND8.js";function n(s){s.commands.handle("showcase.excel.newSheet",()=>{let e=Object.keys(t.sheets).length+1;for(;t.sheets[`sheet${e}`];)e++;return t.sheets[`sheet${e}`]={},s.layout.openView("showcase.excel.sheet",{sheet:`sheet${e}`,name:`Sheet${e}`},{target:h(s,"showcase.excel.sheet","sheets")})})}export{n as default};
