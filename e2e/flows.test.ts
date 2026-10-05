@@ -76,3 +76,15 @@ test("a reload reopens the vault instead of finding it locked by itself", async 
 	await expect(page.locator("[data-fw-region=statusbar]")).toContainText(name, { timeout: 10_000 });
 	await expect(page.getByText(/is open in another window/)).toHaveCount(0);
 });
+
+test("a confirm dialog guards a destructive command, and toasts report back", async ({ page }) => {
+	await start(page);
+	await cmd(page, "reset all menu customisations");
+	const dialog = page.getByRole("alertdialog");
+	await expect(dialog).toBeVisible();
+	await expect(dialog.getByRole("button", { name: "Reset menus" })).toBeFocused();
+	await page.keyboard.press("Escape");
+	await expect(dialog).toHaveCount(0);
+	await cmd(page, "open webview devtools");
+	await expect(page.getByText("Use your browser's developer tools (F12)")).toBeVisible();
+});
