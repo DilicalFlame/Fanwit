@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function c(t,o){let p=e(o,["$$slots","$$events","$$legacy"]);const a={name:"reply-all",size:24,node:[["path",{d:"m12 17-5-5 5-5"}],["path",{d:"M22 18v-2a4 4 0 0 0-4-4H7"}],["path",{d:"m7 17-5-5 5-5"}]]};s(t,r(()=>p,{get icon(){return a}}))}export{c as default};

@@ -1,0 +1,1 @@
+const s='# Discord Compact\n\nCompact message density for the Discord showcase: smaller avatars, tighter rows.\n\nAn appearance plugin: a `plugin.toml` with `styles = ["styles.css"]` and nothing else. No code runs and it needs no permissions. Rules are scoped with `html[data-preset="..."]` and `[data-fw-view="..."]`, so they only apply to their showcase.\n';export{s as default};

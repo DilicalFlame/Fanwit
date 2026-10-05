@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function h(t,e){let r=p(e,["$$slots","$$events","$$legacy"]);const o={name:"pause",size:24,node:[["rect",{x:"14",y:"3",width:"5",height:"18",rx:"1"}],["rect",{x:"5",y:"3",width:"5",height:"18",rx:"1"}]]};a(t,s(()=>r,{get icon(){return o}}))}export{h as default};

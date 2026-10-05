@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function l(s,o){let t=p(o,["$$slots","$$events","$$legacy"]);const r={name:"fish-symbol",size:24,node:[["path",{d:"M2 16s9-15 20-4C11 23 2 8 2 8"}]]};a(s,e(()=>t,{get icon(){return r}}))}export{l as default};

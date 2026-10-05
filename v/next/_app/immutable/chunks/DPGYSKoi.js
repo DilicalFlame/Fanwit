@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function m(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const s={name:"undo-dot",size:24,node:[["path",{d:"M21 17a9 9 0 0 0-15-6.7L3 13"}],["path",{d:"M3 7v6h6"}],["circle",{cx:"12",cy:"17",r:"1"}]]};a(o,e(()=>r,{get icon(){return s}}))}export{m as default};

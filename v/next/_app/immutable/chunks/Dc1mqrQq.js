@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as c}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(r,e){let t=c(e,["$$slots","$$events","$$legacy"]);const o={name:"git-merge",size:24,node:[["circle",{cx:"18",cy:"18",r:"3"}],["circle",{cx:"6",cy:"6",r:"3"}],["path",{d:"M6 21V9a9 9 0 0 0 9 9"}]]};p(r,s(()=>t,{get icon(){return o}}))}export{l as default};

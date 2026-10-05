@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as n}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function d(o,r){let t=n(r,["$$slots","$$events","$$legacy"]);const e={name:"chevron-down",size:24,node:[["path",{d:"m6 9 6 6 6-6"}]]};p(o,s(()=>t,{get icon(){return e}}))}export{d as default};

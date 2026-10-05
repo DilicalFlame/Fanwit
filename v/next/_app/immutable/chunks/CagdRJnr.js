@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function c(t,o){let e=s(o,["$$slots","$$events","$$legacy"]);const p={name:"text-quote",size:24,node:[["path",{d:"M17 5H3"}],["path",{d:"M21 12H8"}],["path",{d:"M21 19H8"}],["path",{d:"M3 12v7"}]]};a(t,r(()=>e,{get icon(){return p}}))}export{c as default};

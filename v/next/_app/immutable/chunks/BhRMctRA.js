@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as c}from"./BVblOk2d.js";function g(t,e){let o=p(e,["$$slots","$$events","$$legacy"]);const r={name:"toggle-left",size:24,node:[["circle",{cx:"9",cy:"12",r:"3"}],["rect",{width:"20",height:"14",x:"2",y:"5",rx:"7"}]]};c(t,s(()=>o,{get icon(){return r}}))}export{g as default};

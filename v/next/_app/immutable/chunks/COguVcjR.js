@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function c(o,t){let r=e(t,["$$slots","$$events","$$legacy"]);const s={name:"tally-1",size:24,node:[["path",{d:"M4 4v16"}]]};p(o,a(()=>r,{get icon(){return s}}))}export{c as default};

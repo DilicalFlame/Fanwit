@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as t,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(r,o){let s=e(o,["$$slots","$$events","$$legacy"]);const c={name:"disc-2",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M12 12h.01"}]]};p(r,t(()=>s,{get icon(){return c}}))}export{l as default};

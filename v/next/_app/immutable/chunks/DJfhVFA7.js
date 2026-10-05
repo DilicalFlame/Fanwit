@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function m(o,s){let t=a(s,["$$slots","$$events","$$legacy"]);const e={name:"slice",size:24,node:[["path",{d:"M11 16.586V19a1 1 0 0 1-1 1H2L18.37 3.63a1 1 0 1 1 3 3l-9.663 9.663a1 1 0 0 1-1.414 0L8 14"}]]};p(o,r(()=>t,{get icon(){return e}}))}export{m as default};

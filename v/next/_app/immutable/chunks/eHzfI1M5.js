@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function d(t,o){let e=p(o,["$$slots","$$events","$$legacy"]);const r={name:"move-vertical",size:24,node:[["path",{d:"M12 2v20"}],["path",{d:"m8 18 4 4 4-4"}],["path",{d:"m8 6 4-4 4 4"}]]};s(t,a(()=>e,{get icon(){return r}}))}export{d as default};

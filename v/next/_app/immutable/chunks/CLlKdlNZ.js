@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function l(t,e){let o=r(e,["$$slots","$$events","$$legacy"]);const p={name:"spell-check",size:24,node:[["path",{d:"m20 15-5.5 5.5L12 18"}],["path",{d:"m4 16 6-12 5.115 10.23"}],["path",{d:"M6 12h8"}]]};a(t,s(()=>o,{get icon(){return p}}))}export{l as default};

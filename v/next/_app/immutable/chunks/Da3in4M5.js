@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function h(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const p={name:"touchpad",size:24,node:[["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M2 14h20"}],["path",{d:"M12 20v-6"}]]};a(t,e(()=>r,{get icon(){return p}}))}export{h as default};

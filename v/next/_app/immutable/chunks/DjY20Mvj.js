@@ -1,0 +1,12 @@
+const n=`# A data only plugin: no code, no permissions, always safe to install.
+id = "nord-ish"
+name = "Nord-ish"
+version = "1.0.0"
+author = "Kiran"
+description = "A cool, arctic theme for light and dark mode."
+category = "appearance"
+icon = "palette"
+
+[contributes]
+themes = ["themes/nord-ish/theme.toml"]
+`;export{n as default};

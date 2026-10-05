@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as n,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(o,t){let r=e(t,["$$slots","$$events","$$legacy"]);const s={name:"unlink-2",size:24,node:[["path",{d:"M15 7h2a5 5 0 0 1 0 10h-2m-6 0H7A5 5 0 0 1 7 7h2"}]]};p(o,n(()=>r,{get icon(){return s}}))}export{l as default};

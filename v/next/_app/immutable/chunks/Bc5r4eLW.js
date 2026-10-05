@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function $(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const a={name:"iteration-cw",size:24,node:[["path",{d:"M4 10a8 8 0 1 1 8 8H4"}],["path",{d:"m8 22-4-4 4-4"}]]};p(t,e(()=>r,{get icon(){return a}}))}export{$ as default};

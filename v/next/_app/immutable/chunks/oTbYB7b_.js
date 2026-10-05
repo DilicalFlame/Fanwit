@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function c(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const e={name:"arrow-left-to-line",size:24,node:[["path",{d:"M3 19V5"}],["path",{d:"m13 6-6 6 6 6"}],["path",{d:"M7 12h14"}]]};a(t,p(()=>r,{get icon(){return e}}))}export{c as default};

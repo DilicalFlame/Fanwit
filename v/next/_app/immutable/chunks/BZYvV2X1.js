@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function $(t,o){let r=e(o,["$$slots","$$events","$$legacy"]);const s={name:"at-sign",size:24,node:[["circle",{cx:"12",cy:"12",r:"4"}],["path",{d:"M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"}]]};p(t,a(()=>r,{get icon(){return s}}))}export{$ as default};

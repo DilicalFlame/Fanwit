@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(s,r){let o=e(r,["$$slots","$$events","$$legacy"]);const t={name:"search-slash",size:24,node:[["path",{d:"m13.5 8.5-5 5"}],["circle",{cx:"11",cy:"11",r:"8"}],["path",{d:"m21 21-4.3-4.3"}]]};p(s,a(()=>o,{get icon(){return t}}))}export{l as default};

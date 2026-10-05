@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as i}from"./BVblOk2d.js";function m(s,e){let o=p(e,["$$slots","$$events","$$legacy"]);const t={name:"line-squiggle",size:24,node:[["path",{d:"M7 3.5c5-2 7 2.5 3 4C1.5 10 2 15 5 16c5 2 9-10 14-7s.5 13.5-4 12c-5-2.5.5-11 6-2"}]]};i(s,r(()=>o,{get icon(){return t}}))}export{m as default};

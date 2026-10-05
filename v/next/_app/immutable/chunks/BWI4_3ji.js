@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function c(o,t){let a=r(t,["$$slots","$$events","$$legacy"]);const e={name:"move-diagonal",size:24,node:[["path",{d:"M11 19H5v-6"}],["path",{d:"M13 5h6v6"}],["path",{d:"M19 5 5 19"}]]};s(o,p(()=>a,{get icon(){return e}}))}export{c as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as i,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function m(o,t){let r=s(t,["$$slots","$$events","$$legacy"]);const e={name:"line-dot-right-horizontal",size:24,node:[["path",{d:"M 3 12 L 15 12"}],["circle",{cx:"18",cy:"12",r:"3"}]]};n(o,i(()=>r,{get icon(){return e}}))}export{m as default};

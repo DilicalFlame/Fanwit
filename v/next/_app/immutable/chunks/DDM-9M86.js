@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function c(o,r){let t=s(r,["$$slots","$$events","$$legacy"]);const a={name:"triangle",size:24,node:[["path",{d:"M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"}]]};p(o,e(()=>t,{get icon(){return a}}))}export{c as default};

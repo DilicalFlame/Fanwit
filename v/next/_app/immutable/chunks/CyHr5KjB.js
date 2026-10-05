@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as n,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function $(o,t){let r=a(t,["$$slots","$$events","$$legacy"]);const s={name:"mountain",size:24,node:[["path",{d:"m8 3 4 8 5-5 5 15H2L8 3z"}]]};e(o,n(()=>r,{get icon(){return s}}))}export{$ as default};

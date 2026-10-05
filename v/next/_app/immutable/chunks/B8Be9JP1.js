@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function l(t,o){let e=s(o,["$$slots","$$events","$$legacy"]);const r={name:"panel-top",size:24,node:[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M3 9h18"}]]};a(t,p(()=>e,{get icon(){return r}}))}export{l as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function d(o,t){let r=s(t,["$$slots","$$events","$$legacy"]);const a={name:"separator-horizontal",size:24,node:[["path",{d:"m16 16-4 4-4-4"}],["path",{d:"M3 12h18"}],["path",{d:"m8 8 4-4 4 4"}]]};e(o,p(()=>r,{get icon(){return a}}))}export{d as default};

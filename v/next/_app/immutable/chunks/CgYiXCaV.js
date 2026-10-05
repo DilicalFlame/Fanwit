@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function $(e,o){let r=a(o,["$$slots","$$events","$$legacy"]);const t={name:"thermometer",size:24,node:[["path",{d:"M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"}]]};p(e,s(()=>r,{get icon(){return t}}))}export{$ as default};

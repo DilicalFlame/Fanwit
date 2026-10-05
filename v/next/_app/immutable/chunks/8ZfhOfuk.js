@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function m(t,o){let a=r(o,["$$slots","$$events","$$legacy"]);const p={name:"signal-high",size:24,node:[["path",{d:"M2 20h.01"}],["path",{d:"M7 20v-4"}],["path",{d:"M12 20v-8"}],["path",{d:"M17 20V8"}]]};e(t,s(()=>a,{get icon(){return p}}))}export{m as default};

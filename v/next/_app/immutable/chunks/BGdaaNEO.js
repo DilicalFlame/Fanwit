@@ -1,0 +1,32 @@
+const t=`# A feature plugin written in Rust and compiled to WebAssembly. It runs in a Web Worker.
+# Rebuild plugin.wasm with \`pnpm fw plugin build text-stats\` after changing wasm/src.
+id = "text-stats"
+name = "Text Stats"
+version = "1.0.0"
+author = "Fanwit"
+description = "Reading ease, sentences and syllables of the open note, computed in Rust (WebAssembly)."
+category = "editor"
+icon = "book-open"
+runtime = "wasm"
+entry = "plugin.wasm"
+activation = ["onEvent:notes:changed", "onEvent:layout:activePane"]
+permissions = ["statusbar"]
+
+[[contributes.commands]]
+id = "textStats.show"
+title = "Show reading ease"
+category = "Text Stats"
+
+[[contributes.menus."statusbar/item"]]
+command = "textStats.show"
+label = "Reading ease details"
+icon = "book-open"
+group = "1_textstats"
+visibleWhen = "statusItem == 'textStats.item'"
+
+[[contributes.statusItems]]
+id = "textStats.item"
+align = "right"
+priority = 40
+command = "textStats.show"
+`;export{t as default};

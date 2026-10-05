@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-density="comfortable">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<!-- The channels plugin CSS could load remote content through (beacons, tracking pixels), closed
+		     on the web as tauri.conf.json closes them on the desktop. The CSS sanitizer is not the boundary. -->
+		<meta http-equiv="Content-Security-Policy" content="img-src 'self' asset: http://asset.localhost data: blob:; font-src 'self' data:; media-src 'self' asset: http://asset.localhost data: blob:" />
+		<script>
+			// Apply the last theme before the first frame so windows never flash (Section 11.3).
+			try {
+				var css = localStorage.getItem("fw:theme-css");
+				var dark = localStorage.getItem("fw:theme-dark");
+				if (dark === null) dark = matchMedia("(prefers-color-scheme: dark)").matches ? "1" : "0";
+				if (dark === "1") document.documentElement.classList.add("dark");
+				document.documentElement.style.colorScheme = dark === "1" ? "dark" : "light";
+				document.documentElement.style.background = localStorage.getItem("fw:theme-bg") || (dark === "1" ? "#09090b" : "#ffffff");
+				if (css) {
+					var s = document.createElement("style");
+					s.id = "fw-theme";
+					s.textContent = css;
+					document.head.appendChild(s);
+				}
+			} catch (e) {}
+		</script>
+		<link href="/Fanwit/docs/v/next/_app/immutable/entry/start.BQ8B_oGD.js" rel="modulepreload">
+		<link href="/Fanwit/docs/v/next/_app/immutable/chunks/B_8rOtdj.js" rel="modulepreload">
+		<link href="/Fanwit/docs/v/next/_app/immutable/chunks/BTqTGZku.js" rel="modulepreload">
+		<link href="/Fanwit/docs/v/next/_app/immutable/entry/app.CWIaryYi.js" rel="modulepreload">
+		<link href="/Fanwit/docs/v/next/_app/immutable/chunks/DA30ZPLB.js" rel="modulepreload">
+		<link href="/Fanwit/docs/v/next/_app/immutable/chunks/M7QI--X0.js" rel="modulepreload">
+		
+	</head>
+	<body data-sveltekit-preload-data="off">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_hd9ey9 = {
+						base: "/Fanwit/docs/v/next",
+						assets: "/Fanwit/docs/v/next"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/Fanwit/docs/v/next/_app/immutable/entry/start.BQ8B_oGD.js"),
+						import("/Fanwit/docs/v/next/_app/immutable/entry/app.CWIaryYi.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

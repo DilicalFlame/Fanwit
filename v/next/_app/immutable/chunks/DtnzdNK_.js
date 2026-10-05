@@ -1,0 +1,70 @@
+const n=`id = "word-count"
+name = "Word Count"
+version = "1.2.0"
+author = "Kiran"
+description = "Live word count and reading time in the status bar."
+app = ">=0.0.1"
+fanwit = ">=0.0.1"
+entry = "main.js"
+isolation = "worker"
+# starts on the first pane or note event, not at startup; events are handed over once it subscribes
+activation = ["onEvent:layout:activePane", "onEvent:notes:changed"]
+category = "editor"
+icon = "file-text"
+permissions = ["vault.read", "statusbar"]
+
+[[contributes.commands]]
+id = "wordCount.show"
+title = "Show word count details"
+category = "Word Count"
+
+[[contributes.commands]]
+id = "wordCount.mode"
+title = "Word count display"
+category = "Word Count"
+palette = false
+
+# Right click the status item. statusItem is set while its menu is open, so these show only there.
+[[contributes.menus."statusbar/item"]]
+command = "wordCount.mode"
+label = "Show words"
+icon = "whole-word"
+args = { mode = "words" }
+group = "1_wordcount"
+visibleWhen = "statusItem == 'wordCount.item'"
+
+[[contributes.menus."statusbar/item"]]
+command = "wordCount.mode"
+label = "Show characters"
+icon = "case-sensitive"
+args = { mode = "chars" }
+group = "1_wordcount"
+visibleWhen = "statusItem == 'wordCount.item'"
+
+[[contributes.menus."statusbar/item"]]
+command = "wordCount.mode"
+label = "Show reading time"
+icon = "clock"
+args = { mode = "time" }
+group = "1_wordcount"
+visibleWhen = "statusItem == 'wordCount.item'"
+
+[[contributes.menus."statusbar/item"]]
+command = "wordCount.show"
+label = "Word count details"
+icon = "info"
+group = "2_wordcount"
+visibleWhen = "statusItem == 'wordCount.item'"
+
+[[contributes.statusItems]]
+id = "wordCount.item"
+align = "right"
+priority = 50
+command = "wordCount.show"
+
+[[contributes.settings]]
+key = "wordCount.wpm"
+type = "number"
+default = 230
+title = "Reading speed (words per minute)"
+`;export{n as default};

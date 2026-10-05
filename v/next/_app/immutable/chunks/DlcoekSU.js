@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function u(o,r){let t=e(r,["$$slots","$$events","$$legacy"]);const s={name:"zodiac-taurus",size:24,node:[["circle",{cx:"12",cy:"15",r:"6"}],["path",{d:"M18 3A6 6 0 0 1 6 3"}]]};p(o,a(()=>t,{get icon(){return s}}))}export{u as default};

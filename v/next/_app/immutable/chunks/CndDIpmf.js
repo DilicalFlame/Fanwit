@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function c(o,t){let p=a(t,["$$slots","$$events","$$legacy"]);const r={name:"pill",size:24,node:[["path",{d:"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"}],["path",{d:"m8.5 8.5 7 7"}]]};e(o,s(()=>p,{get icon(){return r}}))}export{c as default};

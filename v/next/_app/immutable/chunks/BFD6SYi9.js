@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function $(o,t){let s=a(t,["$$slots","$$events","$$legacy"]);const n={name:"navigation-2",size:24,node:[["polygon",{points:"12 2 19 21 12 17 5 21 12 2"}]]};p(o,r(()=>s,{get icon(){return n}}))}export{$ as default};

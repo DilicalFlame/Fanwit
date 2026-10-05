@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as i}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(r,t){let o=i(t,["$$slots","$$events","$$legacy"]);const e={name:"toggle-right",size:24,node:[["circle",{cx:"15",cy:"12",r:"3"}],["rect",{width:"20",height:"14",x:"2",y:"5",rx:"7"}]]};p(r,s(()=>o,{get icon(){return e}}))}export{l as default};

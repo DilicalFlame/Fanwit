@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function c(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const e={name:"move-down-right",size:24,node:[["path",{d:"M19 13V19H13"}],["path",{d:"M5 5L19 19"}]]};a(o,s(()=>r,{get icon(){return e}}))}export{c as default};

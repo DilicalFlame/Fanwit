@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function m(t,a){let e=r(a,["$$slots","$$events","$$legacy"]);const o={name:"text-align-end",size:24,node:[["path",{d:"M21 5H3"}],["path",{d:"M21 12H9"}],["path",{d:"M21 19H7"}]],aliases:["align-right"]};n(t,s(()=>e,{get icon(){return o}}))}export{m as default};

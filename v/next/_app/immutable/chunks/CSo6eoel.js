@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function d(o,t){let r=e(t,["$$slots","$$events","$$legacy"]);const s={name:"cloud",size:24,node:[["path",{d:"M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"}]]};p(o,a(()=>r,{get icon(){return s}}))}export{d as default};

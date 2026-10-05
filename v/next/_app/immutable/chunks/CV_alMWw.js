@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function c(r,t){let o=s(t,["$$slots","$$events","$$legacy"]);const a={name:"library",size:24,node:[["path",{d:"m16 6 4 14"}],["path",{d:"M12 6v14"}],["path",{d:"M8 8v12"}],["path",{d:"M4 4v16"}]]};e(r,p(()=>o,{get icon(){return a}}))}export{c as default};

@@ -1,0 +1,173 @@
+# FaNWiT documentation
+
+> Manuals for FaNWiT 0.0.1. Every page is plain Markdown at the links below.
+
+
+## FaNWiT: Home
+
+- [Welcome](./md/fanwit/index.md): The FaNWiT manual at three levels, from your first Svelte component to the kernel's internals.
+
+## FaNWiT: Start here
+
+- [Start here](./md/fanwit/learn/beginner/start-here.md): What the Beginner level teaches, how its chapters work, and what you need before the first one.
+
+## FaNWiT: Web basics
+
+- [HTML and CSS](./md/fanwit/learn/beginner/web/01-html-css.md): A window in FaNWiT is a web page. HTML says what is on it, CSS says how it looks, and the browser turns both into a tree it can draw.
+- [JavaScript](./md/fanwit/learn/beginner/web/02-javascript.md): The language of the page. Values, variables, functions, objects and arrays, modules, and code that waits for things with async and await.
+- [TypeScript](./md/fanwit/learn/beginner/web/03-typescript.md): JavaScript with types. How to read and write the types in FaNWiT's code, and why its modules spell them out.
+- [Node, pnpm and Vite](./md/fanwit/learn/beginner/web/04-tools.md): The tools around the code. Node runs JavaScript outside the browser, pnpm installs packages, and Vite serves the app while you work and builds it when you ship.
+
+## FaNWiT: Svelte basics
+
+- [Your first component](./md/fanwit/learn/beginner/svelte/01-components.md): A Svelte component is one file of markup, logic and style. State that changes the screen, values computed from it, events, conditions and lists.
+- [Props and composition](./md/fanwit/learn/beginner/svelte/02-props.md): Components inside components. Props carry data down, callbacks carry events up, snippets pass markup, and bind keeps a value in step both ways.
+- [Effects and shared state](./md/fanwit/learn/beginner/svelte/03-effects-state.md): Running code when state changes ($effect), cleaning up after it, and state that lives outside components, in classes, the way FaNWiT's services do.
+- [Styles, transitions and actions](./md/fanwit/learn/beginner/svelte/04-styles-motion.md): Classes and styles that follow state, elements that animate in and out, and actions, the small reusable behaviours FaNWiT attaches with use:.
+
+## FaNWiT: SvelteKit basics
+
+- [Routes and layouts](./md/fanwit/learn/beginner/sveltekit/01-routes.md): SvelteKit turns folders into pages. How FaNWiT uses that for its windows, why it builds a single-page app, and where the kernel boots.
+- [How the project fits together](./md/fanwit/learn/beginner/sveltekit/02-project.md): The configuration files, the import shortcuts, the folders, and the two tricks FaNWiT relies on: files found by glob, and builds that change with the mode.
+
+## FaNWiT: Rust basics
+
+- [Your first Rust program](./md/fanwit/learn/beginner/rust/01-first-program.md): Why FaNWiT's core is Rust, how a Rust program is built and run, and the basics you have already met in JavaScript under new names: variables, types, functions and control flow.
+- [Ownership and borrowing](./md/fanwit/learn/beginner/rust/02-ownership.md): The idea that makes Rust Rust. Every value has one owner, others may borrow it, and the compiler checks the rules, which is how it frees memory without a garbage collector and keeps threads from colliding.
+- [Structs, enums and match](./md/fanwit/learn/beginner/rust/03-structs-enums.md): Your own types. Structs group data, enums say "one of these", methods live in impl blocks, and match handles every case, which the compiler checks.
+- [Errors without exceptions](./md/fanwit/learn/beginner/rust/04-errors.md): Result says a function can fail and makes the caller decide, ? passes the failure up in one character, and FaNWiT turns every error into a message the interface can show.
+- [Collections, closures and iterators](./md/fanwit/learn/beginner/rust/05-collections.md): Vec and HashMap, the functions you can pass around (closures), and iterators, Rust's map and filter, which FaNWiT's sandbox uses to decide whether a path is allowed.
+- [Traits and generics](./md/fanwit/learn/beginner/rust/06-traits.md): Traits say what a type can do, generics write code once for many types, and trait bounds like R: Runtime, the most common thing you will read in FaNWiT's Tauri code.
+- [Modules, crates and serde](./md/fanwit/learn/beginner/rust/07-modules-serde.md): How Rust code is split into files (mod, pub, use), how crates are added in Cargo.toml, and serde, the crate that turns Rust values into JSON for the page and back.
+- [Threads, locks and async](./md/fanwit/learn/beginner/rust/08-concurrency.md): Doing several things at once safely. Threads, Arc to share, Mutex and RwLock to change shared data one at a time, atomics for counters, and async for waiting without blocking.
+- [Tests and attributes](./md/fanwit/learn/beginner/rust/09-tests.md): Tests live next to the code in Rust, run with cargo test, and attributes like #[cfg(...)] decide what is compiled where. The last pieces you need to read FaNWiT's Rust side.
+
+## FaNWiT: Tauri basics
+
+- [What Tauri is](./md/fanwit/learn/beginner/tauri/01-what-is-tauri.md): A Rust program that opens native windows and shows a web page in each. The two halves, how they talk, and FaNWiT's lib.rs read line by line.
+- [Commands: calling Rust from the page](./md/fanwit/learn/beginner/tauri/02-commands.md): A Rust function marked #[tauri::command] becomes callable from JavaScript with invoke. Arguments, results, errors, injected parameters, async commands, and FaNWiT's host seam.
+- [State and events](./md/fanwit/learn/beginner/tauri/03-state-events.md): Shared state that every command can reach, set up once with manage, and events, the way Rust tells pages that something happened, like a file changing on disk.
+- [Windows and plugins](./md/fanwit/learn/beginner/tauri/04-windows-plugins.md): Opening windows from Rust, labels and window events, the tray, and the official plugins FaNWiT uses for dialogs, notifications, single instance, deep links, shortcuts and autostart.
+- [Security: capabilities and the sandbox](./md/fanwit/learn/beginner/tauri/05-security.md): The page is treated as untrusted. Capabilities say which windows may call what, the content security policy limits what pages may load, the isolation pattern checks every call, and FaNWiT's sandbox checks every path.
+- [Building and shipping](./md/fanwit/learn/beginner/tauri/06-build-ship.md): From pnpm tauri dev to an installer. What tauri build makes, sidecar programs that ship inside the app, the command line companion, and where FaNWiT's Installer Kit takes over.
+
+## FaNWiT: Rebuild: the project
+
+- [The plan](./md/fanwit/learn/rebuild/00-plan.md): How the rebuild works. You build all of FaNWiT, file by file, in an order where nothing is used before it exists, and every chapter ends with something that works.
+- [From an empty folder to a window](./md/fanwit/learn/rebuild/01-empty-folder.md): Create the SvelteKit app and the Tauri shell around it, configure them the way FaNWiT needs (a single-page app, static files, strict TypeScript), and open the first window.
+- [Tests and the first file](./md/fanwit/learn/rebuild/02-tests-disposables.md): Set up Vitest, agree on the code style, and write FaNWiT's first real file, disposable.ts: the small idea of "something to undo later" that every other file relies on.
+
+## FaNWiT: Rebuild: foundations
+
+- [The host contract](./md/fanwit/learn/rebuild/03-host-contract.md): One interface that describes everything FaNWiT needs from the machine it runs on, and the first implementation of it, an in-memory host that runs the whole kernel in a test.
+- [TOML that keeps your comments](./md/fanwit/learn/rebuild/04-toml-merge.md): Your first Rust crate in FaNWiT. It edits a TOML file in place so comments and formatting survive, and the same code runs on the desktop and, compiled to WebAssembly, in the browser.
+- [The browser host](./md/fanwit/learn/rebuild/05-browser-host.md): FaNWiT on the web. Files in the browser's private file system or a folder the user picks, SQLite in a worker, events between tabs, a lock per vault, and the function that picks the host at boot.
+- [Errors that teach, and the logger](./md/fanwit/learn/rebuild/06-errors-logger.md): One error type with a stable code, a hint and a docs link, so every failure tells the reader what to do; and one logger with scopes, levels, structured fields and redaction.
+- [When clauses: a tiny language](./md/fanwit/learn/rebuild/07-when-clauses.md): A small expression language, like vault.open && resource.ext in ['md', 'txt'], that decides when commands, keys and menu items apply. A tokenizer, a recursive descent parser, and expressions compiled into closures.
+- [Context keys](./md/fanwit/learn/rebuild/08-context-keys.md): The values when clauses read. Global keys, keys that hold inside one part of the window, keys that follow focus and selection, and a version counter that makes Svelte re-check clauses when anything changes.
+- [Commands I: declarations and arguments](./md/fanwit/learn/rebuild/09-command-declarations.md): What a command is in FaNWiT, as data. The types every part of the app agrees on, and argument schemas that validate, coerce strings from the CLI, and tell the palette what to ask for.
+- [Commands II: the pipeline](./md/fanwit/learn/rebuild/10-command-pipeline.md): The registry that runs every command in FaNWiT through the same steps, from finding the handler to recording the result, plus interceptors, aliases, ranking by use, and undo with transactions.
+- [The keyboard](./md/fanwit/learn/rebuild/11-keyboard.md): From a key press to a command. Key notation that works on every keyboard layout and platform, chords like Ctrl+K Ctrl+S, precedence between core, modules, plugins and the user, and keys.toml.
+- [Events, lifecycle and services](./md/fanwit/learn/rebuild/12-events-lifecycle.md): Three small pieces the kernel is made of. A typed event bus that reaches one window or all of them, the phases a window goes through from boot to shutdown, and a container of lazy shared services.
+
+## FaNWiT: Rebuild: the kernel
+
+- [The kernel and modules](./md/fanwit/learn/rebuild/13-kernel-modules.md): One kernel per window holds everything you have built so far, and modules plug into it. Contributions that are data, read at boot; code that loads only when an activation event fires; and a ctx that cleans up after its module.
+
+## FaNWiT: Rebuild: services
+
+- [Notifications, jobs and translations](./md/fanwit/learn/rebuild/14-notify-jobs-i18n.md): The first services built on the kernel. One notification API that routes to a toast, the OS or the notification centre by itself; background jobs with progress and a concurrency limit; and messages with plurals in any language.
+- [Storage, live TOML files and the database](./md/fanwit/learn/rebuild/15-data.md): Where data lives. Key value storage in five scopes with one-line persisted state, TOML files that the app writes and you can edit while it runs, and SQLite with injection-proof queries, migrations and JSON collections.
+- [Settings](./md/fanwit/learn/rebuild/16-settings.md): Settings as declared data with types and limits, resolved through six layers from defaults to the command line, stored in settings.toml that you can edit, with secrets kept in the OS keychain.
+- [Vaults](./md/fanwit/learn/rebuild/17-vaults.md): A vault is a folder you choose. Opening one gives it an identity, a config folder, a lock so only one window writes to it, its own settings and data, a file system that cannot escape it, and indexes you can query.
+- [Motion, design tokens and themes](./md/fanwit/learn/rebuild/18-motion-themes.md): How FaNWiT looks and moves. Design tokens as CSS variables that Tailwind classes name, themes as TOML files compiled into those variables, colour maths for contrast and palettes, a pre-paint script so no window flashes, and one motion module for every animation.
+- [The layout model](./md/fanwit/learn/rebuild/19-layout-model.md): Every window, split, tab set and pane as one plain document that maps one to one onto workspace.toml, changed only by a pure reducer, and checked by a validator that points at the broken line.
+- [The layout service](./md/fanwit/learn/rebuild/20-layout-service.md): The live layout. One reactive document, actions that pass through interceptors and land in undo history, workspace.toml kept in sync both ways, every window told about changes, and a pane pool so moving a tab never restarts the view inside it.
+- [Windows](./md/fanwit/learn/rebuild/21-windows.md): Windows described by intent (a child that locks its parent, a floating panel, a sheet), turned into native windows on the desktop and virtual windows, modals, tabs or picture in picture on the web, with a promise for the result.
+- [Menus](./md/fanwit/learn/rebuild/22-menus.md): Menus as data. Locations that modules contribute items to, items that point at commands, rich item kinds like sliders and colour swatches, and user changes stored as small patches in menus.toml, so app updates and user edits never fight.
+- [Palette, status bar, icons and app config](./md/fanwit/learn/rebuild/23-palette-status-icons.md): The last services before the window. A fuzzy matcher, the command palette as a set of prefix providers that also asks for missing arguments, status bar items, icons loaded one at a time, and the app config that ties the build together.
+
+## FaNWiT: Rebuild: the window
+
+- [The core module](./md/fanwit/learn/rebuild/24-core-module.md): FaNWiT's own features declared the way any module declares them. About 120 commands with their default keys, the built in settings, menu locations and items, translations, the palette's providers, and the bridge that turns a terminal command line into a command run.
+- [The core handlers](./md/fanwit/learn/rebuild/25-core-handlers.md): What the core commands do. Short handlers that call the services, menus that act on the thing they were opened on, quitting without losing work, links that can only run what they are allowed to, and a macro recorder built from the command log.
+- [UI helpers and small components](./md/fanwit/learn/rebuild/26-ui-helpers.md): How a component reaches the kernel, translates its text and cleans up after itself; a context menu on any element through one Svelte action; and the four small components every view uses (Icon, KeyChip, EmptyState, ErrorCard).
+- [Drawing the layout](./md/fanwit/learn/rebuild/27-layout-renderer.md): The components that turn the layout document into a window. Regions around a recursive node renderer, splits with draggable splitters, tab sets, stacks and grids, empty slots the pane pool fills, an error boundary around every view, and docking by drag.
+- [The frame](./md/fanwit/learn/rebuild/28-frame.md): The chrome around the layout. The Workbench that holds a window together, a custom title bar with a menu bar, search and window controls, a status bar fed by modules, and the component that makes any view the root of a window.
+- [Overlays](./md/fanwit/learn/rebuild/29-overlays.md): Everything that floats above a window. The palette, context menus that stay on screen and forgive diagonal mouse moves, rich menu items, toasts you can swipe away, dialogs with buttons in the platform's order, popovers, virtual windows on the web, and the developer overlays.
+- [Booting the app](./md/fanwit/learn/rebuild/30-boot.md): The moment it all runs. The core module gathered into one definition, the boot sequence that creates every service and connects contributions to them, the SvelteKit routes for the main window and every other kind, what happens after the first paint, and the public API.
+
+## FaNWiT: Rebuild: the Rust core
+
+- [The Rust project](./md/fanwit/learn/rebuild/31-rust-project.md): The desktop half of FaNWiT. A Cargo workspace tuned for small release builds, a configuration with a strict content security policy and the isolation pattern, capabilities per kind of window, the run function that wires plugins, state and commands, and setup, logging, secrets and crash reports.
+- [The sandbox and the file system](./md/fanwit/learn/rebuild/32-sandbox-fs.md): How the desktop app lets the webview read and write files without letting it read everything. Allowed roots that only the user can add, paths resolved before they are checked, atomic writes, the OS trash, vault locks that cannot go stale, a watcher that pairs renames, and the TypeScript host that calls it all.
+- [SQLite in Rust](./md/fanwit/learn/rebuild/33-sqlite.md): The desktop side of ctx.db. Bundled SQLite with write ahead logging, one connection per file shared by every window, queries moved off Tauri's command threads, JSON values in and out, and an authorizer that keeps a plugin inside its own tables.
+- [Native windows and the tray](./md/fanwit/learn/rebuild/34-native-windows.md): The desktop side of chapter 21. Windows built from kind options, size and position remembered per identity and kept on a real screen, a child that locks its parent and answers clicks on it with a bell and a shake, drag targets across windows, the Windows system menu, and the tray.
+- [The command line, from Rust](./md/fanwit/learn/rebuild/35-cli-rust.md): How a terminal reaches the running app. Launch flags parsed before anything starts, one instance that receives later launches, a local socket the app listens on, and a tiny console binary that starts the app headless when needed and streams progress and exit codes back.
+- [Plugin files and sidecars](./md/fanwit/learn/rebuild/36-plugin-hosting.md): The two things Rust does for runtime plugins. It serves a plugin's page files from memory on a custom scheme with a policy that forbids network and IPC, and it runs a native plugin as a separate process that speaks JSON lines, chosen by id and never by path.
+
+## FaNWiT: Rebuild: features
+
+- [Files and editors](./md/fanwit/learn/rebuild/37-files-editors.md): The first real features, built only from what the earlier stages provide. File commands with undo, an explorer tree that is fully keyboard driven, a text editor that knows when it has unsaved changes, the live TOML editor, search, an outline, properties, and quick capture.
+- [Panels and system views](./md/fanwit/learn/rebuild/38-panels-system.md): The views every app needs and nobody designs first. A welcome tab built from commands, a first run tour whose choices apply as you make them, the vault manager, panels for commands, problems, jobs, logs and context keys, and the About, Update and Crash windows.
+- [Settings, keys, menus and themes](./md/fanwit/learn/rebuild/39-editors.md): The four editors for the four kinds of user state. A settings window generated from definitions, a keyboard shortcut editor that records keys and resolves conflicts, a context menu editor that only ever writes patches, and a theme studio that previews the whole app as you edit.
+- [Labs and developer tools](./md/fanwit/learn/rebuild/40-labs-devtools.md): The kitchen sink. Labs that let you poke at every system, from a live layout editor to a menu with colour swatches driving undoable commands, and the developer tools, an event monitor, a command log, a module profiler and a scripting console. All optional, and stripped in one line.
+- [Plugins](./md/fanwit/learn/rebuild/41-plugins.md): Code other people write, running in your app without being able to hurt it. A manifest with permissions, code that never runs on the main thread, one message protocol for JavaScript, WebAssembly and native programs, UI as widgets or a sandboxed page, transactional installs from signed registries, and the escape hatches when something goes wrong.
+- [The manual: from Markdown to pages](./md/fanwit/learn/rebuild/42-manual-pipeline.md): How this manual is built. Docsets discovered from folders, Markdown compiled to Svelte components with code highlighted at build time, TikZ diagrams compiled once and cached, real repository files embedded and kept in sync, a search index built ahead of time, and a checker that fails the build on a broken link.
+- [The manual: the reading app](./md/fanwit/learn/rebuild/43-manual-app.md): The window you are reading in. A layout preset of ordinary views, pages as tabs, reading levels and progress, search across pages, the API, commands and settings, reading settings for comfort and accessibility, diagrams that open large, and the same window as a public docs site.
+- [Playgrounds and labs](./md/fanwit/learn/rebuild/44-playgrounds.md): The editors you have been typing into all along. Svelte compiled in the browser with several files, JavaScript and TypeScript with their output, Rust run on the official playground, FaNWiT modules in a kernel of their own, and labs that notice when you got it right.
+- [Your app: modules and showcases](./md/fanwit/learn/rebuild/45-your-app.md): Where your code goes. The app folder found by glob, the fifteen line hello module, the notes sample with an editor, a preview, daily notes and backlinks from a vault index, and the showcases that rebuild famous apps as layout presets, all removable parts.
+
+## FaNWiT: Rebuild: tools and shipping
+
+- [The fw developer CLI](./md/fanwit/learn/rebuild/46-fw-cli.md): The command line for working on a FaNWiT app. Generators that write a module, command, view or window the way the conventions say, a doctor that checks the security setup, renames and versions, plugin building and signing, parts you can strip and restore, and the docs commands. Every command can show what it would change first.
+- [Schemas, tests and CI](./md/fanwit/learn/rebuild/47-tests-ci.md): How the rebuild stays correct. JSON schemas that make every TOML file autocomplete in your editor, unit tests in Node with a memory host, end to end tests in a real browser with helpers shared by every part, performance budgets measured on each run, and the CI workflows that check, publish and release.
+- [The Installer Kit: one engine](./md/fanwit/learn/rebuild/48-installer-engine.md): How FaNWiT installs on Windows, macOS and Linux from one description. installer.toml, a plan computed before anything changes, every system change as an action that is journaled and can be undone, rollback on failure, a receipt for repair and uninstall, one elevation prompt, and simulated machines for testing.
+- [The Installer Kit: setup and shipping](./md/fanwit/learn/rebuild/49-setup-shipping.md): The last pieces. The native packages' hooks generated from installer.toml, a themed Setup app built with FaNWiT's own tools, install steps that finish on the app's first launch, the Installer Lab, the fw installer commands, and tests that install for real on every OS. Then a look back at what you built.
+
+## FaNWiT: Getting started
+
+- [Getting started](./md/fanwit/getting-started.md): From a clone to a running app you own, a tour, and what to remove when you are ready.
+
+## FaNWiT: Concepts
+
+- [Concepts](./md/fanwit/concepts.md): The five principles behind FaNWiT, and the problem each one solves.
+
+## FaNWiT: Guides
+
+- [Modules](./md/fanwit/guides/modules.md): A feature in two halves, data the app reads at boot and code it loads on first use.
+- [Commands](./md/fanwit/guides/commands.md): The verbs of the app, and why every surface runs through them.
+- [Keyboard](./md/fanwit/guides/keyboard.md): Keys bind to commands, never to code, and your keys.toml always wins.
+- [Context keys](./md/fanwit/guides/context-keys.md): Named facts about the current situation, and the when clauses that read them.
+- [Context menus](./md/fanwit/guides/context-menus.md): Menus are data at named locations, rich item kinds, and user patches that survive updates.
+- [Layout](./md/fanwit/guides/layout.md): The whole UI is one live document of regions, nodes and panes.
+- [Windows](./md/fanwit/guides/windows.md): Describe what a window is for; the host decides how it appears on desktop and web.
+- [Notifications](./md/fanwit/guides/notifications.md): Say what happened once; the app picks the right place to show it.
+- [Themes](./md/fanwit/guides/themes.md): Themes are TOML files of design tokens; one colour can generate both modes.
+- [Vaults](./md/fanwit/guides/vaults.md): A folder the user chose, holding their files and the app's per project state.
+- [Data](./md/fanwit/guides/data.md): Where data lives (scopes), small values, and SQLite with migrations.
+- [Settings](./md/fanwit/guides/settings.md): Declare a setting once; its UI, file key, CLI flag and docs are generated.
+- [Plugins](./md/fanwit/guides/plugins.md)
+- [Command line](./md/fanwit/guides/cli.md): Every command marked cli can be run from a terminal, against the running app.
+- [Logging](./md/fanwit/guides/logging.md): Structured, scoped logs from the frontend and Rust in one viewer.
+- [TOML files](./md/fanwit/guides/toml.md): Every file the app keeps live, where it lives, and why it is TOML.
+- [Labs](./md/fanwit/guides/labs.md)
+- [Manual and docs](./md/fanwit/guides/manual.md): How the manual works, and how to write your app's own.
+
+## FaNWiT: Recipes
+
+- [Recipes](./md/fanwit/recipes.md): Four complete apps, each built from the same systems, and where each one lives in the template.
+
+## FaNWiT: Operations
+
+- [Operations](./md/fanwit/operations.md): Building, releasing, updating, signing and deploying, including the docs site.
+- [Troubleshooting](./md/fanwit/troubleshooting.md): The first thing to try for the problems people hit most.
+
+## FaNWiT: Internals
+
+- [Kernel](./md/fanwit/guides/kernel.md): One small core per window, and the shared tools every module builds on.
+- [Installer Kit](./md/fanwit/guides/installer.md)
+
+## FaNWiT: Installer
+
+- [Installer Kit reference](./md/fanwit/guides/installer-reference.md)
