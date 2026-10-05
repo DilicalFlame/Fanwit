@@ -29,6 +29,12 @@ test("context menu opens on a tab", async ({ page }) => {
 	await page.locator("[data-fw-tab]").first().click({ button: "right" });
 	await expect(page.getByRole("menu").first()).toBeVisible();
 	await expect(page.getByRole("menuitem", { name: /Close tab/ })).toBeVisible();
+	// the keyboard opens the same menu
+	await page.keyboard.press("Escape");
+	await expect(page.getByRole("menu")).toHaveCount(0);
+	await page.locator("[data-fw-tab]").first().focus();
+	await page.keyboard.press("Shift+F10");
+	await expect(page.getByRole("menuitem", { name: /Close tab/ })).toBeVisible();
 });
 
 test("a floating card dragged past the left and top edges stays there", async ({ page }) => {
