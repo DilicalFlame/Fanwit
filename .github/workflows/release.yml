@@ -92,6 +92,10 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           FW_GPG_KEY: ${{ secrets.FW_GPG_KEY }}
         run: |
+          # a missing secret arrives as an empty variable, which Tauri and codesign read as an identity ""
+          for v in APPLE_SIGNING_IDENTITY APPLE_INSTALLER_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID FW_GPG_KEY; do
+            [ -n "${!v}" ] || unset "$v"
+          done
           pnpm fw installer build --artefacts setup,portable,pkg,scripts,managers
           shopt -s nullglob
           files=(src-tauri/target/release/bundle/{setup,portable,pkg}/* src-tauri/gen/installer/install.sh src-tauri/gen/installer/install.ps1)
