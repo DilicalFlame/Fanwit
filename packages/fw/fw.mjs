@@ -968,7 +968,9 @@ async function docs() {
 				const ref = m[1].replace(/[#:].*$/, "").replace(/\/$/, "");
 				if (/[*<>{}$]/.test(ref)) continue; // patterns and placeholders
 				// build output and generated files (git ignored) appear only after a build
-				if (!exists(ref) && spawnSync("git", ["check-ignore", "-q", ref], { cwd: ROOT }).status !== 0) problems.push(`${file}: names \`${m[1]}\`, which does not exist`);
+				// a missing directory only matches a `target/` rule with a trailing slash
+				const ignored = [ref, `${ref}/`].some((r) => spawnSync("git", ["check-ignore", "-q", r], { cwd: ROOT }).status === 0);
+				if (!exists(ref) && !ignored) problems.push(`${file}: names \`${m[1]}\`, which does not exist`);
 			}
 			for (const m of p.body.matchAll(/pnpm fw ([a-z][\w-]*)/g)) if (!cliCommands.has(m[1])) problems.push(`${file}: \`pnpm fw ${m[1]}\` is not a fw command`);
 		}
