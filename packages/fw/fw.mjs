@@ -1505,7 +1505,8 @@ function buildPortable(app, triple) {
 	const out = path.join(outDir, `${app.name}_${app.version}_x64_portable.zip`);
 	fs.rmSync(out, { force: true });
 	// bsdtar (Windows 10+) writes zip with -a
-	execSync(`tar -a -cf "${out}" -C "${outDir}" "${app.name}"`);
+	// the system bsdtar by full path: Git Bash puts GNU tar first on CI, and it reads "D:" as a host
+	execSync(`"${path.join(process.env.SystemRoot ?? "C:/Windows", "System32", "tar.exe")}" -a -cf "${out}" -C "${outDir}" "${app.name}"`);
 	fs.rmSync(stage, { recursive: true, force: true });
 	sign(out);
 	console.log(`portable: ${rel(out)} (unzip and run ${app.slug}${exeExt(triple)}; steps run on first launch)`);
@@ -1613,11 +1614,21 @@ async function installer() {
 		const sidecars = await fetchSidecars(doc, triple);
 		for (const [f, t] of Object.entries(files)) if (want.includes("native") || want.includes("pkg") || (want.includes("scripts") && f.startsWith("install.")) || (want.includes("managers") && f.startsWith("managers/"))) write(`${INST}/${f}`, t);
 		if (want.includes("native")) {
-			if (!DRY && spawnSync("cargo", ["build", "--release", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die("could not build the engine");
 			const bin = `src-tauri/binaries/${ENGINE}-${triple}${exeExt(triple)}`;
 			if (!DRY) {
 				fs.mkdirSync(abs("src-tauri/binaries"), { recursive: true });
-				fs.copyFileSync(abs(`src-tauri/target/release/${ENGINE}${exeExt(triple)}`), abs(bin));
+				if (process.platform === "darwin") {
+					// a universal app needs the engine per architecture and a lipo merged universal one
+					const arches = ["aarch64-apple-darwin", "x86_64-apple-darwin"];
+					for (const t of arches) {
+						if (spawnSync("cargo", ["build", "--release", "--target", t, "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die(`could not build the engine for ${t}`);
+						fs.copyFileSync(abs(`src-tauri/target/${t}/release/${ENGINE}`), abs(`src-tauri/binaries/${ENGINE}-${t}`));
+					}
+					execSync(`lipo -create -output "${abs(`src-tauri/binaries/${ENGINE}-universal-apple-darwin`)}" ${arches.map((t) => `"${abs(`src-tauri/binaries/${ENGINE}-${t}`)}"`).join(" ")}`);
+				} else {
+					if (spawnSync("cargo", ["build", "--release", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die("could not build the engine");
+					fs.copyFileSync(abs(`src-tauri/target/release/${ENGINE}${exeExt(triple)}`), abs(bin));
+				}
 			}
 			changed.push(`update ${bin}`);
 			write(`${INST}/tauri.installer.conf.json`, JSON.stringify(installerTauriConf(doc, sidecars), null, "\t") + "\n");
