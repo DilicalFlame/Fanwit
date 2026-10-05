@@ -1,0 +1,1 @@
+import{G as t}from"./DVcFnmNU.js";function s(a){let e=1;a.commands.handle("showcase.terminal.new",()=>a.layout.openView("showcase.terminal",{name:`Terminal ${++e}`},{target:t(a,"showcase.terminal","terminals")}))}export{s as default};
