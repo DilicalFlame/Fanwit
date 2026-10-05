@@ -163,7 +163,13 @@ function applyVersion(version) {
 	conf.version = version;
 	write("src-tauri/tauri.conf.json", JSON.stringify(conf, null, "\t") + "\n");
 	write("src-tauri/Cargo.toml", setTomlKey(read("src-tauri/Cargo.toml"), "package", "version", version));
-	if (exists("src-tauri/Cargo.lock")) write("src-tauri/Cargo.lock", read("src-tauri/Cargo.lock").replace(new RegExp(`(name = "${id.app.slug}"\\r?\\nversion = )"[^"]+"`), `$1"${version}"`));
+	// the Setup app and the install engine ship in the product's installers: one version for all
+	const crates = [id.app.slug, "fanwit-setup", "fanwit-install"];
+	for (const dir of ["setup", "install"]) write(`src-tauri/${dir}/Cargo.toml`, setTomlKey(read(`src-tauri/${dir}/Cargo.toml`), "package", "version", version));
+	const setupConf = JSON.parse(read("src-tauri/setup/tauri.conf.json"));
+	setupConf.version = version;
+	write("src-tauri/setup/tauri.conf.json", JSON.stringify(setupConf, null, "\t") + "\n");
+	if (exists("src-tauri/Cargo.lock")) write("src-tauri/Cargo.lock", crates.reduce((lock, name) => lock.replace(new RegExp(`(name = "${name}"\\r?\\nversion = )"[^"]+"`), `$1"${version}"`), read("src-tauri/Cargo.lock")));
 	writeIdentity({ ...id, app: { ...id.app, version } });
 }
 function version() {
