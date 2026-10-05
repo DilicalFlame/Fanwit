@@ -147,7 +147,7 @@ The app's default layout is a TOML file, read with `?raw` (chapter 18) and writt
 
 <Source path="src/fanwit/layout/presets/vscode.toml" />
 
-`${vault.name}` in the title is filled in by the frame at draw time. `[window.main.responsive]` turns the sidebar into a drawer under 900 pixels, and the main area into a single pane under 640; the renderer (chapter 22) applies it, so the document stays the same on every screen.
+`${vault.name}` in the title is filled in by the frame at draw time. `[window.main.responsive]` turns the sidebar into a drawer under 900 pixels, and the main area into a single pane under 640; the layout renderer (in "Rebuild: the window") applies it, so the document stays the same on every screen.
 
 ## Checkpoint
 

@@ -117,7 +117,7 @@ A **Svelte action** (`use:adoptPane={{ pool, pane }}`) is a function called with
 
 </Callout>
 
-`hostComponent` is set by the workbench (chapter 22) to `ViewHost.svelte`, which shows a view's loading, error and empty states around it.
+`hostComponent` is set by the workbench (in "Rebuild: the window") to `ViewHost.svelte`, which shows a view's loading, error and empty states around it.
 
 <Source path="src/fanwit/layout/layout.svelte.ts" />
 
