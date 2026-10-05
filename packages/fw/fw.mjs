@@ -1497,6 +1497,7 @@ function buildPortable(app, triple) {
 		if (!b.app) die("build the native packages first (bundle/macos/*.app)");
 		const out = path.join(outDir, `${app.name}_${app.version}_portable.zip`);
 		execSync(`ditto -c -k --keepParent "${b.app}" "${out}"`);
+		fs.rmSync(stage, { recursive: true, force: true }); // the empty staging folder would break the release upload
 		return console.log(`portable: ${rel(out)}`);
 	}
 	const rel_ = (f) => abs(`src-tauri/target/release/${f}${exeExt(triple)}`);
