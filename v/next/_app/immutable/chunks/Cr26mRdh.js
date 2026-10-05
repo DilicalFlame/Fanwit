@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as t,r as c}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function m(r,e){let o=c(e,["$$slots","$$events","$$legacy"]);const s={name:"blend",size:24,node:[["circle",{cx:"15",cy:"9",r:"7"}],["circle",{cx:"9",cy:"15",r:"7"}]]};n(r,t(()=>o,{get icon(){return s}}))}export{m as default};

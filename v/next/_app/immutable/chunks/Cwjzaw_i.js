@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as n,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function c(e,o){let r=s(o,["$$slots","$$events","$$legacy"]);const t={name:"underline",size:24,node:[["path",{d:"M6 4v6a6 6 0 0 0 12 0V4"}],["line",{x1:"4",x2:"20",y1:"20",y2:"20"}]]};p(e,n(()=>r,{get icon(){return t}}))}export{c as default};

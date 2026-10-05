@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as n,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function f(t,o){let r=a(o,["$$slots","$$events","$$legacy"]);const s={name:"infinity",size:24,node:[["path",{d:"M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"}]]};e(t,n(()=>r,{get icon(){return s}}))}export{f as default};

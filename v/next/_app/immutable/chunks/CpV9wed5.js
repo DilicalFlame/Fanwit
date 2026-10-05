@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as r}from"./Dib7RAlX.js";function d(t,e){let o=p(e,["$$slots","$$events","$$legacy"]);const s={name:"baseline",size:24,node:[["path",{d:"M4 20h16"}],["path",{d:"m6 16 6-12 6 12"}],["path",{d:"M8 12h8"}]]};r(t,a(()=>o,{get icon(){return s}}))}export{d as default};

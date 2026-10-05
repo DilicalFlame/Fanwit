@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as p,r as t}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as i}from"./BVblOk2d.js";function m(e,s){let o=t(s,["$$slots","$$events","$$legacy"]);const r={name:"ellipse",size:24,node:[["ellipse",{cx:"12",cy:"12",rx:"10",ry:"6"}]]};i(e,p(()=>o,{get icon(){return r}}))}export{m as default};

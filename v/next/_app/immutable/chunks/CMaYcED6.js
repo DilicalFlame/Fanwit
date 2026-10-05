@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function m(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const e={name:"line-dot-top-vertical",size:24,node:[["path",{d:"M12 9v12"}],["circle",{cx:"12",cy:"6",r:"3"}]]};a(t,p(()=>r,{get icon(){return e}}))}export{m as default};

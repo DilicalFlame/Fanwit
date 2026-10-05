@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function c(o,r){let t=p(r,["$$slots","$$events","$$legacy"]);const a={name:"forward",size:24,node:[["path",{d:"m15 17 5-5-5-5"}],["path",{d:"M4 18v-2a4 4 0 0 1 4-4h12"}]]};e(o,s(()=>t,{get icon(){return a}}))}export{c as default};

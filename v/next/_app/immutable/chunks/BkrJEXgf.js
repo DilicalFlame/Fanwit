@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function f(o,t){let r=a(t,["$$slots","$$events","$$legacy"]);const s={name:"wifi-low",size:24,node:[["path",{d:"M12 20h.01"}],["path",{d:"M8.5 16.429a5 5 0 0 1 7 0"}]]};e(o,p(()=>r,{get icon(){return s}}))}export{f as default};

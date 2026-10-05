@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as i,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function l(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const e={name:"git-commit-vertical",size:24,node:[["path",{d:"M12 3v6"}],["circle",{cx:"12",cy:"12",r:"3"}],["path",{d:"M12 15v6"}]]};a(t,i(()=>r,{get icon(){return e}}))}export{l as default};

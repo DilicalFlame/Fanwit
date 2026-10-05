@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as r}from"./Dib7RAlX.js";function d(e,t){let a=s(t,["$$slots","$$events","$$legacy"]);const o={name:"japanese-yen",size:24,node:[["path",{d:"M12 9.5V21m0-11.5L6 3m6 6.5L18 3"}],["path",{d:"M6 15h12"}],["path",{d:"M6 11h12"}]]};r(e,p(()=>a,{get icon(){return o}}))}export{d as default};

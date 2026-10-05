@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as e}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function d(o,a){let t=e(a,["$$slots","$$events","$$legacy"]);const r={name:"command",size:24,node:[["path",{d:"M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"}]]};p(o,s(()=>t,{get icon(){return r}}))}export{d as default};

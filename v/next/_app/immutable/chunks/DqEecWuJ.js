@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as i}from"./Dib7RAlX.js";function m(t,a){let o=p(a,["$$slots","$$events","$$legacy"]);const s={name:"zodiac-sagittarius",size:24,node:[["path",{d:"M15 3h6v6"}],["path",{d:"M21 3 3 21"}],["path",{d:"m9 9 6 6"}]]};i(t,r(()=>o,{get icon(){return s}}))}export{m as default};

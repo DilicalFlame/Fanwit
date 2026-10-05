@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as a,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function d(r,t){let o=p(t,["$$slots","$$events","$$legacy"]);const s={name:"turkish-lira",size:24,node:[["path",{d:"M15 4 5 9"}],["path",{d:"m15 8.5-10 5"}],["path",{d:"M18 12a9 9 0 0 1-9 9V3"}]]};e(r,a(()=>o,{get icon(){return s}}))}export{d as default};

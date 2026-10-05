@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function $(t,o){let r=p(o,["$$slots","$$events","$$legacy"]);const e={name:"tv",size:24,node:[["path",{d:"m17 2-5 5-5-5"}],["rect",{width:"20",height:"15",x:"2",y:"7",rx:"2"}]]};a(t,s(()=>r,{get icon(){return e}}))}export{$ as default};

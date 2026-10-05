@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as p,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function m(o,t){let r=s(t,["$$slots","$$events","$$legacy"]);const e={name:"copyleft",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M9.17 14.83a4 4 0 1 0 0-5.66"}]]};a(o,p(()=>r,{get icon(){return e}}))}export{m as default};

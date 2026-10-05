@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function m(t,a){let e=s(a,["$$slots","$$events","$$legacy"]);const o={name:"flag-triangle-left",size:24,node:[["path",{d:"M18 22V2.8a.8.8 0 0 0-1.17-.71L5.45 7.78a.8.8 0 0 0 0 1.44L18 15.5"}]]};p(t,r(()=>e,{get icon(){return o}}))}export{m as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as n}from"./Dib7RAlX.js";function c(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const p={name:"trending-up",size:24,node:[["path",{d:"M16 7h6v6"}],["path",{d:"m22 7-8.5 8.5-5-5L2 17"}]]};n(t,e(()=>r,{get icon(){return p}}))}export{c as default};

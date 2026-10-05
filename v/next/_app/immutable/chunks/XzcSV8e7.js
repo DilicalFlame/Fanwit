@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function $(t,r){let e=a(r,["$$slots","$$events","$$legacy"]);const o={name:"battery",size:24,node:[["path",{d:"M 22 14 L 22 10"}],["rect",{x:"2",y:"6",width:"16",height:"12",rx:"2"}]]};p(t,s(()=>e,{get icon(){return o}}))}export{$ as default};

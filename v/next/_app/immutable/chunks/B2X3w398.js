@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function c(t,o){let r=p(o,["$$slots","$$events","$$legacy"]);const s={name:"list-filter",size:24,node:[["path",{d:"M2 5h20"}],["path",{d:"M6 12h12"}],["path",{d:"M9 19h6"}]]};a(t,e(()=>r,{get icon(){return s}}))}export{c as default};

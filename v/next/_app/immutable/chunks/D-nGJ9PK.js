@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as s}from"./Dib7RAlX.js";function d(t,r){let a=p(r,["$$slots","$$events","$$legacy"]);const o={name:"separator-vertical",size:24,node:[["path",{d:"M12 3v18"}],["path",{d:"m16 16 4-4-4-4"}],["path",{d:"m8 8-4 4 4 4"}]]};s(t,e(()=>a,{get icon(){return o}}))}export{d as default};

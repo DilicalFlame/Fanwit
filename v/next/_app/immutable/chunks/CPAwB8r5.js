@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as t}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function m(c,e){let r=t(e,["$$slots","$$events","$$legacy"]);const o={name:"circle-check",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m16 9-5.5 5.5L8 12"}]],aliases:["check-circle-2"]};a(c,s(()=>r,{get icon(){return o}}))}export{m as default};

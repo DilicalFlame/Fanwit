@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function d(o,t){let r=a(t,["$$slots","$$events","$$legacy"]);const p={name:"pilcrow",size:24,node:[["path",{d:"M13 4v16"}],["path",{d:"M17 4v16"}],["path",{d:"M19 4H9.5a4.5 4.5 0 0 0 0 9H13"}]]};e(o,s(()=>r,{get icon(){return p}}))}export{d as default};

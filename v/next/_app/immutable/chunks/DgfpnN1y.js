@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function d(t,e){let o=s(e,["$$slots","$$events","$$legacy"]);const p={name:"check-line",size:24,node:[["path",{d:"M20 4L9 15"}],["path",{d:"M21 19L3 19"}],["path",{d:"M9 15L4 10"}]]};a(t,r(()=>o,{get icon(){return p}}))}export{d as default};

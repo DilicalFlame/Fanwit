@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as c}from"./Dib7RAlX.js";function h(e,o){let t=p(o,["$$slots","$$events","$$legacy"]);const r={name:"check-check",size:24,node:[["path",{d:"M18 6 7 17l-5-5"}],["path",{d:"m22 10-7.5 7.5L13 16"}]]};c(e,s(()=>t,{get icon(){return r}}))}export{h as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function l(t,o){let r=a(o,["$$slots","$$events","$$legacy"]);const e={name:"mail",size:24,node:[["path",{d:"m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"}],["rect",{x:"2",y:"4",width:"20",height:"16",rx:"2"}]]};p(t,s(()=>r,{get icon(){return e}}))}export{l as default};

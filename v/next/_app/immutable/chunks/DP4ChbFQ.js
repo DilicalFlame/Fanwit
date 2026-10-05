@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as o,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function m(e,t){let r=a(t,["$$slots","$$events","$$legacy"]);const s={name:"panel-left",size:24,node:[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M9 3v18"}]],aliases:["sidebar"]};p(e,o(()=>r,{get icon(){return s}}))}export{m as default};

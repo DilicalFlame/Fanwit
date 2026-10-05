@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as i}from"./BVblOk2d.js";function f(o,r){let t=p(r,["$$slots","$$events","$$legacy"]);const e={name:"wifi-zero",size:24,node:[["path",{d:"M12 20h.01"}]]};i(o,s(()=>t,{get icon(){return e}}))}export{f as default};

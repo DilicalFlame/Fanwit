@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as e}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function l(a,o){let t=e(o,["$$slots","$$events","$$legacy"]);const r={name:"chart-no-axes-column",size:24,node:[["path",{d:"M5 21v-6"}],["path",{d:"M12 21V3"}],["path",{d:"M19 21V9"}]],aliases:["bar-chart-2"]};p(a,s(()=>t,{get icon(){return r}}))}export{l as default};

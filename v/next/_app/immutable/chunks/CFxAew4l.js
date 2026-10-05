@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as a,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function $(s,r){let o=e(r,["$$slots","$$events","$$legacy"]);const t={name:"rss",size:24,node:[["path",{d:"M4 11a9 9 0 0 1 9 9"}],["path",{d:"M4 4a16 16 0 0 1 16 16"}],["circle",{cx:"5",cy:"19",r:"1"}]]};p(s,a(()=>o,{get icon(){return t}}))}export{$ as default};

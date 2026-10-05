@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function h(t,r){let e=p(r,["$$slots","$$events","$$legacy"]);const o={name:"square-stop",size:24,node:[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["rect",{x:"9",y:"9",width:"6",height:"6",rx:"1"}]]};a(t,s(()=>e,{get icon(){return o}}))}export{h as default};

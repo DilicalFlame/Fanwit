@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as i}from"./Dib7RAlX.js";function g(r,t){let o=p(t,["$$slots","$$events","$$legacy"]);const e={name:"ungroup",size:24,node:[["rect",{x:"11",y:"14",width:"10",height:"7",rx:"2"}],["rect",{x:"3",y:"3",width:"10",height:"7",rx:"2"}]]};i(r,s(()=>o,{get icon(){return e}}))}export{g as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as n}from"./Dib7RAlX.js";function m(t,o){let r=a(o,["$$slots","$$events","$$legacy"]);const e={name:"rectangle-horizontal",size:24,node:[["rect",{width:"20",height:"12",x:"2",y:"6",rx:"2"}]]};n(t,s(()=>r,{get icon(){return e}}))}export{m as default};

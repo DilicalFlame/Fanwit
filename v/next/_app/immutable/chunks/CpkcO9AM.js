@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as t,r as c}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function m(r,s){let e=c(s,["$$slots","$$events","$$legacy"]);const o={name:"circle-slash",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["line",{x1:"9",x2:"15",y1:"15",y2:"9"}]]};a(r,t(()=>e,{get icon(){return o}}))}export{m as default};

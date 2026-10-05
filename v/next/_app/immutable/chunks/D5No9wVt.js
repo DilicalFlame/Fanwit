@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function d(t,o){let p=s(o,["$$slots","$$events","$$legacy"]);const e={name:"x-line-top",size:24,node:[["path",{d:"M18 4H6"}],["path",{d:"M18 8 6 20"}],["path",{d:"m6 8 12 12"}]]};a(t,r(()=>p,{get icon(){return e}}))}export{d as default};

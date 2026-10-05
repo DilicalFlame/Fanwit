@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function d(t,s){let o=p(s,["$$slots","$$events","$$legacy"]);const r={name:"asterisk",size:24,node:[["path",{d:"M12 5v14"}],["path",{d:"m18.065 8.496-12.125 7"}],["path",{d:"m5.94 8.504 12.125 7"}]]};a(t,e(()=>o,{get icon(){return r}}))}export{d as default};

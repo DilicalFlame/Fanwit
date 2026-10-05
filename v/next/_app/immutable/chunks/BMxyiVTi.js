@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as t,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function m(r,o){let s=p(o,["$$slots","$$events","$$legacy"]);const e={name:"torus",size:24,node:[["ellipse",{cx:"12",cy:"11",rx:"3",ry:"2"}],["ellipse",{cx:"12",cy:"12.5",rx:"10",ry:"8.5"}]]};a(r,t(()=>s,{get icon(){return e}}))}export{m as default};

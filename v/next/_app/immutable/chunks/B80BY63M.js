@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function d(t,e){let o=a(e,["$$slots","$$events","$$legacy"]);const r={name:"table-2",size:24,node:[["path",{d:"M3 9h18"}],["path",{d:"M9 3v18"}],["rect",{x:"3",y:"3",width:"18",height:"18",rx:"2"}]]};p(t,s(()=>o,{get icon(){return r}}))}export{d as default};

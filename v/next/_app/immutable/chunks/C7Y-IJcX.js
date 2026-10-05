@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function c(t,s){let o=a(s,["$$slots","$$events","$$legacy"]);const p={name:"list-minus",size:24,node:[["path",{d:"M16 5H3"}],["path",{d:"M11 12H3"}],["path",{d:"M16 19H3"}],["path",{d:"M21 12h-6"}]]};e(t,r(()=>o,{get icon(){return p}}))}export{c as default};

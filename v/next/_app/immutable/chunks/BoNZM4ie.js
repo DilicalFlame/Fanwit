@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function d(t,a){let o=e(a,["$$slots","$$events","$$legacy"]);const r={name:"share",size:24,node:[["path",{d:"M12 2v13"}],["path",{d:"m16 6-4-4-4 4"}],["path",{d:"M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"}]]};p(t,s(()=>o,{get icon(){return r}}))}export{d as default};

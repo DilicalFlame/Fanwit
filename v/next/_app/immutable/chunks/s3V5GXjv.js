@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function $(o,r){let t=e(r,["$$slots","$$events","$$legacy"]);const p={name:"copyright",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M14.83 14.83a4 4 0 1 1 0-5.66"}]]};a(o,s(()=>t,{get icon(){return p}}))}export{$ as default};

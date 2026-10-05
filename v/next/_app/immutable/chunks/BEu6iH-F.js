@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as e,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function c(a,t){let o=r(t,["$$slots","$$events","$$legacy"]);const s={name:"bangladeshi-taka",size:24,node:[["path",{d:"M6 5a2 2 0 0 1 4 0v12a4 4 0 0 0 8 0 2 2 0 0 0-4 0"}],["path",{d:"M6 9h12"}]]};p(a,e(()=>o,{get icon(){return s}}))}export{c as default};

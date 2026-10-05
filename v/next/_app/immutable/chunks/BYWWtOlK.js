@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as a,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as e}from"./BVblOk2d.js";function d(s,t){let o=p(t,["$$slots","$$events","$$legacy"]);const r={name:"swiss-franc",size:24,node:[["path",{d:"M10 21V3h8"}],["path",{d:"M6 16h9"}],["path",{d:"M10 9.5h7"}]]};e(s,a(()=>o,{get icon(){return r}}))}export{d as default};

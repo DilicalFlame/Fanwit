@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function d(o,r){let t=s(r,["$$slots","$$events","$$legacy"]);const p={name:"arrow-up-from-line",size:24,node:[["path",{d:"m18 9-6-6-6 6"}],["path",{d:"M12 3v14"}],["path",{d:"M5 21h14"}]]};a(o,e(()=>t,{get icon(){return p}}))}export{d as default};

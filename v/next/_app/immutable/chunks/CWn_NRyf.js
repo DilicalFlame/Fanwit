@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function $(t,o){let r=p(o,["$$slots","$$events","$$legacy"]);const s={name:"usb-c-port",size:24,node:[["path",{d:"M6 12h12"}],["rect",{x:"2",y:"8",width:"20",height:"8",rx:"4"}]]};a(t,e(()=>r,{get icon(){return s}}))}export{$ as default};

@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as p,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function d(o,r){let s=e(r,["$$slots","$$events","$$legacy"]);const t={name:"chevrons-down-up",size:24,node:[["path",{d:"m7 20 5-5 5 5"}],["path",{d:"m7 4 5 5 5-5"}]]};n(o,p(()=>s,{get icon(){return t}}))}export{d as default};

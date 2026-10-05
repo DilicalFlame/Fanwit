@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as c,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function m(e,r){let t=a(r,["$$slots","$$events","$$legacy"]);const o={name:"rectangle-circle",size:24,node:[["path",{d:"M14 4v16H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"}],["circle",{cx:"14",cy:"12",r:"8"}]]};s(e,c(()=>t,{get icon(){return o}}))}export{m as default};

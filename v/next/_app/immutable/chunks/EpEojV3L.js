@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as r,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function d(o,t){let a=s(t,["$$slots","$$events","$$legacy"]);const e={name:"chart-no-axes-column-decreasing",size:24,node:[["path",{d:"M5 21V3"}],["path",{d:"M12 21V9"}],["path",{d:"M19 21v-6"}]]};n(o,r(()=>a,{get icon(){return e}}))}export{d as default};

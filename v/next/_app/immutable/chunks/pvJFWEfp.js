@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function $(o,t){let r=e(t,["$$slots","$$events","$$legacy"]);const s={name:"book",size:24,node:[["path",{d:"M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"}]]};p(o,a(()=>r,{get icon(){return s}}))}export{$ as default};

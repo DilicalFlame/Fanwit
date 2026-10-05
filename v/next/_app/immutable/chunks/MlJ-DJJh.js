@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as r,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function d(t,a){let o=s(a,["$$slots","$$events","$$legacy"]);const p={name:"kanban",size:24,node:[["path",{d:"M5 3v14"}],["path",{d:"M12 3v8"}],["path",{d:"M19 3v18"}]]};n(t,r(()=>o,{get icon(){return p}}))}export{d as default};

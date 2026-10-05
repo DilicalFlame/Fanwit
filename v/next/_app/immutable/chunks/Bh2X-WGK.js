@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function m(t,o){let p=a(o,["$$slots","$$events","$$legacy"]);const r={name:"diff",size:24,node:[["path",{d:"M12 3v14"}],["path",{d:"M5 10h14"}],["path",{d:"M5 21h14"}]]};e(t,s(()=>p,{get icon(){return r}}))}export{m as default};

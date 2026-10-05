@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as i}from"./Dib7RAlX.js";function l(t,o){let r=a(o,["$$slots","$$events","$$legacy"]);const s={name:"tv-minimal",size:24,node:[["path",{d:"M7 21h10"}],["rect",{width:"20",height:"14",x:"2",y:"3",rx:"2"}]],aliases:["tv-2"]};i(t,e(()=>r,{get icon(){return s}}))}export{l as default};

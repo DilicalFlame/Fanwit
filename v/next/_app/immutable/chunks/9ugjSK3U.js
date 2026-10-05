@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as s}from"./Dib7RAlX.js";function d(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const a={name:"move-horizontal",size:24,node:[["path",{d:"m18 8 4 4-4 4"}],["path",{d:"M2 12h20"}],["path",{d:"m6 8-4 4 4 4"}]]};s(o,e(()=>r,{get icon(){return a}}))}export{d as default};

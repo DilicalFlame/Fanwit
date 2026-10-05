@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as e}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function $(r,o){let s=e(o,["$$slots","$$events","$$legacy"]);const t={name:"mars",size:24,node:[["path",{d:"M16 3h5v5"}],["path",{d:"m21 3-6.75 6.75"}],["circle",{cx:"10",cy:"14",r:"6"}]]};p(r,a(()=>s,{get icon(){return t}}))}export{$ as default};

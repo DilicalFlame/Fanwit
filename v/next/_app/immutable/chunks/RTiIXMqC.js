@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function c(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const s={name:"undo-2",size:24,node:[["path",{d:"M9 14 4 9l5-5"}],["path",{d:"M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"}]]};e(o,a(()=>r,{get icon(){return s}}))}export{c as default};

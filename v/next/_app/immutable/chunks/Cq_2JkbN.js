@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as t}from"./Dib7RAlX.js";function m(r,e){let o=p(e,["$$slots","$$events","$$legacy"]);const c={name:"circle-chevron-up",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"m8 14 4-4 4 4"}]],aliases:["chevron-up-circle"]};t(r,s(()=>o,{get icon(){return c}}))}export{m as default};

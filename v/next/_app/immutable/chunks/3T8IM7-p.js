@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as r,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function d(t,a){let e=p(a,["$$slots","$$events","$$legacy"]);const o={name:"beaker",size:24,node:[["path",{d:"M4.5 3h15"}],["path",{d:"M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3"}],["path",{d:"M6 14h12"}]]};s(t,r(()=>e,{get icon(){return o}}))}export{d as default};

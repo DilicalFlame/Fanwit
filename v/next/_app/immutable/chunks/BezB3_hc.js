@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function m(r,e){let o=a(e,["$$slots","$$events","$$legacy"]);const t={name:"circle-equal",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M7 10h10"}],["path",{d:"M7 14h10"}]]};p(r,s(()=>o,{get icon(){return t}}))}export{m as default};

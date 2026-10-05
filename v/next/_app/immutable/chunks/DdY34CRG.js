@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function c(o,t){let s=p(t,["$$slots","$$events","$$legacy"]);const r={name:"signal-low",size:24,node:[["path",{d:"M2 20h.01"}],["path",{d:"M7 20v-4"}]]};e(o,a(()=>s,{get icon(){return r}}))}export{c as default};

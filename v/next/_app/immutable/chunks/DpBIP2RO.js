@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function l(o,r){let s=a(r,["$$slots","$$events","$$legacy"]);const t={name:"signal-zero",size:24,node:[["path",{d:"M2 20h.01"}]]};p(o,e(()=>s,{get icon(){return t}}))}export{l as default};

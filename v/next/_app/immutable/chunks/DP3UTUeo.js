@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function $(s,e){let t=p(e,["$$slots","$$events","$$legacy"]);const o={name:"parentheses",size:24,node:[["path",{d:"M8 21s-4-3-4-9 4-9 4-9"}],["path",{d:"M16 3s4 3 4 9-4 9-4 9"}]]};a(s,r(()=>t,{get icon(){return o}}))}export{$ as default};

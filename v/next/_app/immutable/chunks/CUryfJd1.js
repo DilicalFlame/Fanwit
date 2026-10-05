@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as i,r as t}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as c}from"./Dib7RAlX.js";function l(r,s){let e=t(s,["$$slots","$$events","$$legacy"]);const o={name:"circle-minus",size:24,node:[["circle",{cx:"12",cy:"12",r:"10"}],["path",{d:"M8 12h8"}]],aliases:["minus-circle"]};c(r,i(()=>e,{get icon(){return o}}))}export{l as default};

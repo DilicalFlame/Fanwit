@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as e,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function d(t,o){let s=r(o,["$$slots","$$events","$$legacy"]);const p={name:"list-check",size:24,node:[["path",{d:"M16 5H3"}],["path",{d:"M16 12H3"}],["path",{d:"M11 19H3"}],["path",{d:"m15 18 2 2 4-4"}]]};a(t,e(()=>s,{get icon(){return p}}))}export{d as default};

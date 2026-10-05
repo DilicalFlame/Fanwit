@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as s}from"./Dib7RAlX.js";function c(t,o){let p=r(o,["$$slots","$$events","$$legacy"]);const a={name:"bed",size:24,node:[["path",{d:"M2 4v16"}],["path",{d:"M2 8h18a2 2 0 0 1 2 2v10"}],["path",{d:"M2 17h20"}],["path",{d:"M6 8v9"}]]};s(t,e(()=>p,{get icon(){return a}}))}export{c as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as p,r as e}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function $(o,t){let r=e(t,["$$slots","$$events","$$legacy"]);const s={name:"x",size:24,node:[["path",{d:"M18 6 6 18"}],["path",{d:"m6 6 12 12"}]]};a(o,p(()=>r,{get icon(){return s}}))}export{$ as default};

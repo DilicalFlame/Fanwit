@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as t,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function m(r,e){let o=p(e,["$$slots","$$events","$$legacy"]);const s={name:"cylinder",size:24,node:[["ellipse",{cx:"12",cy:"5",rx:"9",ry:"3"}],["path",{d:"M3 5v14a9 3 0 0 0 18 0V5"}]]};a(r,t(()=>o,{get icon(){return s}}))}export{m as default};

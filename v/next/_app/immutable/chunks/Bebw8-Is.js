@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function h(t,o){let r=p(o,["$$slots","$$events","$$legacy"]);const e={name:"dock",size:24,node:[["path",{d:"M2 8h20"}],["rect",{width:"20",height:"16",x:"2",y:"4",rx:"2"}],["path",{d:"M6 16h12"}]]};a(t,s(()=>r,{get icon(){return e}}))}export{h as default};

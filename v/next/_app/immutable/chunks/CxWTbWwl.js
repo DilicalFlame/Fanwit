@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as i}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function h(t,r){let o=i(r,["$$slots","$$events","$$legacy"]);const e={name:"ratio",size:24,node:[["rect",{width:"12",height:"20",x:"6",y:"2",rx:"2"}],["rect",{width:"20",height:"12",x:"2",y:"6",rx:"2"}]]};a(t,s(()=>o,{get icon(){return e}}))}export{h as default};

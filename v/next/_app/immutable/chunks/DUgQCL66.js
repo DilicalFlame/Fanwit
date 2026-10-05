@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as r,r as p}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function m(t,s){let o=p(s,["$$slots","$$events","$$legacy"]);const e={name:"list-sort-descending",size:24,node:[["path",{d:"M15 12H3"}],["path",{d:"M3 5h18"}],["path",{d:"M9 19H3"}]]};n(t,r(()=>o,{get icon(){return e}}))}export{m as default};

@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as e,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(o,t){let r=a(t,["$$slots","$$events","$$legacy"]);const s={name:"chevron-last",size:24,node:[["path",{d:"m7 18 6-6-6-6"}],["path",{d:"M17 6v12"}]]};p(o,e(()=>r,{get icon(){return s}}))}export{l as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function h(t,r){let e=p(r,["$$slots","$$events","$$legacy"]);const o={name:"dice-2",size:24,node:[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2",ry:"2"}],["path",{d:"M15 9h.01"}],["path",{d:"M9 15h.01"}]]};a(t,s(()=>e,{get icon(){return o}}))}export{h as default};

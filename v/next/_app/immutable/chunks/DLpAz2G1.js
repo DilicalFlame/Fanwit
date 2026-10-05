@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as e,r}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as s}from"./BVblOk2d.js";function c(t,o){let a=r(o,["$$slots","$$events","$$legacy"]);const p={name:"maximize-2",size:24,node:[["path",{d:"M15 3h6v6"}],["path",{d:"m21 3-7 7"}],["path",{d:"m3 21 7-7"}],["path",{d:"M9 21H3v-6"}]]};s(t,e(()=>a,{get icon(){return p}}))}export{c as default};

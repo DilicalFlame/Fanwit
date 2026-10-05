@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as a,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as e}from"./Dib7RAlX.js";function c(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const s={name:"flask-round",size:24,node:[["path",{d:"M10 2v6.292a7 7 0 1 0 4 0V2"}],["path",{d:"M5 15h14"}],["path",{d:"M8.5 2h7"}]]};e(o,a(()=>r,{get icon(){return s}}))}export{c as default};

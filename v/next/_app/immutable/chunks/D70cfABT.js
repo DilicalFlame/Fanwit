@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as t,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function m(o,a){let r=e(a,["$$slots","$$events","$$legacy"]);const s={name:"zodiac-aries",size:24,node:[["path",{d:"M12 7.5a4.5 4.5 0 1 1 5 4.5"}],["path",{d:"M7 12a4.5 4.5 0 1 1 5-4.5V21"}]]};p(o,t(()=>r,{get icon(){return s}}))}export{m as default};

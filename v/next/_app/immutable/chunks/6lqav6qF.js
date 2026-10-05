@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as o,r as s}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as p}from"./BVblOk2d.js";function l(r,t){let a=s(t,["$$slots","$$events","$$legacy"]);const e={name:"square-radical",size:24,node:[["path",{d:"M7 12h2l2 5 2-10h4"}],["rect",{x:"3",y:"3",width:"18",height:"18",rx:"2"}]]};p(r,o(()=>a,{get icon(){return e}}))}export{l as default};

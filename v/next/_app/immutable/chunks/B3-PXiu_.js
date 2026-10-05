@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function c(o,t){let r=p(t,["$$slots","$$events","$$legacy"]);const e={name:"redo-2",size:24,node:[["path",{d:"m15 14 5-5-5-5"}],["path",{d:"M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"}]]};a(o,s(()=>r,{get icon(){return e}}))}export{c as default};

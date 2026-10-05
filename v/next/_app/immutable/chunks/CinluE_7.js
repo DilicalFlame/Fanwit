@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s,r as p}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as a}from"./Dib7RAlX.js";function c(o,t){let e=p(t,["$$slots","$$events","$$legacy"]);const r={name:"bluetooth",size:24,node:[["path",{d:"m7 7 10 10-5 5V2l5 5L7 17"}]]};a(o,s(()=>e,{get icon(){return r}}))}export{c as default};

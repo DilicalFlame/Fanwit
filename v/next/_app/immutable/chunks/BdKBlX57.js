@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as r,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function l(t,o){let s=a(o,["$$slots","$$events","$$legacy"]);const e={name:"whistle",size:24,node:[["path",{d:"M10 6v4"}],["path",{d:"M21 6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-5.675A7 7 0 1 1 9 6z"}]]};p(t,r(()=>s,{get icon(){return e}}))}export{l as default};

@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function $(t,o){let r=s(o,["$$slots","$$events","$$legacy"]);const a={name:"iteration-ccw",size:24,node:[["path",{d:"m16 14 4 4-4 4"}],["path",{d:"M20 10a8 8 0 1 0-8 8h8"}]]};p(t,e(()=>r,{get icon(){return a}}))}export{$ as default};

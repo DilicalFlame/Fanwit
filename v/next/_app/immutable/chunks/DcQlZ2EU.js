@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s,r as e}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as a}from"./BVblOk2d.js";function d(o,r){let t=e(r,["$$slots","$$events","$$legacy"]);const p={name:"arrow-up-from-dot",size:24,node:[["path",{d:"m5 9 7-7 7 7"}],["path",{d:"M12 16V2"}],["circle",{cx:"12",cy:"21",r:"1"}]]};a(o,s(()=>t,{get icon(){return p}}))}export{d as default};

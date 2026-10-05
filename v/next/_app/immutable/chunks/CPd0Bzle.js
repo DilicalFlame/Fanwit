@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as o,r as s}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as p}from"./Dib7RAlX.js";function m(t,a){let r=s(a,["$$slots","$$events","$$legacy"]);const e={name:"chart-line",size:24,node:[["path",{d:"M3 3v16a2 2 0 0 0 2 2h16"}],["path",{d:"m19 9-5 5-4-4-3 3"}]],aliases:["line-chart"]};p(t,o(()=>r,{get icon(){return e}}))}export{m as default};

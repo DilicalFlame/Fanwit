@@ -1,1 +1,0 @@
-import"./M7QI--X0.js";import{s as t,r as a}from"./DA30ZPLB.js";import"./BTqTGZku.js";import{I as n}from"./BVblOk2d.js";function c(o,e){let r=a(e,["$$slots","$$events","$$legacy"]);const s={name:"equal",size:24,node:[["line",{x1:"5",x2:"19",y1:"9",y2:"9"}],["line",{x1:"5",x2:"19",y1:"15",y2:"15"}]]};n(o,t(()=>r,{get icon(){return s}}))}export{c as default};

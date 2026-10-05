@@ -1,0 +1,1 @@
+import"./M7QI--X0.js";import{s as e,r as a}from"./iKT9cjVH.js";import"./lGwIKZ5O.js";import{I as n}from"./Dib7RAlX.js";function l(o,s){let t=a(s,["$$slots","$$events","$$legacy"]);const r={name:"columns-2",size:24,node:[["rect",{width:"18",height:"18",x:"3",y:"3",rx:"2"}],["path",{d:"M12 3v18"}]],aliases:["columns"]};n(o,e(()=>t,{get icon(){return r}}))}export{l as default};
