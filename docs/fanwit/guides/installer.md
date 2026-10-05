@@ -46,7 +46,7 @@ pnpm fw installer build                         # build every artefact in instal
 
 | Artefact | File |
 |---|---|
-| Setup app | `setup/<Name>_<version>_x64-Setup.exe` on Windows, `setup/<Name>_<version>_Setup.dmg` on macOS, `setup/<Name>_<version>_Setup.AppImage` on Linux |
+| Setup app | `setup/<Name>_<version>_x64_Setup.exe` on Windows, `setup/<Name>_<version>_Setup.dmg` on macOS, `setup/<Name>_<version>_Setup.AppImage` on Linux |
 | NSIS, MSI | `nsis/<Name>_<version>_x64-setup.exe`, `msi/<Name>_<version>_x64_en-US.msi` |
 | deb, rpm, AppImage, DMG | `deb/`, `rpm/`, `appimage/`, `dmg/` (from Tauri, with the kit's hooks) |
 | macOS pkg | `pkg/<Name>_<version>.pkg` and `pkg/uninstall-<slug>.sh` (artefact `pkg`, built on macOS) |

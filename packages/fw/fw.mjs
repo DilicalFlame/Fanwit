@@ -1464,7 +1464,7 @@ function buildSetup(doc, app, triple) {
 	fs.mkdirSync(outDir, { recursive: true });
 	let out;
 	if (process.platform === "win32") {
-		out = path.join(outDir, `${app.name}_${app.version}_x64-Setup${online ? "-online" : ""}.exe`);
+		out = path.join(outDir, `${app.name}_${app.version}_x64_Setup${online ? "-online" : ""}.exe`);
 		fs.copyFileSync(abs(`src-tauri/target/release/fanwit-setup${exeExt(triple)}`), out);
 	} else {
 		// tauri bundled the Setup app itself (DMG or AppImage); give it the product's name
@@ -1624,7 +1624,12 @@ async function installer() {
 						if (spawnSync("cargo", ["build", "--release", "--target", t, "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die(`could not build the engine for ${t}`);
 						fs.copyFileSync(abs(`src-tauri/target/${t}/release/${ENGINE}`), abs(`src-tauri/binaries/${ENGINE}-${t}`));
 					}
-					execSync(`lipo -create -output "${abs(`src-tauri/binaries/${ENGINE}-universal-apple-darwin`)}" ${arches.map((t) => `"${abs(`src-tauri/binaries/${ENGINE}-${t}`)}"`).join(" ")}`);
+					const lipo = (from, to) => execSync(`lipo -create -output "${abs(to)}" ${arches.map((t) => `"${abs(from(t))}"`).join(" ")}`);
+					lipo((t) => `src-tauri/binaries/${ENGINE}-${t}`, `src-tauri/binaries/${ENGINE}-universal-apple-darwin`);
+					// tauri merges only the main binary; the console client must be merged here
+					for (const t of arches) if (spawnSync("cargo", ["build", "--release", "--target", t, "--manifest-path", "src-tauri/Cargo.toml", "--bin", "fanwit-cli"], { cwd: ROOT, stdio: "inherit" }).status !== 0) die(`could not build fanwit-cli for ${t}`);
+					fs.mkdirSync(abs("src-tauri/target/universal-apple-darwin/release"), { recursive: true });
+					lipo((t) => `src-tauri/target/${t}/release/fanwit-cli`, "src-tauri/target/universal-apple-darwin/release/fanwit-cli");
 				} else {
 					if (spawnSync("cargo", ["build", "--release", "--manifest-path", "src-tauri/Cargo.toml", "-p", ENGINE], { cwd: ROOT, stdio: "inherit" }).status !== 0) die("could not build the engine");
 					fs.copyFileSync(abs(`src-tauri/target/release/${ENGINE}${exeExt(triple)}`), abs(bin));
