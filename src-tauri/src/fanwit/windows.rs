@@ -584,3 +584,18 @@ pub fn on_window_event<R: Runtime>(w: &Window<R>, e: &WindowEvent) {
         _ => {}
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn saved_window_state_reads_integers_and_floats_and_skips_incomplete_rects() {
+        let text = "# Window state\n[main]\nmaximized = true\nnormal = { x = 10, y = 20.5, w = 1280, h = 800 }\n\n[\"settings\"]\nnormal = { x = 1, y = 2 }\n";
+        let map = super::saved_file::parse(text).unwrap();
+        let main = &map["main"];
+        assert!(main.maximized && !main.fullscreen);
+        let r = main.normal.unwrap();
+        assert_eq!((r.x, r.y, r.w, r.h), (10.0, 20.5, 1280.0, 800.0));
+        assert!(map["settings"].normal.is_none(), "a rect missing w and h is ignored, not half applied");
+        assert!(super::saved_file::parse("not toml [").is_err());
+    }
+}
