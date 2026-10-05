@@ -19,24 +19,22 @@ pub struct Sandbox {
 }
 
 fn canon(p: &Path) -> PathBuf {
-    // canonicalise the deepest existing ancestor, then re-append the rest
-    let mut existing = p.to_path_buf();
-    let mut rest: Vec<std::ffi::OsString> = Vec::new();
-    while !existing.exists() {
-        match (existing.file_name(), existing.parent()) {
-            (Some(name), Some(parent)) => {
-                rest.push(name.to_os_string());
-                existing = parent.to_path_buf();
+    // walk the components, resolving symlinks wherever the path exists; `out` is always
+    // canonical, so `..` is a plain pop and a missing folder cannot hide a climb
+    use std::path::Component;
+    let mut out = PathBuf::new();
+    for c in p.components() {
+        match c {
+            Component::ParentDir => {
+                out.pop();
             }
-            _ => break,
-        }
-    }
-    let mut out = dunce::canonicalize(&existing).unwrap_or(existing);
-    for r in rest.into_iter().rev() {
-        if r == ".." {
-            out.pop();
-        } else if r != "." {
-            out.push(r);
+            Component::CurDir => {}
+            other => {
+                out.push(other);
+                if out.exists() {
+                    out = dunce::canonicalize(&out).unwrap_or(out);
+                }
+            }
         }
     }
     out
