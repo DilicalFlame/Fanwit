@@ -78,10 +78,13 @@ export const explorerModule = defineModule({
 		h("explorer.rename", async ({ path, to }: { path: string; to: string }) => {
 			const target = to.includes("/") ? to : join(path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "", to);
 			if (await vault.fs.exists(target)) throw new FanwitError("FILE_EXISTS", { message: `${target} already exists.` });
-			await vault.fs.rename(path, target);
-			// open tabs follow renames
-			for (const [id, p] of Object.entries(layout.doc.pane)) if (p.props?.path === path) await layout.dispatch({ type: "setAttrs", table: "pane", id, attrs: { props: { ...p.props, path: target } } }, { undoable: false });
-			return { undo: () => vault.fs.rename(target, path), redo: () => vault.fs.rename(path, target), label: `Rename ${path}` };
+			// open tabs follow the file, in both directions
+			const move = async (from: string, to: string) => {
+				await vault.fs.rename(from, to);
+				for (const [id, p] of Object.entries(layout.doc.pane)) if (p.props?.path === from) await layout.dispatch({ type: "setAttrs", table: "pane", id, attrs: { props: { ...p.props, path: to } } }, { undoable: false });
+			};
+			await move(path, target);
+			return { undo: () => move(target, path), redo: () => move(path, target), label: `Rename ${path}` };
 		});
 		h("explorer.delete", async ({ path }: { path: string }) => {
 			const ok = await k.sys.dialog.ask(`Move "${path}" to the ${vault.trashMode() === "vault" ? "vault's .trash folder" : "trash"}?`, { title: "Delete", okLabel: "Move to trash", kind: "warning" });

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { boot as start, cmd, needsLabs, prompt } from "./helpers";
+import { boot as start, cmd, needsLabs, newVault, prompt } from "./helpers";
 
 /** App wide flows on the web build (BrowserHost: OPFS vaults, SQLite WASM, worker plugins). Flows of a part live in its *.e2e.ts. */
 
@@ -87,4 +87,23 @@ test("a confirm dialog guards a destructive command, and toasts report back", as
 	await expect(dialog).toHaveCount(0);
 	await cmd(page, "open webview devtools");
 	await expect(page.getByText("Use your browser's developer tools (F12)")).toBeVisible();
+});
+
+test("the explorer renames with F2, open tabs follow, and undo puts the name back", async ({ page }) => {
+	await start(page);
+	await newVault(page, "ren");
+	await cmd(page, "explorer: new file");
+	await prompt(page, "draft");
+	const row = page.locator('[data-explorer-path="draft.md"]');
+	await row.click();
+	await page.keyboard.press("F2");
+	// the name is selected without its extension
+	await page.keyboard.type("final");
+	await page.keyboard.press("Enter");
+	await expect(page.locator('[data-explorer-path="final.md"]')).toBeVisible();
+	await expect(page.locator("[data-fw-tab]", { hasText: "final.md" })).toBeVisible();
+	await cmd(page, "undo");
+	await expect(page.locator('[data-explorer-path="draft.md"]')).toBeVisible();
+	// the tab follows the undo too, instead of pointing at a file that no longer exists
+	await expect(page.locator("[data-fw-tab]", { hasText: "draft.md" })).toBeVisible();
 });
