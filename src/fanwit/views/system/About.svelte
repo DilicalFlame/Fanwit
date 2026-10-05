@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from "$app/paths";
 	import { getKernel } from "../../ui.svelte";
 	import type { AppInfo } from "../../host/types";
 	import { identity } from "../../gen/identity";
@@ -12,7 +13,7 @@
 </script>
 
 <div class="flex h-full flex-col items-center gap-3 p-6 text-center">
-	<img src="/favicon.svg" alt="" class="size-14" />
+	<img src={asset("/favicon.svg")} alt="" class="size-14" />
 	<div class="text-lg font-semibold">{info?.name ?? identity.name} {info?.version ?? identity.version}</div>
 	<div class="selectable text-xs text-muted-foreground">
 		{#if info?.tauriVersion}Tauri {info.tauriVersion}{#if info.webview} · Webview {info.webview}{/if}<br />{:else}Web build<br />{/if}

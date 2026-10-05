@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from "$app/paths";
 	import { getKernel, menu, useT } from "../ui.svelte";
 	import Icon from "../icons/Icon.svelte";
 	import { identity } from "../gen/identity";
@@ -47,7 +48,7 @@
 
 {#if app}
 	<button class="flex h-7 shrink-0 items-center gap-1.5 rounded px-1.5 hover:bg-current/10" aria-label="{identity.name} menu" onclick={(e) => showMenu("titlebar/app", e.currentTarget)} use:menu={{ location: "titlebar/app" }}>
-		{#if icon}<Icon name={icon} size={16} />{:else}<img src="/favicon.svg" alt="" class="size-4" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />{/if}
+		{#if icon}<Icon name={icon} size={16} />{:else}<img src={asset("/favicon.svg")} alt="" class="size-4" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />{/if}
 		{#if collapsed}<Icon name="menu" size={15} />{/if}
 	</button>
 {/if}

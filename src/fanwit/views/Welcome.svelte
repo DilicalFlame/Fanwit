@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from "$app/paths";
 	import { getKernel, menu, useT } from "../ui.svelte";
 	import { enter } from "../motion/motion";
 	import Icon from "../icons/Icon.svelte";
@@ -28,7 +29,7 @@
 <div class="h-full overflow-y-auto">
 	<div class="mx-auto flex max-w-4xl flex-col gap-8 px-8 py-10" use:enter={{ preset: "rise", stagger: "> :not(.grid), .grid > section > *" }}>
 		<header class="flex items-center gap-4">
-			<img src="/favicon.svg" alt="" class="size-12" />
+			<img src={asset("/favicon.svg")} alt="" class="size-12" />
 			<div>
 				<h1 class="text-2xl font-semibold tracking-tight">{t("ui.welcome.title", "Welcome to {name}", { name: identity.name })}</h1>
 				<p class="text-sm text-muted-foreground">{t("ui.welcome.tagline", "Fast And Natural Window In Tauri: a hackable template for desktop and web apps.")}</p>

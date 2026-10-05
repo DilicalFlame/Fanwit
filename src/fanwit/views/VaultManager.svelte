@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from "$app/paths";
 	import { getKernel, menu } from "../ui.svelte";
 	import { useWindow } from "../windows/windows.svelte";
 	import Icon from "../icons/Icon.svelte";
@@ -47,7 +48,7 @@
 <div class="flex h-full min-h-0">
 	<aside class="flex w-64 shrink-0 flex-col border-r border-border bg-sidebar">
 		<div class="flex items-center gap-3 p-4">
-			<img src="/favicon.svg" alt="" class="size-9" />
+			<img src={asset("/favicon.svg")} alt="" class="size-9" />
 			<div><div class="font-semibold">{identity.name}</div><div class="text-xs text-muted-foreground">Version {identity.version}</div></div>
 		</div>
 		<div class="fw-section-title">Recent vaults</div>
