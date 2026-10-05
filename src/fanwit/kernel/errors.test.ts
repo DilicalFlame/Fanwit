@@ -18,6 +18,11 @@ test("an error that crossed a boundary is still recognised by its name", () => {
 test("anything thrown becomes a FanwitError, and codes map to CLI exit codes", () => {
 	expect(toFanwitError(new Error("boom")).code).toBe("UNKNOWN");
 	expect(toFanwitError("text", "IO").message).toBe("text");
+	// errors from Rust commands arrive as strings that may start with their code
+	const denied = toFanwitError("PERMISSION_DENIED: access to notes__items is prohibited");
+	expect(denied).toMatchObject({ code: "PERMISSION_DENIED", message: "access to notes__items is prohibited" });
+	expect(exitCodeFor(denied)).toBe(5);
+	expect(toFanwitError("No such file: a.md").code).toBe("UNKNOWN");
 	expect(exitCodeFor(new FanwitError("CMD_UNKNOWN", { message: "" }))).toBe(4);
 	expect(exitCodeFor(new FanwitError("CANCELLED", { message: "" }))).toBe(130);
 	expect(exitCodeFor(new Error("other"))).toBe(1);

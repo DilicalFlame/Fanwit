@@ -81,7 +81,16 @@ fn with_guard<T>(c: &Connection, owner: Option<String>, f: impl FnOnce(&Connecti
     if owner.is_some() {
         c.authorizer(None::<fn(AuthContext<'_>) -> Authorization>).map_err(err)?;
     }
-    r.map_err(|e| if e.contains("not authorized") { format!("PERMISSION_DENIED: {e}. Plugins may only use tables prefixed with their id.") } else { e })
+    r.map_err(denied)
+}
+
+/// SQLite says "not authorized" for denied statements and "access to x is prohibited" for denied reads.
+fn denied(e: String) -> String {
+    if e.contains("not authorized") || e.contains("is prohibited") {
+        format!("PERMISSION_DENIED: {e}. Plugins may only use tables prefixed with their id.")
+    } else {
+        e
+    }
 }
 
 #[tauri::command]
@@ -183,7 +192,7 @@ pub async fn fw_db_batch(state: tauri::State<'_, State>, handle: u32, statements
         if owner.is_some() {
             c.authorizer(None::<fn(AuthContext<'_>) -> Authorization>).map_err(err)?;
         }
-        r
+        r.map_err(denied)
     })
     .await
     .map_err(err)?
@@ -194,4 +203,22 @@ pub fn fw_db_close(state: tauri::State<State>, handle: u32) -> Result<()> {
     state.db.conns.lock().unwrap().remove(&handle);
     state.db.by_path.lock().unwrap().retain(|_, h| *h != handle);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_plugin_only_reaches_tables_with_its_prefix() {
+        let c = Connection::open_in_memory().unwrap();
+        c.execute_batch("CREATE TABLE notes__items (id INTEGER); INSERT INTO notes__items VALUES (1);").unwrap();
+        let run = |sql: &str| with_guard(&c, Some("timer".into()), |c| c.execute_batch(sql).map_err(err));
+        assert!(run("CREATE TABLE timer__laps (ms INTEGER); INSERT INTO timer__laps VALUES (5);").is_ok());
+        let denied = run("SELECT * FROM notes__items").unwrap_err();
+        assert!(denied.starts_with("PERMISSION_DENIED"), "{denied}");
+        assert!(run("ATTACH DATABASE ':memory:' AS other").is_err(), "no attaching other files");
+        // the authorizer is removed afterwards: the app itself reads everything
+        assert!(c.execute_batch("SELECT * FROM notes__items").is_ok());
+    }
 }

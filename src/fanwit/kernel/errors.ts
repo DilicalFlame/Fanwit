@@ -63,7 +63,9 @@ export function isFanwitError(e: unknown): e is FanwitError {
 export function toFanwitError(e: unknown, code = "UNKNOWN"): FanwitError {
 	if (e instanceof FanwitError) return e;
 	if (e instanceof Error) return new FanwitError(code, { message: e.message, cause: e });
-	return new FanwitError(code, { message: String(e) });
+	// Rust commands reject with a string; "PERMISSION_DENIED: ..." carries its code
+	const m = /^([A-Z][A-Z0-9_]+): ([\s\S]*)$/.exec(String(e));
+	return m ? new FanwitError(m[1], { message: m[2] }) : new FanwitError(code, { message: String(e) });
 }
 
 /** CLI exit codes from Section 15.1.3. */
