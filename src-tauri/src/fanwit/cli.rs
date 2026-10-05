@@ -221,3 +221,21 @@ pub fn on_second_instance<R: Runtime>(app: &AppHandle<R>, argv: Vec<String>, cwd
         let _ = app.emit("fw://open-paths", paths);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::LaunchArgs;
+
+    #[test]
+    fn launch_flags_settings_and_paths() {
+        let argv: Vec<String> = ["fanwit", "--headless", "--set", "ui.zoom=110", "--set=theme.mode=dark", "--profile", "work", "--unknown", "notes", "fanwit://run/app.about"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let a = LaunchArgs::parse(&argv);
+        assert!(a.headless && !a.safe_mode);
+        assert_eq!(a.sets, vec![("ui.zoom".into(), "110".into()), ("theme.mode".into(), "dark".into())]);
+        assert_eq!(a.profile.as_deref(), Some("work"));
+        assert_eq!(a.paths, vec!["notes".to_string(), "fanwit://run/app.about".to_string()], "unknown flags are ignored, not taken as paths");
+    }
+}

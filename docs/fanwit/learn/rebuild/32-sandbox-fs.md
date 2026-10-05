@@ -142,11 +142,11 @@ Tauri's `listen` returns a promise of an unlisten function, but FaNWiT's `events
 
 The rest of the host maps the other contracts:
 
-- **Windows** go through Tauri's window API, plus `fw_win_*` commands for what it lacks (chapter 35).
+- **Windows** go through Tauri's window API, plus `fw_win_*` commands for what it lacks (chapter 34).
 - **Dialogs, notifications and the opener** use Tauri plugins. They are imported lazily, so they don't slow startup.
 - **Global shortcuts and autostart** come from desktop only plugins.
-- **SQLite** goes through `fw_db_*` (chapter 34).
-- **Plugin files and sidecars** go through `fw_plugin_*` and `fw_sidecar_*` (chapter 37). Windows' WebView2 serves custom schemes as `http://fanwit-plugin.localhost`, and the other OSes as `fanwit-plugin://localhost`.
+- **SQLite** goes through `fw_db_*` (chapter 33).
+- **Plugin files and sidecars** go through `fw_plugin_*` and `fw_sidecar_*` (chapter 36). Windows' WebView2 serves custom schemes as `http://fanwit-plugin.localhost`, and the other OSes as `fanwit-plugin://localhost`.
 
 <Source path="src/fanwit/host/tauri.ts" />
 

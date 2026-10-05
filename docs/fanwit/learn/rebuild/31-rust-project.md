@@ -35,7 +35,7 @@ The web side treats Rust as a **server it trusts and that does not trust it back
 <Source path="src-tauri/Cargo.toml" />
 
 - **One workspace.** The app, the installer engine (`install`), the setup program (`setup`), the Rust plugin SDK, the TOML merge library (chapter 4) and native plugins build together and share one `Cargo.lock` and one `target/` folder. `default-members` limits what plain `cargo build` builds, so the setup program, which embeds a finished app, is built only when asked for.
-- **A library and a binary.** The app's code is a library (`fanwit_lib`), and `main.rs` only calls `run()`. Tauri needs this for mobile builds (`staticlib` and `cdylib`), and it also lets `src-tauri/src/bin/fanwit-cli.rs` (chapter 36) live in the same crate.
+- **A library and a binary.** The app's code is a library (`fanwit_lib`), and `main.rs` only calls `run()`. Tauri needs this for mobile builds (`staticlib` and `cdylib`), and it also lets `src-tauri/src/bin/fanwit-cli.rs` (chapter 35) live in the same crate.
 - **Small release builds.** `opt-level = "z"` optimises for size, `lto` optimises across crates, `codegen-units = 1` gives the optimiser everything at once, `strip` removes symbols, and `panic = "abort"` drops the unwinding machinery. Release builds take longer, and the app comes out a fraction of the size.
 - **Platform specific dependencies.** `[target."cfg(windows)".dependencies]` is only compiled on Windows. The single instance, global shortcut and autostart plugins are desktop only.
 
@@ -57,9 +57,9 @@ A crate can offer optional **features**. `rusqlite` with `"bundled"` compiles SQ
 
 <Source path="src-tauri/tauri.conf.json" />
 
-- **`"windows": []`.** No window is declared here. The main window is created in code (chapter 35), with its saved size and position, so it can open exactly where you left it.
+- **`"windows": []`.** No window is declared here. The main window is created in code (chapter 34), with its saved size and position, so it can open exactly where you left it.
 - **`removeUnusedCommands`.** Plugin commands that no capability allows are left out of the build, so code nothing may call is not shipped.
-- **The content security policy** says what the webview may load. Scripts, styles and fonts come from the app itself, plus `blob:` (the playgrounds) and the `fanwit-plugin:` scheme (plugin files, chapter 37). Connections go to the app, Tauri's IPC and the plugin scheme. Nothing loads from the internet, and `object-src 'none'` forbids plugins of the old kind. The development policy additionally allows Vite's dev server and its hot reload socket.
+- **The content security policy** says what the webview may load. Scripts, styles and fonts come from the app itself, plus `blob:` (the playgrounds) and the `fanwit-plugin:` scheme (plugin files, chapter 36). Connections go to the app, Tauri's IPC and the plugin scheme. Nothing loads from the internet, and `object-src 'none'` forbids plugins of the old kind. The development policy additionally allows Vite's dev server and its hot reload socket.
 - **The isolation pattern** puts a hidden, sandboxed iframe between the page and Tauri's IPC. Every message passes through `isolation-src/isolation.js` before it reaches Rust:
 
 <Source path="isolation-src/isolation.js" />
@@ -84,12 +84,12 @@ Main and auxiliary windows get the full workbench set. Child windows (dialogs, p
 
 Read it in order:
 
-1. **Launch arguments** are parsed first (chapter 36), since they decide the profile, safe mode and headless mode.
+1. **Launch arguments** are parsed first (chapter 35), since they decide the profile, safe mode and headless mode.
 2. **Plugins.** The single instance plugin must come first: when the app is launched a second time, it forwards that launch's arguments to the running instance and exits before anything else starts. Autostart launches with `--headless`, so the app starts in the tray.
 3. **`.manage(State::new(launch))`** gives every command access to FaNWiT's shared state (below).
-4. **`register_uri_scheme_protocol`** serves plugin files from a custom scheme (chapter 37).
+4. **`register_uri_scheme_protocol`** serves plugin files from a custom scheme (chapter 36).
 5. **`generate_handler!`** lists every `fw_*` command. There are about 45, grouped by module. A command that is not listed here simply does not exist for the webview.
-6. **`setup`** runs once the app is built (below). **`on_window_event`** handles focus, moves and closing for all windows (chapter 35).
+6. **`setup`** runs once the app is built (below). **`on_window_event`** handles focus, moves and closing for all windows (chapter 34).
 7. **The run loop** kills plugin sidecars on exit, and reopens the main window when the macOS dock icon is clicked.
 
 ## Shared state and helpers
@@ -121,8 +121,8 @@ Tauri runs commands on several threads at once, and `State` is shared by all of 
 2. **Paths from the command line** count as chosen by the user. `fanwit ~/notes` makes that folder accessible, just as picking it in a dialog would.
 3. **The panic hook** is installed.
 4. **Windows**: saved state is loaded and the main window is created.
-5. **The CLI socket server** starts (chapter 36).
-6. **Pending installer phases** run (chapter 38).
+5. **The CLI socket server** starts (chapter 35).
+6. **Pending installer phases** run (chapter 37).
 7. **The tray** is created, unless the app started headless.
 8. **Deep link schemes** are registered with the OS.
 
