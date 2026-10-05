@@ -156,6 +156,7 @@ export function validateArgs(id: string, schema: ArgSchema | undefined, args: Re
  * args: v.object({ file: v.pipe(v.string(), argMeta({ type: "path", kind: "file", title: "File to import" })) })
  * ```
  */
-export function argMeta(meta: Partial<ArgSpec>) {
-	return v.metadata(meta as Record<string, unknown>);
+export function argMeta<T = unknown>(meta: Partial<ArgSpec>) {
+	// T is inferred from the pipe it sits in (v.pipe(v.string(), argMeta(...)) makes it string)
+	return v.metadata<T, Record<string, unknown>>(meta as Record<string, unknown>);
 }
