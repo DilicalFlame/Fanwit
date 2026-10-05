@@ -51,7 +51,8 @@
 		recordingFor = command;
 		recorded = [];
 		k.keys.recorder = (step) => {
-			if (step === "escape" && !recorded.length) return stopRecording();
+			// Escape always cancels, as the row says, never becomes part of a chord
+			if (step === "escape") return stopRecording();
 			recorded = [...recorded, step];
 			if (recorded.length >= 2 || !/^(ctrl|meta)\+k$/.test(step)) finishSoon();
 		};
@@ -73,6 +74,7 @@
 		}, 700);
 	}
 	function stopRecording() {
+		clearTimeout(t);
 		k.keys.recorder = null;
 		recordingFor = null;
 	}
@@ -94,11 +96,13 @@
 	function remove(command: string) {
 		writeUser([...k.keys.userBindings().filter((b) => b.command !== command), { key: "", command: `-${command}` }]);
 	}
-	function changeWhen(r: { id: string; bindings: ResolvedBinding[] }) {
+	async function changeWhen(r: { id: string; bindings: ResolvedBinding[] }) {
 		const b = r.bindings[0];
 		if (!b) return;
-		const when = prompt(`When clause for ${r.id}`, b.when ?? "");
-		if (when === null) return;
+		// a palette step, not window.prompt: themed, and it works in every webview
+		const answer = await k.sys.palette.ask(`When clause for ${r.id}`, [{ name: "when", spec: { type: "string", required: false, description: b.when }, title: "When clause" }], {});
+		if (!answer) return;
+		const when = String(answer.when ?? "").trim();
 		writeUser([...k.keys.userBindings().filter((x) => x.command !== r.id), { key: b.key, command: r.id, when: when || undefined }, ...(b.source !== "user" ? [{ key: b.key, command: `-${r.id}` }] : [])]);
 	}
 </script>

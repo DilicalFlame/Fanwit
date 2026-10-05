@@ -107,3 +107,25 @@ test("the explorer renames with F2, open tabs follow, and undo puts the name bac
 	// the tab follows the undo too, instead of pointing at a file that no longer exists
 	await expect(page.locator("[data-fw-tab]", { hasText: "draft.md" })).toBeVisible();
 });
+
+test("a shortcut recorded in the keyboard editor works at once", async ({ page }) => {
+	await start(page);
+	await cmd(page, "open keyboard shortcuts");
+	await page.getByLabel("Search keybindings").fill("toggle zen");
+	await page.getByRole("button", { name: "Change keybinding for Toggle zen mode" }).click();
+	await page.keyboard.press("Alt+Shift+9");
+	const row = page.getByRole("row", { name: /Toggle zen mode/ });
+	// the recording commits after a short pause (a chord may follow)
+	await expect(row).not.toContainText("Press keys", { timeout: 3000 });
+	await expect(row).toContainText("Alt+Shift+9");
+	await expect(row).toContainText("user");
+	// Escape cancels a recording, even after a key was pressed
+	await page.getByRole("button", { name: "Change keybinding for Toggle zen mode" }).click();
+	await page.keyboard.press("Alt+Shift+8");
+	await page.keyboard.press("Escape");
+	await page.waitForTimeout(1000);
+	await expect(row).not.toContainText("Alt+Shift+8");
+	await page.locator("[data-fw-region=statusbar]").click();
+	await page.keyboard.press("Alt+Shift+9");
+	await expect(page.locator("[data-fw-region=titlebar]")).toHaveCount(0);
+});
