@@ -58,7 +58,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 
 ## Documentation
 
-Press **F1** in the app, run `pnpm docs` for the docs site, or read [docs/fanwit/getting-started.md](docs/fanwit/getting-started.md). The full specification is in `FANWIT-Specification.pdf`.
+Read the docs online at https://dilicalflame.github.io/Fanwit/docs/. Or press **F1** in the app, run `pnpm docs` for the docs site, or read [docs/fanwit/getting-started.md](docs/fanwit/getting-started.md). The full specification is in `FANWIT-Specification.pdf`.
 
 ## Known limitations
 
