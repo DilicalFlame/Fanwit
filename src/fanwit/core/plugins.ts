@@ -22,8 +22,14 @@ export const pluginsModule = defineModule({
 	async activate(ctx) {
 		const k = ctx.kernel;
 		const svc = new PluginService(k);
-		svc.safeMode = k.sys.info.safeMode;
+		svc.safeMode = !!k.sys.info?.safeMode;
 		k.sys.plugins = svc;
+		// one session in safe mode, asked for by the crash report's "Start in safe mode"
+		if (await k.sys.storage?.get<boolean>("fanwit", "safeModeOnce").catch(() => false)) {
+			svc.safeMode = true;
+			await k.sys.storage.delete("fanwit", "safeModeOnce");
+			await k.sys.storage.flush();
+		}
 		// not awaited: the scan reads files and must not count against this module's start budget
 		const ready = svc.scan();
 		ctx.commands.register(
