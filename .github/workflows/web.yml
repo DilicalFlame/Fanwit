@@ -35,6 +35,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+        env:
+          # the app is served from /<repo> on a project site (empty with a custom domain)
+          FW_DOCS_BASE: /${{ github.event.repository.name }}
 
       - name: Docs version
         shell: bash
