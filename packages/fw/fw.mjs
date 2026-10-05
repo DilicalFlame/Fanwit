@@ -1723,6 +1723,11 @@ const HELP = `fw: Fanwit developer CLI
 Every command accepts --dry-run.`;
 
 const [cmd, sub, third] = args;
+// --help anywhere means help, never the command: `fw strip --help` used to strip every part
+if (cmd && (has("help") || args.includes("-h"))) {
+	console.log(HELP);
+	process.exit(0);
+}
 switch (cmd) {
 	case "create":
 		create();

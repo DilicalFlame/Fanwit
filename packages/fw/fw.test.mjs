@@ -37,6 +37,19 @@ test("strip, undo and restore round trip", () => {
 	fs.rmSync(root, { recursive: true, force: true });
 });
 
+test("--help prints help and never runs the command", () => {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), "fw-help-"));
+	fs.mkdirSync(path.join(root, "src/app/showcase/a"), { recursive: true });
+	fs.writeFileSync(path.join(root, "src/app/showcase/a/part.toml"), 'id = "showcase-a"\nkind = "showcase"\n');
+	fs.writeFileSync(path.join(root, "app.config.ts"), "features: { labs: true }\n");
+	for (const h of ["--help", "-h"]) {
+		const out = execFileSync("node", [FW, "strip", h], { env: { ...process.env, FW_ROOT: root }, encoding: "utf8", stdio: "pipe" });
+		assert.match(out, /Fanwit developer CLI/);
+	}
+	assert.ok(fs.existsSync(path.join(root, "src/app/showcase/a/part.toml")) && !fs.existsSync(path.join(root, ".trash")));
+	fs.rmSync(root, { recursive: true, force: true });
+});
+
 test("docs publish builds a versioned site", () => {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), "fw-docs-"));
 	const put = (p, text) => (fs.mkdirSync(path.dirname(path.join(root, p)), { recursive: true }), fs.writeFileSync(path.join(root, p), text));
