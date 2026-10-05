@@ -26,7 +26,9 @@
 	 * development, the docs site or developer mode; production builds show it read only.
 	 */
 	type Mode = "module" | "kernel" | "svelte" | "rust" | "js" | "ts";
-	let { mode = "module", title, id, height = 260, children }: { mode?: Mode; title?: string; id?: string; height?: number; children?: Snippet } = $props();
+	let { mode: requested = "module", title, id, height = 260, children }: { mode?: Mode; title?: string; id?: string; height?: number; children?: Snippet } = $props();
+	// the docs site never lets a reader's module into its own kernel: it runs in a sandbox instead
+	const mode = $derived<Mode>(requested === "module" && buildMode === "docs" ? "kernel" : requested);
 	const k = getKernel();
 	let source = $state<HTMLElement>();
 	let host = $state<HTMLElement>();

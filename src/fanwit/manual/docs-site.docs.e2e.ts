@@ -66,3 +66,11 @@ test("a diagram opens large, zooms, and closes with Escape", async ({ page }) =>
 	await page.keyboard.press("Escape");
 	await expect(view).toHaveCount(0);
 });
+
+test("module playgrounds run in a sandbox kernel, never in the docs site's own", async ({ page }) => {
+	await open(page, "?page=fanwit/guides/commands");
+	const plays = page.locator(".fw-play");
+	await expect(plays.first()).toBeVisible();
+	await expect(page.locator('.fw-play[data-mode="module"]')).toHaveCount(0);
+	expect(await page.locator('.fw-play[data-mode="kernel"]').count()).toBeGreaterThan(0);
+});
